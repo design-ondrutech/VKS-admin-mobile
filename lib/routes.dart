@@ -1,0 +1,46 @@
+
+import 'package:admin/screens/dashboard/dashboard_screen.dart';
+import 'package:admin/screens/dashboard/widgets/notification.dart';
+import 'package:admin/screens/dashboard/widgets/schemes.dart';
+import 'package:flutter/material.dart';
+import 'screens/login_screen.dart';
+
+class AppRoutes {
+  static const String login = '/login';
+  static const String dashboard = '/dashboard';
+  static const String overview = '/dashboard/overview';
+  static const String schemes = '/dashboard/schemes';
+  static const String notifications = '/dashboard/notifications';
+  
+
+
+  static Route<dynamic> generateRoute(RouteSettings settings) {
+    switch (settings.name) {
+      case login:
+        return MaterialPageRoute(builder: (_) => LoginScreen());
+
+      case dashboard:
+        return MaterialPageRoute(builder: (_) => DashboardHeader());
+
+      case overview:
+        return MaterialPageRoute(builder: (_) => DashboardHeader());  
+
+      case schemes:
+        return MaterialPageRoute(builder: (_) => SchemesTab());  
+
+      case notifications:
+        return MaterialPageRoute(builder: (_) => NotificationsTab());  
+
+       
+
+      default:
+        return MaterialPageRoute(
+          builder: (_) => Scaffold(
+            body: Center(
+              child: Text('No route defined for ${settings.name}'),
+            ),
+          ),
+        );
+    }
+  }
+}
