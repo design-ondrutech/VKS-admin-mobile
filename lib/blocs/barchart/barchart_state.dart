@@ -1,31 +1,24 @@
-class ChartState {
-  final List<double> goldEleven;
-  final List<double> digitalGold;
-  final List<String> months;
-  final bool loading;
-  final String? error;
+import 'package:admin/data/models/barchart.dart';
 
-  ChartState({
-    this.goldEleven = const [],
-    this.digitalGold = const [],
-    this.months = const [],
-    this.loading = false,
-    this.error,
-  });
 
-  ChartState copyWith({
-    List<double>? goldEleven,
-    List<double>? digitalGold,
-    List<String>? months,
-    bool? loading,
-    String? error,
-  }) {
-    return ChartState(
-      goldEleven: goldEleven ?? this.goldEleven,
-      digitalGold: digitalGold ?? this.digitalGold,
-      months: months ?? this.months,
-      loading: loading ?? this.loading,
-      error: error,
-    );
-  }
+abstract class GoldDashboardState {
+  const GoldDashboardState();
+}
+
+class GoldDashboardInitial extends GoldDashboardState {
+  const GoldDashboardInitial();
+}
+
+class GoldDashboardLoading extends GoldDashboardState {
+  const GoldDashboardLoading();
+}
+
+class GoldDashboardLoaded extends GoldDashboardState {
+  final GoldDashboardModel data;
+  const GoldDashboardLoaded(this.data);
+}
+
+class GoldDashboardError extends GoldDashboardState {
+  final String message;
+  const GoldDashboardError(this.message);
 }

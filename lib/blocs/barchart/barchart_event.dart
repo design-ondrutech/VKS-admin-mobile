@@ -1,3 +1,3 @@
-abstract class ChartEvent {}
+abstract class GoldDashboardEvent {}
 
-class FetchGoldDashboard extends ChartEvent {}
+class FetchGoldDashboard extends GoldDashboardEvent {}

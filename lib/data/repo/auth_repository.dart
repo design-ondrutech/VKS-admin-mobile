@@ -79,7 +79,7 @@ class CardRepository {
 
 
 
-// Scheme Repository
+// Scheme Repository  
 class SchemeRepository {
   final GraphQLClient client;
 
@@ -115,37 +115,41 @@ class SchemeRepository {
 }
 
 
-// Gold Dashboard Repository
-class GoldDashboardRepository {
-  final GraphQLClient client;
 
-  GoldDashboardRepository(this.client);
-Future<GoldDashboard> fetchGoldDashboard() async {
-  final query = gql("""
-    query GoldDashboard {
-      goldDashboard {
-        latest_buy_date
-        latest_gold_weight
-        monthly_summary {
-          gold_bought
-          month
-        }
-        scheme_monthly_summary {
-          customer_count
-          month
-          scheme_name
-          total_gold_bought
+// Gold Dashboard Repository
+class BarChartRepository {
+  final GraphQLClient client;
+  BarChartRepository(this.client);
+
+  Future<GoldDashboardModel> fetchGoldDashboard() async {
+    const String query = r'''
+      query GoldDashboard {
+        goldDashboard {
+          latest_gold_weight
+          latest_buy_date
+          scheme_monthly_summary {
+            customer_count
+            month
+            scheme_name
+            total_gold_bought
+          }
+          monthly_summary {
+            gold_bought
+            month
+          }
         }
       }
+    ''';
+
+    final result = await client.query(QueryOptions(document: gql(query)));
+
+    if (result.hasException) {
+      throw Exception(result.exception.toString());
     }
-  """);
 
-  final response = await client.query(QueryOptions(document: query));
-
-  if (response.hasException) {
-    throw Exception(response.exception.toString());
+    final data = result.data?['goldDashboard'] as Map<String, dynamic>?;
+    if (data == null) throw Exception('No data');
+    return GoldDashboardModel.fromJson(data);
   }
-
-  return GoldDashboard.fromJson(response.data?["goldDashboard"]);
 }
-}
+// Gold Dashboard Repository

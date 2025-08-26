@@ -1,43 +1,26 @@
-class GoldDashboard {
-  final String latestBuyDate;
-  final double latestGoldWeight;
-  final List<MonthlySummary> monthlySummary;
+class GoldDashboardModel {
+  final double latestGoldWeight;      // numeric
+  final String latestBuyDate;         // date as string
   final List<SchemeMonthlySummary> schemeMonthlySummary;
+  final List<MonthlySummary> monthlySummary;
 
-  GoldDashboard({
-    required this.latestBuyDate,
+  GoldDashboardModel({
     required this.latestGoldWeight,
-    required this.monthlySummary,
+    required this.latestBuyDate,
     required this.schemeMonthlySummary,
+    required this.monthlySummary,
   });
 
-  factory GoldDashboard.fromJson(Map<String, dynamic> json) {
-    return GoldDashboard(
-      latestBuyDate: json["latest_buy_date"] ?? "",
-      latestGoldWeight: (json["latest_gold_weight"] ?? 0).toDouble(),
-      monthlySummary: (json["monthly_summary"] as List)
-          .map((e) => MonthlySummary.fromJson(e))
+  factory GoldDashboardModel.fromJson(Map<String, dynamic> json) {
+    return GoldDashboardModel(
+      latestGoldWeight: (json['latest_gold_weight'] as num?)?.toDouble() ?? 0.0,
+      latestBuyDate: json['latest_buy_date'] ?? '',
+      schemeMonthlySummary: (json['scheme_monthly_summary'] as List? ?? [])
+          .map((e) => SchemeMonthlySummary.fromJson(e as Map<String, dynamic>))
           .toList(),
-      schemeMonthlySummary: (json["scheme_monthly_summary"] as List)
-          .map((e) => SchemeMonthlySummary.fromJson(e))
+      monthlySummary: (json['monthly_summary'] as List? ?? [])
+          .map((e) => MonthlySummary.fromJson(e as Map<String, dynamic>))
           .toList(),
-    );
-  }
-}
-
-class MonthlySummary {
-  final double goldBought;
-  final String month;
-
-  MonthlySummary({
-    required this.goldBought,
-    required this.month,
-  });
-
-  factory MonthlySummary.fromJson(Map<String, dynamic> json) {
-    return MonthlySummary(
-      goldBought: (json["gold_bought"] ?? 0).toDouble(),
-      month: json["month"] ?? "",
     );
   }
 }
@@ -46,7 +29,7 @@ class SchemeMonthlySummary {
   final int customerCount;
   final String month;
   final String schemeName;
-  final double totalGoldBought;
+  final double totalGoldBought; // numeric
 
   SchemeMonthlySummary({
     required this.customerCount,
@@ -57,10 +40,27 @@ class SchemeMonthlySummary {
 
   factory SchemeMonthlySummary.fromJson(Map<String, dynamic> json) {
     return SchemeMonthlySummary(
-      customerCount: json["customer_count"] ?? 0,
-      month: json["month"] ?? "",
-      schemeName: json["scheme_name"] ?? "",
-      totalGoldBought: (json["total_gold_bought"] ?? 0).toDouble(),
+      customerCount: (json['customer_count'] as num?)?.toInt() ?? 0,
+      month: json['month'] ?? '',
+      schemeName: json['scheme_name'] ?? '',
+      totalGoldBought: (json['total_gold_bought'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+}
+
+class MonthlySummary {
+  final double goldBought; // numeric
+  final String month;
+
+  MonthlySummary({
+    required this.goldBought,
+    required this.month,
+  });
+
+  factory MonthlySummary.fromJson(Map<String, dynamic> json) {
+    return MonthlySummary(
+      goldBought: (json['gold_bought'] as num?)?.toDouble() ?? 0.0,
+      month: json['month'] ?? '',
     );
   }
 }

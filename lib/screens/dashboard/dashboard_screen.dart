@@ -147,8 +147,8 @@ class DashboardHeader extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 5),
               child: SizedBox(
-                height: 300,
-                child: BarChartSample(),
+                height: 500,
+                child: PerformanceChartScreen(),
               ),
             ),
           ],

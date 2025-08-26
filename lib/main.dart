@@ -1,4 +1,5 @@
 import 'package:admin/blocs/auth/auth_bloc.dart';
+import 'package:admin/blocs/barchart/barchart_bloc.dart';
 import 'package:admin/blocs/card/card_bloc.dart';
 import 'package:admin/blocs/card/card_event.dart';
 import 'package:admin/blocs/dashboard/dashboard_bloc.dart';
@@ -33,6 +34,8 @@ class MyApp extends StatelessWidget {
     final authRepository = AuthRepository(client);
     final dashboardRepository = CardRepository(client);
     final schemeRepository = SchemeRepository(client);
+    final BarChartRepository barChartRepository = BarChartRepository(client);
+
 
 
     return MultiBlocProvider(
@@ -42,6 +45,9 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => SchemesBloc(schemeRepository)),
         BlocProvider(
           create: (_) => CardBloc(dashboardRepository)..add(FetchCardSummary()),
+        ),
+        BlocProvider(
+          create: (_) => GoldDashboardBloc(barChartRepository),
         ),
       ],
       child: MaterialApp(
