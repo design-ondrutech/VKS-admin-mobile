@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authRepository = AuthRepository(client);
-    final dashboardRepository = CardRepository(client);
+    final dashboardRepository = CardRepository(client);  
     final schemeRepository = SchemeRepository(client);
     final BarChartRepository barChartRepository = BarChartRepository(client);
 

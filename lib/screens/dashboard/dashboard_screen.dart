@@ -2,6 +2,7 @@ import 'package:admin/blocs/card/card_bloc.dart';
 import 'package:admin/blocs/card/card_event.dart';
 import 'package:admin/blocs/card/card_state.dart';
 import 'package:admin/data/repo/auth_repository.dart';
+import 'package:admin/screens/dashboard/widgets/gold_rate/goldrate.dart';
 import 'package:admin/screens/dashboard/widgets/notification.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -111,7 +112,10 @@ class DashboardHeader extends StatelessWidget {
       );
     } else if (selectedTab == "Schemes") {
       return const SchemesTab();
-    } else {
+    }else if (selectedTab == "GoldAdd") {
+      return const AddGoldRate();
+    } 
+    else {
       return const NotificationsTab();
     }
   }

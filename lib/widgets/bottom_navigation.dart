@@ -9,7 +9,6 @@ class CustomBottomNav extends StatelessWidget {
     required this.selectedTab,
     required this.onTabChange,
   });
-  
 
   @override
   Widget build(BuildContext context) {
@@ -19,9 +18,11 @@ class CustomBottomNav extends StatelessWidget {
         String tab = _getTab(index);
         onTabChange(tab);
       },
+      type: BottomNavigationBarType.fixed, 
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: "Overview"),
         BottomNavigationBarItem(icon: Icon(Icons.layers), label: "Schemes"),
+        BottomNavigationBarItem(icon: Icon(Icons.add_circle_outline), label: "Goldrate"),
         BottomNavigationBarItem(icon: Icon(Icons.notifications), label: "Notifications"),
       ],
     );
@@ -31,10 +32,12 @@ class CustomBottomNav extends StatelessWidget {
     switch (tab) {
       case "Schemes":
         return 1;
-      case "Notifications":
+      case "GoldAdd":
         return 2;
+      case "Notifications":
+        return 3;
       default:
-        return 0;
+        return 0; // Overview
     }
   }
 
@@ -43,6 +46,8 @@ class CustomBottomNav extends StatelessWidget {
       case 1:
         return "Schemes";
       case 2:
+        return "GoldAdd";
+      case 3:
         return "Notifications";
       default:
         return "Overview";
