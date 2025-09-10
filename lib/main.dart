@@ -1,5 +1,4 @@
 import 'package:admin/blocs/auth/auth_bloc.dart';
-import 'package:admin/blocs/barchart/barchart_bloc.dart';
 import 'package:admin/blocs/card/card_bloc.dart';
 import 'package:admin/blocs/card/card_event.dart';
 import 'package:admin/blocs/customers/customer_bloc.dart';

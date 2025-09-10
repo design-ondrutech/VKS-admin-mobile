@@ -1,6 +1,5 @@
 import 'package:admin/data/repo/auth_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../data/models/customer.dart';
 import 'customer_event.dart';
 import 'customer_state.dart';
 

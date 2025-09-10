@@ -315,6 +315,7 @@ class SchemesTab extends StatelessWidget {
 }
 
 // ---------------- Table Header + Rows ----------------
+// ignore: unused_element
 class _HeaderCell extends StatelessWidget {
   final String text;
   final int flex;
