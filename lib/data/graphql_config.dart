@@ -23,4 +23,5 @@ GraphQLClient getGraphQLClient() {
     cache: GraphQLCache(store: InMemoryStore()),
 
   );
+  
 }

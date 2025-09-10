@@ -1,3 +1,9 @@
-abstract class GoldDashboardEvent {}
+// gold_dashboard_event.dart
+import 'package:equatable/equatable.dart';
 
-class FetchGoldDashboard extends GoldDashboardEvent {}
+abstract class GoldDashboardEvent extends Equatable {
+  @override
+  List<Object> get props => [];
+}
+
+class LoadGoldDashboard extends GoldDashboardEvent {}

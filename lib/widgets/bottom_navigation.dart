@@ -22,7 +22,7 @@ class CustomBottomNav extends StatelessWidget {
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: "Overview"),
         BottomNavigationBarItem(icon: Icon(Icons.layers), label: "Schemes"),
-        BottomNavigationBarItem(icon: Icon(Icons.add_circle_outline), label: "Goldrate"),
+        BottomNavigationBarItem(icon: Icon(Icons.add_circle_outline), label: "Addgold"),
         BottomNavigationBarItem(icon: Icon(Icons.notifications), label: "Notifications"),
       ],
     );

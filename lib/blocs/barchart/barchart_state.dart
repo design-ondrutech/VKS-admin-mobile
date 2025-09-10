@@ -1,24 +1,30 @@
+// gold_dashboard_state.dart
 import 'package:admin/data/models/barchart.dart';
+import 'package:equatable/equatable.dart';
 
-
-abstract class GoldDashboardState {
-  const GoldDashboardState();
+abstract class GoldDashboardState extends Equatable {
+  @override
+  List<Object?> get props => [];
 }
 
-class GoldDashboardInitial extends GoldDashboardState {
-  const GoldDashboardInitial();
-}
+class GoldDashboardInitial extends GoldDashboardState {}
 
-class GoldDashboardLoading extends GoldDashboardState {
-  const GoldDashboardLoading();
-}
+class GoldDashboardLoading extends GoldDashboardState {}
 
 class GoldDashboardLoaded extends GoldDashboardState {
-  final GoldDashboardModel data;
-  const GoldDashboardLoaded(this.data);
+  final GoldDashboardModel dashboard;
+
+  GoldDashboardLoaded(this.dashboard);
+
+  @override
+  List<Object?> get props => [dashboard];
 }
 
 class GoldDashboardError extends GoldDashboardState {
   final String message;
-  const GoldDashboardError(this.message);
+
+  GoldDashboardError(this.message);
+
+  @override
+  List<Object?> get props => [message];
 }

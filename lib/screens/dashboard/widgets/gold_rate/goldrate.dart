@@ -1,128 +1,148 @@
+import 'package:admin/data/models/gold_rate.dart';
+import 'package:admin/screens/dashboard/widgets/gold_rate/bloc/gold_bloc.dart';
+import 'package:admin/screens/dashboard/widgets/gold_rate/bloc/gold_state.dart';
 import 'package:admin/screens/dashboard/widgets/gold_rate/gold_add_popup.dart';
 import 'package:admin/utils/colors.dart';
+import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
-class AddGoldRate extends StatelessWidget {
-  const AddGoldRate({super.key});
+class GoldPriceScreen extends StatelessWidget {
+  const GoldPriceScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Gold & Silver Rates",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
+        title: const Text("Gold & Silver Rates", style: ThemeText.titleLarge),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 10),
+      body: BlocBuilder<GoldPriceBloc, GoldPriceState>(
+        builder: (context, state) {
+          if (state is GoldPriceLoading) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is GoldPriceLoaded) {
+            final allRates = [...state.goldRates, ...state.silverRates];
 
-            // Gold Rate Card
-            _rateCard(
-              title: "Gold Rate (22K per gram)",
-              rate: "₹5,450",
-              gradient: [Colors.orange.shade400, Colors.orange.shade700],
-              icon: Icons.circle, // Gold indicator
-            ),
-            const SizedBox(height: 16),
+            final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
-            // Silver Rate Card
-            _rateCard(
-              title: "Silver Rate (per gram)",
-              rate: "₹74",
-              gradient: [Colors.grey.shade400, Colors.grey.shade700],
-              icon: Icons.circle, // Silver indicator
-            ),
+            allRates.sort((a, b) {
+              if (a.date == today && b.date != today) return -1; 
+              if (b.date == today && a.date != today) return 1; 
+              return b.date.compareTo(a.date); 
+            });
 
-            const Spacer(),
+            if (allRates.isEmpty) {
+              return const Center(child: Text("No Gold & Silver Data"));
+            }
 
-            // Update Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Appcolors.buttoncolor,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onPressed: () {
-                  showDialog(  
-                    context: context,
-                    builder: (context) => const AddGoldRateDialog(),
-                  );
-                  // Add navigation or update logic here
-                },
-                child: const Text(
-                  "Update Rates",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+            return ListView.builder(
+              padding: const EdgeInsets.all(12),
+              itemCount: allRates.length,
+              itemBuilder: (context, index) {
+                final price = allRates[index];
+                return _buildPriceCard(price);
+              },
+            );
+          } else if (state is GoldPriceError) {
+            return Center(child: Text("Error: ${state.message}"));
+          } else {
+            return const Center(child: Text("No data"));
+          }
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (context) => const AddGoldRateDialog(),
+          );
+        },
+        backgroundColor: Appcolors.buttoncolor,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
 
-  Widget _rateCard({
-    required String title,
-    required String rate,
-    required List<Color> gradient,
-    required IconData icon,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        gradient: LinearGradient(
-          colors: gradient,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 6,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Icon(icon, color: Colors.white, size: 18),
-              const SizedBox(width: 10),
-              Text(
-                title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+  Widget _buildPriceCard(GoldPrice price) {
+    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final isToday = price.date == today;
+
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 3,
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  price.date,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF4A235A),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          Text(
-            rate,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+
+                if (isToday) 
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () {},
+                        icon: const Icon(Icons.edit, color: Color(0xFF4A235A)),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                        },
+                        icon: const Icon(Icons.delete, color: Colors.redAccent),
+                      ),
+                    ],
+                  ),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    price.metal,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    price.value,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    price.unit,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    "₹${price.price}",
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF4A235A),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -2,9 +2,14 @@ import 'package:admin/blocs/auth/auth_bloc.dart';
 import 'package:admin/blocs/barchart/barchart_bloc.dart';
 import 'package:admin/blocs/card/card_bloc.dart';
 import 'package:admin/blocs/card/card_event.dart';
+import 'package:admin/blocs/customers/customer_bloc.dart';
+import 'package:admin/blocs/customers/customer_event.dart';
 import 'package:admin/blocs/dashboard/dashboard_bloc.dart';
+import 'package:admin/blocs/gold/add_gld_bloc.dart';
 import 'package:admin/blocs/schemes/schemes_bloc.dart';
 import 'package:admin/data/repo/auth_repository.dart';
+import 'package:admin/screens/dashboard/widgets/gold_rate/bloc/gold_bloc.dart';
+import 'package:admin/screens/dashboard/widgets/gold_rate/bloc/gold_event.dart';
 import 'package:admin/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -34,9 +39,9 @@ class MyApp extends StatelessWidget {
     final authRepository = AuthRepository(client);
     final dashboardRepository = CardRepository(client);  
     final schemeRepository = SchemeRepository(client);
-    final BarChartRepository barChartRepository = BarChartRepository(client);
-
-
+    final goldRepository = GoldPriceRepository(client);
+    final addGoldPriceRepository = AddGoldPriceRepository(client);
+    final customerRepository = CustomerRepository(client);   
 
     return MultiBlocProvider(
       providers: [
@@ -47,7 +52,14 @@ class MyApp extends StatelessWidget {
           create: (_) => CardBloc(dashboardRepository)..add(FetchCardSummary()),
         ),
         BlocProvider(
-          create: (_) => GoldDashboardBloc(barChartRepository),
+          create: (_) => GoldPriceBloc(goldRepository)..add(LoadGoldPriceEvent()),
+        ),
+        BlocProvider(
+          create: (_) => AddGoldPriceBloc(addGoldPriceRepository),
+        ),
+        BlocProvider(
+          create: (_) => CustomerBloc(customerRepository)
+            ..add(FetchCustomers(page: 1, limit: 10)),  
         ),
       ],
       child: MaterialApp(

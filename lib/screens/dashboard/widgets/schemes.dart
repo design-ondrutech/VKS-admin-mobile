@@ -1,5 +1,6 @@
 import 'package:admin/data/graphql_config.dart';
 import 'package:admin/data/repo/auth_repository.dart';
+import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:admin/blocs/schemes/schemes_bloc.dart';
@@ -39,11 +40,7 @@ class SchemesTab extends StatelessWidget {
                     children: [
                       const Text(
                         "Schemes",
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style:ThemeText.titleLarge
                       ),
                       ElevatedButton(
                         onPressed: () {
@@ -69,27 +66,27 @@ class SchemesTab extends StatelessWidget {
                   const SizedBox(height: 20),
 
                   // ---- Table Header ----
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 10,
-                    ),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFE2E8F0),
-                      borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(8),
-                      ),
-                    ),
-                    child: Row(
-                      children: const [
-                        _HeaderCell("ID", flex: 1),
-                        _HeaderCell("SCHEME", flex: 2),
-                        _HeaderCell("DURATION", flex: 2),
-                        _HeaderCell("MIN AMOUNT", flex: 2),
-                        _HeaderCell("MAX AMOUNT", flex: 2),
-                      ],
-                    ),
-                  ),
+                  // Container(
+                  //   padding: const EdgeInsets.symmetric(
+                  //     vertical: 12,
+                  //     horizontal: 10,
+                  //   ),
+                  //   decoration: const BoxDecoration(
+                  //     color: Color(0xFFE2E8F0),
+                  //     borderRadius: BorderRadius.vertical(
+                  //       top: Radius.circular(8),
+                  //     ),
+                  //   ),
+                  //   // child: Row(
+                  //   //   children: const [
+                  //   //     _HeaderCell("ID", flex: 1),
+                  //   //     _HeaderCell("SCHEME", flex: 2),
+                  //   //     _HeaderCell("DURATION", flex: 2),
+                  //   //     _HeaderCell("MIN AMOUNT", flex: 2),
+                  //   //     _HeaderCell("MAX AMOUNT", flex: 2),
+                  //   //   ],
+                  //   // ),
+                  // ),
 
                   // ---- API Data Rows ----
                   if (state.isLoading)
@@ -132,7 +129,9 @@ class SchemesTab extends StatelessWidget {
           );
         },
       ),
+      
     );
+    
   }
 
   // ---------------- POPUP FORM ----------------
@@ -343,46 +342,82 @@ Widget _buildRow(
   String minAmt,
   String maxAmt,
 ) {
-  return Container(
-    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-    decoration: const BoxDecoration(
-      border: Border(bottom: BorderSide(color: Colors.grey, width: 0.5)),
+  return Card(
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
     ),
-    child: Row(
-      children: [
-        _TableCell(id, flex: 1),
-        _TableCell(scheme, flex: 2),
-        _TableCell(duration, flex: 2),
-        _TableCell(minAmt, flex: 2),
-        _TableCell(maxAmt, flex: 2),
-      ],
+    margin: const EdgeInsets.symmetric(vertical: 8),
+    elevation: 2,
+    child: Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Top row: ID + Scheme Name
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "ID: $id",
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
+                ),
+              ),
+              Text(
+                scheme,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF4A235A),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // Duration
+          Row(
+            children: [
+              const Icon(Icons.timer, size: 16, color: Colors.deepPurple),
+              const SizedBox(width: 6),
+              Text(
+                duration,
+                style: const TextStyle(fontSize: 14),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+
+          // Min Amount
+          Row(
+            children: [
+              const Icon(Icons.arrow_downward, size: 16, color: Colors.green),
+              const SizedBox(width: 6),
+              Text(
+                "Min: ₹$minAmt",
+                style: const TextStyle(fontSize: 14),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+
+          // Max Amount
+          Row(
+            children: [
+              const Icon(Icons.arrow_upward, size: 16, color: Colors.red),
+              const SizedBox(width: 6),
+              Text(
+                "Max: ₹$maxAmt",
+                style: const TextStyle(fontSize: 14),
+              ),
+            ],
+          ),
+        ],
+      ),
     ),
   );
 }
 
-class _TableCell extends StatelessWidget {
-  final String text;
-  final int flex;
-  final Color? textColor;
-  final FontWeight? fontWeight;
-  const _TableCell(
-    this.text, {
-    required this.flex,
-    this.textColor,
-    this.fontWeight,
-  });
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      flex: flex,
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 12,
-          color: textColor ?? Colors.black,
-          fontWeight: fontWeight ?? FontWeight.normal,
-        ),
-      ),
-    );
-  }
-}
+

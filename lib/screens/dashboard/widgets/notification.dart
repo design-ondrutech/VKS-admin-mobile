@@ -1,3 +1,4 @@
+import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
 import 'package:admin/utils/colors.dart';
 
@@ -29,13 +30,7 @@ class _NotificationsTabState extends State<NotificationsTab>
     return Scaffold(
       backgroundColor: const Color(0xFFF8F7FD),
       appBar: AppBar(
-        title: const Text(
-          "Notifications",
-          style: TextStyle(
-              color: Appcolors.textcolor,
-              fontWeight: FontWeight.w600,
-              fontSize: 18),
-        ),
+        title: const Text("Notifications", style: ThemeText.titleLarge),
         elevation: 0,
         backgroundColor: Colors.white,
         automaticallyImplyLeading: false,
@@ -46,75 +41,70 @@ class _NotificationsTabState extends State<NotificationsTab>
           labelColor: Appcolors.buttoncolor, // selected text color
           unselectedLabelColor: Colors.black54,
           labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-          tabs: const [
-            Tab(text: "Send All"),
-            Tab(text: "Send Specific"),
-          ],
+          tabs: const [Tab(text: "Send All"), Tab(text: "Send Specific")],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [
-          _buildSendAll(),          
-          _buildSendSpecific(),
-        ],
+        children: [_buildSendAll(), _buildSendSpecific()],
       ),
     );
   }
 
   /// -------------------- SEND ALL TAB --------------------
-  
-Widget _buildSendAll() {
-  return SingleChildScrollView(
-    padding: const EdgeInsets.all(16),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _messageCard(),
-        const SizedBox(height: 24),
-        const Text(
-          "Today Notification",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-        ),
-        const SizedBox(height: 16),
 
-        Column(
-          children: [
-            notificationItem(
-              title: "Gold Eleven",
-              subtitle: "John Doe Completed this Scheme",
-              time: "12 minutes ago",
-            ),
-            notificationItem(
-              title: "Feel good Friday",
-              subtitle: "Feels better with gold in your Wallet",
-              time: "50 minutes ago",
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 16),
-
-        Center(
-          child: ElevatedButton(
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Appcolors.buttoncolor,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(6),
-              ),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            ),
-            child: const Text("More"),
+  Widget _buildSendAll() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _messageCard(),
+          const SizedBox(height: 24),
+          const Text(
+            "Today Notification",
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
           ),
-        ),
-      ],
-    ),
-  );
-}
+          const SizedBox(height: 16),
 
+          Column(
+            children: [
+              notificationItem(
+                title: "Gold Eleven",
+                subtitle: "John Doe Completed this Scheme",
+                time: "12 minutes ago",
+              ),
+              notificationItem(
+                title: "Feel good Friday",
+                subtitle: "Feels better with gold in your Wallet",
+                time: "50 minutes ago",
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          Center(
+            child: ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Appcolors.buttoncolor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
+              ),
+              child: const Text("More"),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   /// -------------------- SEND SPECIFIC TAB --------------------
   Widget _buildSendSpecific() {
@@ -147,14 +137,18 @@ Widget _buildSendAll() {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("Title",
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+          const Text(
+            "Title",
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+          ),
           const SizedBox(height: 8),
           TextField(
             decoration: InputDecoration(
               hintText: "Title",
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide(color: Colors.grey.shade300),
@@ -163,15 +157,19 @@ Widget _buildSendAll() {
           ),
           const SizedBox(height: 16),
 
-          const Text("Content",
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+          const Text(
+            "Content",
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+          ),
           const SizedBox(height: 8),
           TextField(
             maxLines: 3,
             decoration: InputDecoration(
               hintText: "Content",
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide(color: Colors.grey.shade300),
@@ -198,8 +196,10 @@ Widget _buildSendAll() {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                 ),
               ),
             ],
@@ -210,7 +210,7 @@ Widget _buildSendAll() {
   }
 
   /// -------------------- NOTIFICATION ITEM --------------------
-  
+
   Widget notificationItem({
     required String title,
     required String subtitle,
@@ -237,22 +237,24 @@ Widget _buildSendAll() {
               children: [
                 Row(
                   children: [
-                    Text(title,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w600, fontSize: 14)),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       "($time)",
-                      style:
-                          const TextStyle(color: Colors.grey, fontSize: 12),
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                   ],
                 ),
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
-                  style:
-                      const TextStyle(color: Colors.black87, fontSize: 13),
+                  style: const TextStyle(color: Colors.black87, fontSize: 13),
                 ),
               ],
             ),

@@ -2,6 +2,7 @@ import 'package:admin/blocs/card/card_bloc.dart';
 import 'package:admin/blocs/card/card_event.dart';
 import 'package:admin/blocs/card/card_state.dart';
 import 'package:admin/data/repo/auth_repository.dart';
+import 'package:admin/screens/dashboard/widgets/customer_list.dart';
 import 'package:admin/screens/dashboard/widgets/gold_rate/goldrate.dart';
 import 'package:admin/screens/dashboard/widgets/notification.dart';
 import 'package:flutter/material.dart';
@@ -101,6 +102,7 @@ class DashboardHeader extends StatelessWidget {
         ],
       ),
     );
+    
   }
 
   ///  Tab Selection
@@ -112,81 +114,123 @@ class DashboardHeader extends StatelessWidget {
       );
     } else if (selectedTab == "Schemes") {
       return const SchemesTab();
-    }else if (selectedTab == "GoldAdd") {
-      return const AddGoldRate();
-    } 
-    else {
+    } else if (selectedTab == "GoldAdd") {
+      return const GoldPriceScreen();
+    } else {
       return const NotificationsTab();
     }
   }
 
- Widget _overviewContent() {
-  return BlocBuilder<CardBloc, CardState>(
-    builder: (context, state) {
-      if (state is CardLoading) {
-        return const Center(child: CircularProgressIndicator());
-      } else if (state is CardLoaded) {
-        final summary = state.summary;
+  Widget _overviewContent() {
+    return BlocBuilder<CardBloc, CardState>(
+      builder: (context, state) {
+        if (state is CardLoading) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (state is CardLoaded) {
+          final summary = state.summary;
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Icon Cards Row
-            SizedBox(
-              height: 120,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 5),
-                children: [
-                  _iconCard("Customers", "${summary.totalCustomers}", Icons.group, Colors.blue),
-                  _iconCard("Active Schemes", "${summary.totalActiveSchemes}", Icons.layers, Colors.orange),
-                  _iconCard("Online Payment", "₹${summary.totalOnlinePayment}", Icons.account_balance_wallet, Colors.teal),
-                  _iconCard("Cash Payment", "₹${summary.totalCashPayment}", Icons.monetization_on, Colors.purple),
-                ],
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Icon Cards Row
+              SizedBox(
+                height: 120,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                  children: [
+                    _iconCard(
+                      "Customers",
+                      "${summary.totalCustomers}",
+                      Icons.group,
+                      Colors.blue,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const CustomersScreen(),
+                          ),
+                        );
+                      },
+                    ),
+
+                    _iconCard(
+                      "Active Schemes",
+                      "${summary.totalActiveSchemes}",
+                      Icons.layers,
+                      Colors.orange,
+                    ),
+                    _iconCard(
+                      "Online Payment",
+                      "₹${summary.totalOnlinePayment}",
+                      Icons.account_balance_wallet,
+                      Colors.teal,
+                    ),
+                    _iconCard(
+                      "Cash Payment",
+                      "₹${summary.totalCashPayment}",
+                      Icons.monetization_on,
+                      Colors.purple,
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            // Chart Section
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 5),
-              child: SizedBox(
-                height: 500,
-                child: PerformanceChartScreen(),
+              // Chart Section
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 5),
+                child: SizedBox(height: 500, child: PerformanceChartScreen()),
+              ),
+            ],
+          );
+        } else if (state is CardError) {
+          return Center(child: Text(state.message));
+        }
+        return const SizedBox();
+      },
+    );
+  }
+
+  // Simple Icon Card Widget
+  Widget _iconCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color, {
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 130,
+        margin: const EdgeInsets.only(right: 12),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Icon(icon, color: Colors.white, size: 28),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: const TextStyle(color: Colors.white70, fontSize: 14),
+            ),
+            Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ],
-        );
-      } else if (state is CardError) {
-        return Center(child: Text(state.message));
-      }
-      return const SizedBox();
-    },
-  );
-}
-
-// Simple Icon Card Widget
-Widget _iconCard(String title, String value, IconData icon, Color color) {
-  return Container(
-    width: 130,
-    margin: const EdgeInsets.only(right: 12),
-    padding: const EdgeInsets.all(12),
-    decoration: BoxDecoration(
-      color: color,
-      borderRadius: BorderRadius.circular(16),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Icon(icon, color: Colors.white, size: 28),
-        const SizedBox(height: 8),
-        Text(title, style: const TextStyle(color: Colors.white70, fontSize: 14)),
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-      ],
-    ),
-  );
-}
-
-
+        ),
+      ),
+    );
+  }
 }

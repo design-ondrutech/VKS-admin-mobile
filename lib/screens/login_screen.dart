@@ -21,7 +21,6 @@ class LoginScreen extends StatelessWidget {
         context,
         MaterialPageRoute(
           builder: (context) => DashboardHeader(
-         //   userName: state.name,
           ),
         ),
       );
@@ -32,7 +31,6 @@ class LoginScreen extends StatelessWidget {
     }
   },
   
-        // New code starts here
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
           child: Column(
