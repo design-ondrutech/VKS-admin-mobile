@@ -5,3 +5,5 @@ class FetchGoldPriceEvent extends GoldPriceEvent {
   FetchGoldPriceEvent({this.date});
 }
 class LoadGoldPriceEvent extends FetchGoldPriceEvent{}
+
+class FetchGoldPrices extends GoldPriceEvent {}

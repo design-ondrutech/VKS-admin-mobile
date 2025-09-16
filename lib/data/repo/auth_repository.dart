@@ -111,29 +111,21 @@ class SchemeRepository {
   }
 }
 
-// Gold Dashboard Repository
-// gold_dashboard_repository.dart
+// Gold Dashboard Repository barchart
 
 class GoldDashboardRepository {
   final GraphQLClient client;
-
   GoldDashboardRepository(this.client);
 
-  Future<GoldDashboardModel> fetchGoldDashboard() async {
+  Future<GoldDashboard> fetchGoldDashboard() async {
     const query = r'''
       query GoldDashboard {
         goldDashboard {
-          latest_gold_weight
           latest_buy_date
+          latest_gold_weight
           monthly_summary {
-            month
             gold_bought
-          }
-          scheme_monthly_summary {
-            scheme_name
             month
-            customer_count
-            total_gold_bought
           }
         }
       }
@@ -145,9 +137,11 @@ class GoldDashboardRepository {
       throw Exception(result.exception.toString());
     }
 
-    return GoldDashboardModel.fromJson(result.data!['goldDashboard']);
+    final data = result.data?['goldDashboard'];
+    return GoldDashboard.fromJson(data);
   }
 }
+
 
 // Gold Dashboard Repository
 
@@ -185,7 +179,7 @@ class GoldPriceRepository {
       throw Exception(result.exception.toString());
     }
 
-    print("API RESPONSE: ${result.data}"); // 🔎 Debug
+    print("API RESPONSE: ${result.data}"); //  Debug
 
     final List data = result.data?['getAllGoldPrice'] ?? [];
     return data.map((e) => GoldPrice.fromJson(e)).toList();
@@ -198,6 +192,7 @@ class AddGoldPriceRepository {
   final GraphQLClient client;
   AddGoldPriceRepository(this.client);
 
+  ///  ADD new gold price
   Future<GoldPrice> addOrUpdateGoldPrice(GoldPriceInput input) async {
     const String mutation = r'''
       mutation AddGoldPrice($data: GoldPriceInput!) {
@@ -231,7 +226,99 @@ class AddGoldPriceRepository {
 
     return GoldPrice.fromJson(result.data!["addGoldPrice"]);
   }
+
+  ///  UPDATE existing gold price
+  Future<GoldPrice> updateGoldPrice(String id, GoldPriceInput input) async {
+    const String mutation = r'''
+      mutation UpdateGoldPrice($id: ID!, $data: GoldPriceInput!) {
+        updateGoldPrice(id: $id, data: $data) {
+          price_id
+          date
+          value
+          metal
+          unit
+          price
+          created_date
+          isdeleted
+          percentage_diff
+          is_price_up
+        }
+      }
+    ''';
+
+    final result = await client.mutate(
+      MutationOptions(
+        document: gql(mutation),
+        variables: {
+          'id': id,
+          'data': input.toJson(),
+        },
+      ),
+    );
+
+    if (result.hasException) {
+      throw Exception(result.exception.toString());
+    }
+
+    return GoldPrice.fromJson(result.data!["updateGoldPrice"]);
+  }
+
+  ///  Fetch Gold Rates
+  Future<List<GoldPrice>> getGoldRates() async {
+    const String query = r'''
+      query GetGoldRates {
+        goldRates {
+          price_id
+          date
+          value
+          metal
+          unit
+          price
+        }
+      }
+    ''';
+
+    final result = await client.query(
+      QueryOptions(document: gql(query)),
+    );
+
+    if (result.hasException) {
+      throw Exception(result.exception.toString());
+    }
+
+    final data = result.data?["goldRates"] as List<dynamic>? ?? [];
+    return data.map((e) => GoldPrice.fromJson(e)).toList();
+  }
+
+  ///  Fetch Silver Rates
+  Future<List<GoldPrice>> getSilverRates() async {
+    const String query = r'''
+      query GetSilverRates {
+        silverRates {
+          price_id
+          date
+          value
+          metal
+          unit
+          price
+        }
+      }
+    ''';
+
+    final result = await client.query(
+      QueryOptions(document: gql(query)),
+    );
+
+    if (result.hasException) {
+      throw Exception(result.exception.toString());
+    }
+
+    final data = result.data?["silverRates"] as List<dynamic>? ?? [];
+    return data.map((e) => GoldPrice.fromJson(e)).toList();
+  }
 }
+
+
 
 // Customer Repository
 

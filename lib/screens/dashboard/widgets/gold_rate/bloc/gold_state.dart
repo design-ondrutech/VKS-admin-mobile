@@ -12,6 +12,8 @@ class GoldPriceLoaded extends GoldPriceState {
   final List<GoldPrice> silverRates;
 
   GoldPriceLoaded({required this.goldRates, required this.silverRates});
+
+
 }
 
 class GoldPriceError extends GoldPriceState {

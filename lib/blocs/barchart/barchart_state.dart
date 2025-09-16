@@ -1,4 +1,3 @@
-// gold_dashboard_state.dart
 import 'package:admin/data/models/barchart.dart';
 import 'package:equatable/equatable.dart';
 
@@ -12,8 +11,7 @@ class GoldDashboardInitial extends GoldDashboardState {}
 class GoldDashboardLoading extends GoldDashboardState {}
 
 class GoldDashboardLoaded extends GoldDashboardState {
-  final GoldDashboardModel dashboard;
-
+  final GoldDashboard dashboard;
   GoldDashboardLoaded(this.dashboard);
 
   @override
@@ -22,7 +20,6 @@ class GoldDashboardLoaded extends GoldDashboardState {
 
 class GoldDashboardError extends GoldDashboardState {
   final String message;
-
   GoldDashboardError(this.message);
 
   @override

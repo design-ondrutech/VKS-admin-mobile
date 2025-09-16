@@ -10,14 +10,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<LoginRequested>((event, emit) async {
       emit(AuthLoading());
       try {
-        final data = await authRepository.adminLogin(event.phone, event.password);
+        final data =
+            await authRepository.adminLogin(event.phone, event.password);
 
-        emit(AuthSuccess(
-          token: data['accessToken'],
-          name: data['user']['uName'],
-        ));
+        ///  Check if API returned success or error
+        if (data['accessToken'] != null) {
+          emit(AuthSuccess(
+            token: data['accessToken'],
+            name: data['user']?['uName'] ?? '',
+          ));
+        } else {
+          /// If no token returned → treat as invalid credentials
+          emit(AuthFailure("Invalid phone or password"));
+        }
       } catch (e) {
-        emit(AuthFailure("Login Failed: ${e.toString()}"));
+        /// Catch network errors or unexpected issues
+        emit(AuthFailure("Something went wrong. Please try again."));
       }
     });
   }

@@ -1,4 +1,5 @@
 import 'package:admin/blocs/auth/auth_bloc.dart';
+import 'package:admin/blocs/barchart/barchart_bloc.dart';
 import 'package:admin/blocs/card/card_bloc.dart';
 import 'package:admin/blocs/card/card_event.dart';
 import 'package:admin/blocs/customers/customer_bloc.dart';
@@ -13,6 +14,7 @@ import 'package:admin/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,11 +38,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authRepository = AuthRepository(client);
-    final dashboardRepository = CardRepository(client);  
+    final dashboardRepository = CardRepository(client);
     final schemeRepository = SchemeRepository(client);
     final goldRepository = GoldPriceRepository(client);
     final addGoldPriceRepository = AddGoldPriceRepository(client);
-    final customerRepository = CustomerRepository(client);   
+    final customerRepository = CustomerRepository(client);
+
+    final goldDashboardRepository = GoldDashboardRepository(client);
 
     return MultiBlocProvider(
       providers: [
@@ -58,7 +62,11 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (_) => CustomerBloc(customerRepository)
-            ..add(FetchCustomers(page: 1, limit: 10)),  
+            ..add(FetchCustomers(page: 1, limit: 10)),
+        ),
+
+        BlocProvider(
+          create: (_) => GoldDashboardBloc(goldDashboardRepository),
         ),
       ],
       child: MaterialApp(

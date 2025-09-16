@@ -1,5 +1,6 @@
 import 'package:admin/utils/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/auth/auth_bloc.dart';
 import '../blocs/auth/auth_event.dart';
@@ -7,30 +8,26 @@ import '../blocs/auth/auth_state.dart';
 import 'dashboard/dashboard_screen.dart';
 
 class LoginScreen extends StatelessWidget {
-  final phone  = TextEditingController();
-  final Password = TextEditingController();
+  final phone = TextEditingController();
+  final password = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: 
-        BlocListener<AuthBloc, AuthState>(
-  listener: (context, state) {
-    if (state is AuthSuccess) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => DashboardHeader(
-          ),
-        ),
-      );
-    } else if (state is AuthFailure) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(state.message)),
-      );
-    }
-  },
-  
+      body: BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is AuthSuccess) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => DashboardHeader()),
+            );
+          } else if (state is AuthFailure) {
+            //  Show error message from BLoC
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
+          }
+        },
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
           child: Column(
@@ -57,7 +54,6 @@ class LoginScreen extends StatelessWidget {
                 style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
               const SizedBox(height: 32),
-              // Login Form Card
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -75,18 +71,26 @@ class LoginScreen extends StatelessWidget {
                   children: [
                     TextField(
                       controller: phone,
+                      keyboardType: TextInputType.number,
+                      maxLength: 10, // allow only 10 digits
+                      inputFormatters: [
+                        FilteringTextInputFormatter
+                            .digitsOnly, // only digits allowed
+                      ],
                       decoration: InputDecoration(
                         labelText: 'Phone Number',
                         prefixIcon: const Icon(Icons.phone_android_rounded),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
+                        counterText:
+                            "", // hides the default counter below TextField
                       ),
                     ),
+
                     const SizedBox(height: 16),
-                    // SizedBox(height: 20),
                     TextField(
-                      controller: Password,
+                      controller: password,
                       obscureText: true,
                       decoration: InputDecoration(
                         labelText: 'Password',
@@ -102,17 +106,45 @@ class LoginScreen extends StatelessWidget {
                       height: 50,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor:Appcolors.buttoncolor,
+                          backgroundColor: Appcolors.buttoncolor,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                         onPressed: () {
+                          final phoneText = phone.text.trim();
+                          final passwordText = password.text.trim();
+
+                          //   Check empty fields
+                          if (phoneText.isEmpty || passwordText.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Please fill all fields"),
+                              ),
+                            );
+                            return;
+                          }
+
+                          //   Validate phone number length
+                          if (phoneText.length != 10 ||
+                              int.tryParse(phoneText) == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  "Enter a valid 10-digit phone number",
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+
+                          //  Proceed to login
                           context.read<AuthBloc>().add(
-                            LoginRequested(phone.text, Password.text),
+                            LoginRequested(phoneText, passwordText),
                           );
                         },
-                        child: Text(
+
+                        child: const Text(
                           "LOGIN",
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
@@ -129,11 +161,7 @@ class LoginScreen extends StatelessWidget {
             ],
           ),
         ),
-        ),
-    ); 
-      
+      ),
+    );
   }
 }
-          // New code ends here
-
- 

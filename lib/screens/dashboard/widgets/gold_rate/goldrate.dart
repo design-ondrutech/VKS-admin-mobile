@@ -1,3 +1,4 @@
+import 'package:admin/data/models/add_gold_price.dart';
 import 'package:admin/data/models/gold_rate.dart';
 import 'package:admin/screens/dashboard/widgets/gold_rate/bloc/gold_bloc.dart';
 import 'package:admin/screens/dashboard/widgets/gold_rate/bloc/gold_state.dart';
@@ -27,9 +28,9 @@ class GoldPriceScreen extends StatelessWidget {
             final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
             allRates.sort((a, b) {
-              if (a.date == today && b.date != today) return -1; 
-              if (b.date == today && a.date != today) return 1; 
-              return b.date.compareTo(a.date); 
+              if (a.date == today && b.date != today) return -1;
+              if (b.date == today && a.date != today) return 1;
+              return b.date.compareTo(a.date);
             });
 
             if (allRates.isEmpty) {
@@ -41,7 +42,7 @@ class GoldPriceScreen extends StatelessWidget {
               itemCount: allRates.length,
               itemBuilder: (context, index) {
                 final price = allRates[index];
-                return _buildPriceCard(price);
+                return _buildPriceCard(context, price);
               },
             );
           } else if (state is GoldPriceError) {
@@ -64,10 +65,10 @@ class GoldPriceScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPriceCard(GoldPrice price) {
+  Widget _buildPriceCard(BuildContext context, GoldPrice price) {
     final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
     final isToday = price.date == today;
-
+  
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 3,
@@ -88,16 +89,56 @@ class GoldPriceScreen extends StatelessWidget {
                     color: Color(0xFF4A235A),
                   ),
                 ),
-
-                if (isToday) 
+  
+                if (isToday)
                   Row(
                     children: [
                       IconButton(
-                        onPressed: () {},
+                        onPressed: () {
+                             showDialog(
+                            context: context,
+                            builder:
+                                (context) =>
+                                    AddGoldRateDialog(
+                                      existingPrice: GoldPriceInput(
+                                        date: price.date,
+                                        metal: price.metal,
+                                        value: price.value,
+                                        unit: price.unit,
+                                        price: price.price,
+                                      ),
+                                    ),
+                          );
+                        },
                         icon: const Icon(Icons.edit, color: Color(0xFF4A235A)),
                       ),
                       IconButton(
                         onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text("Confirm Deletion"),
+                              content: const Text(
+                                  "Are you sure you want to delete this rate?"),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text("Cancel"),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    context
+                                        .read<GoldPriceBloc>();
+                                    Navigator.pop(context);
+                                  },
+                                  child: const Text(
+                                    "Delete",
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
                         },
                         icon: const Icon(Icons.delete, color: Colors.redAccent),
                       ),

@@ -1,4 +1,5 @@
 class GoldPriceInput {
+  final String? id; 
   final String date;
   final String metal;
   final String value;
@@ -6,6 +7,7 @@ class GoldPriceInput {
   final double price;
 
   GoldPriceInput({
+    this.id, 
     required this.date,
     required this.metal,
     required this.value,
@@ -15,11 +17,12 @@ class GoldPriceInput {
 
   Map<String, dynamic> toJson() {
     return {
-      'date': date,
-      'metal': metal,
-      'value': value,
-      'unit': unit,
-      'price': price,
+      if (id != null) "id": id, 
+      "date": date,
+      "metal": metal,
+      "value": value,
+      "unit": unit,
+      "price": price,
     };
   }
 }
