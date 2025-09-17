@@ -5,6 +5,7 @@ import 'package:admin/data/models/card.dart';
 import 'package:admin/data/models/customer.dart';
 import 'package:admin/data/models/gold_rate.dart';
 import 'package:admin/data/models/table.dart';
+import 'package:admin/data/models/total_active_scheme';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
 //login
@@ -150,6 +151,7 @@ class GoldPriceRepository {
 
   GoldPriceRepository(this.client);
 
+
   Future<List<GoldPrice>> fetchAllPrices({String? date}) async {
     const query = r'''
       query GetAllGoldPrice($date: String) {
@@ -184,6 +186,8 @@ class GoldPriceRepository {
     final List data = result.data?['getAllGoldPrice'] ?? [];
     return data.map((e) => GoldPrice.fromJson(e)).toList();
   }
+
+  deleteGoldPrice(String id) {}
 }
 
 // Add Gold Price Repository
@@ -361,5 +365,49 @@ class CustomerRepository {
     }
 
     return CustomerResponse.fromJson(result.data!["getAllCustomers"]);
+  }
+}
+
+class TotalActiveSchemesRepository {
+  final GraphQLClient client;
+
+  TotalActiveSchemesRepository(this.client);
+
+  Future<TotalActiveSchemesResponse> fetchTotalActiveSchemes() async {
+    const String query = r'''
+    query GetTotalActiveSchemes {
+      getTotalActiveSchemes {
+        data {
+          customer {
+            cName
+            cPhoneNumber
+            cEmail
+          }
+          status
+          scheme_type
+          total_gold_weight
+          totalAmount
+          scheme_name
+          start_date
+        }
+        limit
+        page
+        totalCount
+      }
+    }
+    ''';
+
+    final result = await client.query(
+      QueryOptions(
+        document: gql(query),
+        fetchPolicy: FetchPolicy.networkOnly,
+      ),
+    );
+
+    if (result.hasException) {
+      throw Exception(result.exception.toString());
+    }
+
+    return TotalActiveSchemesResponse.fromJson(result.data!);
   }
 }

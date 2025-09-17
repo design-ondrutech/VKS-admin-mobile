@@ -1,0 +1,76 @@
+class TotalActiveSchemesResponse {
+  final List<SchemeData> data;
+  final int limit;
+  final int page;
+  final int totalCount;
+
+  TotalActiveSchemesResponse({
+    required this.data,
+    required this.limit,
+    required this.page,
+    required this.totalCount,
+  });
+
+  factory TotalActiveSchemesResponse.fromJson(Map<String, dynamic> json) {
+    return TotalActiveSchemesResponse(
+      data: (json['getTotalActiveSchemes']['data'] as List)
+          .map((item) => SchemeData.fromJson(item))
+          .toList(),
+      limit: json['getTotalActiveSchemes']['limit'] ?? 0,
+      page: json['getTotalActiveSchemes']['page'] ?? 0,
+      totalCount: json['getTotalActiveSchemes']['totalCount'] ?? 0,
+    );
+  }
+}
+
+class SchemeData {
+  final Customer customer;
+  final String status;
+  final String schemeType;
+  final double totalGoldWeight;
+  final double totalAmount;
+  final String schemeName;
+  final String startDate;
+
+  SchemeData({
+    required this.customer,
+    required this.status,
+    required this.schemeType,
+    required this.totalGoldWeight,
+    required this.totalAmount,
+    required this.schemeName,
+    required this.startDate,
+  });
+
+  factory SchemeData.fromJson(Map<String, dynamic> json) {
+    return SchemeData(
+      customer: Customer.fromJson(json['customer']),
+      status: json['status'] ?? '',
+      schemeType: json['scheme_type'] ?? '',
+      totalGoldWeight: (json['total_gold_weight'] ?? 0).toDouble(),
+      totalAmount: (json['totalAmount'] ?? 0).toDouble(),
+      schemeName: json['scheme_name'] ?? '',
+      startDate: json['start_date'] ?? '',
+    );
+  }
+}
+
+class Customer {
+  final String cName;
+  final String cPhoneNumber;
+  final String cEmail;
+
+  Customer({
+    required this.cName,
+    required this.cPhoneNumber,
+    required this.cEmail,
+  });
+
+  factory Customer.fromJson(Map<String, dynamic> json) {
+    return Customer(
+      cName: json['cName'] ?? '',
+      cPhoneNumber: json['cPhoneNumber'] ?? '',
+      cEmail: json['cEmail'] ?? '',
+    );
+  }
+}

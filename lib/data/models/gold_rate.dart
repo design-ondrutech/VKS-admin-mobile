@@ -37,4 +37,6 @@ class GoldPrice {
       isPriceUp: json['is_price_up'],
     );
   }
+
+  get id => null;
 }

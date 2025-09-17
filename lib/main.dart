@@ -1,3 +1,5 @@
+import 'package:admin/blocs/active_scheme/active_scheme_bloc.dart';
+import 'package:admin/blocs/active_scheme/active_scheme_event.dart';
 import 'package:admin/blocs/auth/auth_bloc.dart';
 import 'package:admin/blocs/barchart/barchart_bloc.dart';
 import 'package:admin/blocs/card/card_bloc.dart';
@@ -8,13 +10,12 @@ import 'package:admin/blocs/dashboard/dashboard_bloc.dart';
 import 'package:admin/blocs/gold/add_gld_bloc.dart';
 import 'package:admin/blocs/schemes/schemes_bloc.dart';
 import 'package:admin/data/repo/auth_repository.dart';
-import 'package:admin/screens/dashboard/widgets/gold_rate/bloc/gold_bloc.dart';
-import 'package:admin/screens/dashboard/widgets/gold_rate/bloc/gold_event.dart';
+import 'package:admin/screens/dashboard/gold_price/bloc/gold_bloc.dart';
+import 'package:admin/screens/dashboard/gold_price/bloc/gold_event.dart';
 import 'package:admin/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,8 +44,9 @@ class MyApp extends StatelessWidget {
     final goldRepository = GoldPriceRepository(client);
     final addGoldPriceRepository = AddGoldPriceRepository(client);
     final customerRepository = CustomerRepository(client);
-
     final goldDashboardRepository = GoldDashboardRepository(client);
+    final TotalActiveSchemesRepository totalActiveSchemesRepository =
+        TotalActiveSchemesRepository(client);
 
     return MultiBlocProvider(
       providers: [
@@ -55,19 +57,27 @@ class MyApp extends StatelessWidget {
           create: (_) => CardBloc(dashboardRepository)..add(FetchCardSummary()),
         ),
         BlocProvider(
-          create: (_) => GoldPriceBloc(goldRepository)..add(LoadGoldPriceEvent()),
-        ),
-        BlocProvider(
-          create: (_) => AddGoldPriceBloc(addGoldPriceRepository),
-        ),
-        BlocProvider(
-          create: (_) => CustomerBloc(customerRepository)
-            ..add(FetchCustomers(page: 1, limit: 10)),
+          create:
+              (_) =>
+                  GoldPriceBloc(goldRepository)
+                    ..add(const FetchGoldPriceEvent()),
         ),
 
+        BlocProvider(create: (_) => AddGoldPriceBloc(addGoldPriceRepository)),
         BlocProvider(
-          create: (_) => GoldDashboardBloc(goldDashboardRepository),
+          create:
+              (_) =>
+                  CustomerBloc(customerRepository)
+                    ..add(FetchCustomers(page: 1, limit: 10)),
         ),
+
+        BlocProvider(create: (_) => GoldDashboardBloc(goldDashboardRepository)),
+
+        BlocProvider(
+          create: (_) => TotalActiveSchemesBloc(totalActiveSchemesRepository)
+            ..add(FetchTotalActiveSchemes()),
+        ),
+        
       ],
       child: MaterialApp(
         title: 'VKS Admin',

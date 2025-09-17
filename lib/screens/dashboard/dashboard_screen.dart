@@ -2,10 +2,11 @@ import 'package:admin/blocs/card/card_bloc.dart';
 import 'package:admin/blocs/card/card_event.dart';
 import 'package:admin/blocs/card/card_state.dart';
 import 'package:admin/data/repo/auth_repository.dart';
-import 'package:admin/screens/dashboard/widgets/customer_list.dart';
-import 'package:admin/screens/dashboard/widgets/gold_rate/bloc/gold_bloc.dart';
-import 'package:admin/screens/dashboard/widgets/gold_rate/bloc/gold_state.dart';
-import 'package:admin/screens/dashboard/widgets/gold_rate/goldrate.dart';
+import 'package:admin/screens/dashboard/active_scheme/total_active_scheme/total_active_list.dart';
+import 'package:admin/screens/dashboard/customer/customer_list.dart';
+import 'package:admin/screens/dashboard/gold_price/bloc/gold_bloc.dart';
+import 'package:admin/screens/dashboard/gold_price/bloc/gold_state.dart';
+import 'package:admin/screens/dashboard/gold_price/goldrate.dart';
 import 'package:admin/screens/dashboard/widgets/notification.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -70,7 +71,7 @@ class DashboardHeader extends StatelessWidget {
     );
   }
 
-Widget _buildHeader(BuildContext context) {
+ Widget _buildHeader(BuildContext context) {
   return Container(
     color: Colors.white,
     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -94,7 +95,7 @@ Widget _buildHeader(BuildContext context) {
 
               BlocBuilder<GoldPriceBloc, GoldPriceState>(
                 builder: (context, state) {
-                  if (state is GoldPriceLoading) {
+                  if (state is GoldPriceLoading) { 
                     return const Text(
                       "Loading prices...",
                       style: TextStyle(fontSize: 12, color: Colors.grey),
@@ -154,7 +155,7 @@ Widget _buildHeader(BuildContext context) {
       ],
     ),
   );
-}
+ }
 
 
 
@@ -212,7 +213,14 @@ Widget _buildHeader(BuildContext context) {
                       "${summary.totalActiveSchemes}",
                       Icons.layers,
                       Colors.orange,
-                      
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const TotalActiveSchemesScreen(),
+                          ),
+                        );
+                      },                    
                     ),
                     _iconCard(
                       "Online Payment",

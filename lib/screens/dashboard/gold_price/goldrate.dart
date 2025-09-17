@@ -1,8 +1,9 @@
 import 'package:admin/data/models/add_gold_price.dart';
 import 'package:admin/data/models/gold_rate.dart';
-import 'package:admin/screens/dashboard/widgets/gold_rate/bloc/gold_bloc.dart';
-import 'package:admin/screens/dashboard/widgets/gold_rate/bloc/gold_state.dart';
-import 'package:admin/screens/dashboard/widgets/gold_rate/gold_add_popup.dart';
+import 'package:admin/screens/dashboard/gold_price/bloc/gold_bloc.dart';
+import 'package:admin/screens/dashboard/gold_price/bloc/gold_event.dart';
+import 'package:admin/screens/dashboard/gold_price/bloc/gold_state.dart';
+import 'package:admin/screens/dashboard/gold_price/gold_add_popup.dart';
 import 'package:admin/utils/colors.dart';
 import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
@@ -24,7 +25,6 @@ class GoldPriceScreen extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           } else if (state is GoldPriceLoaded) {
             final allRates = [...state.goldRates, ...state.silverRates];
-
             final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
             allRates.sort((a, b) {
@@ -53,11 +53,12 @@ class GoldPriceScreen extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showDialog(
+        onPressed: () async {
+          await showDialog(
             context: context,
             builder: (context) => const AddGoldRateDialog(),
           );
+          context.read<GoldPriceBloc>().add(const FetchGoldPriceEvent());
         },
         backgroundColor: Appcolors.buttoncolor,
         child: const Icon(Icons.add, color: Colors.white),
@@ -68,7 +69,7 @@ class GoldPriceScreen extends StatelessWidget {
   Widget _buildPriceCard(BuildContext context, GoldPrice price) {
     final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
     final isToday = price.date == today;
-  
+
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 3,
@@ -89,55 +90,73 @@ class GoldPriceScreen extends StatelessWidget {
                     color: Color(0xFF4A235A),
                   ),
                 ),
-  
                 if (isToday)
                   Row(
                     children: [
                       IconButton(
-                        onPressed: () {
-                             showDialog(
+                        onPressed: () async {
+                          await showDialog(
                             context: context,
                             builder:
-                                (context) =>
-                                    AddGoldRateDialog(
-                                      existingPrice: GoldPriceInput(
-                                        date: price.date,
-                                        metal: price.metal,
-                                        value: price.value,
-                                        unit: price.unit,
-                                        price: price.price,
-                                      ),
-                                    ),
+                                (context) => AddGoldRateDialog(
+                                  existingPrice: GoldPriceInput(
+                                    date: price.date,
+                                    metal: price.metal,
+                                    value: price.value,
+                                    unit: price.unit,
+                                    price: price.price,
+                                  ),
+                                ),
                           );
+                        
                         },
+
                         icon: const Icon(Icons.edit, color: Color(0xFF4A235A)),
                       ),
+
                       IconButton(
                         onPressed: () {
                           showDialog(
                             context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text("Confirm Deletion"),
-                              content: const Text(
-                                  "Are you sure you want to delete this rate?"),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text("Cancel"),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    context
-                                        .read<GoldPriceBloc>();
-                                    Navigator.pop(context);
-                                  },
-                                  child: const Text(
-                                    "Delete",
-                                    style: TextStyle(color: Colors.red),
+                            builder:
+                                (context) => AlertDialog(
+                                  title: const Text("Confirm Deletion"),
+                                  content: const Text(
+                                    "Are you sure you want to delete this rate?",
                                   ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text("Cancel"),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        if (price.id == null) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                "Cannot delete: ID not found",
+                                              ),
+                                            ),
+                                          );
+                                          Navigator.pop(context);
+                                          return;
+                                        }
+
+                                        context.read<GoldPriceBloc>().add(
+                                          DeleteGoldPriceEvent(price.id!),
+                                        );
+                                        Navigator.pop(context);
+                                      },
+                                      child: const Text(
+                                        "Delete",
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
                           );
                         },
                         icon: const Icon(Icons.delete, color: Colors.redAccent),

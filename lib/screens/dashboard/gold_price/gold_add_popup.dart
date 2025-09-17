@@ -1,8 +1,8 @@
 import 'package:admin/blocs/gold/add_gld_bloc.dart';
 import 'package:admin/blocs/gold/add_gold_event.dart';
 import 'package:admin/data/models/add_gold_price.dart';
-import 'package:admin/screens/dashboard/widgets/gold_rate/bloc/gold_bloc.dart';
-import 'package:admin/screens/dashboard/widgets/gold_rate/bloc/gold_event.dart';
+import 'package:admin/screens/dashboard/gold_price/bloc/gold_bloc.dart';
+import 'package:admin/screens/dashboard/gold_price/bloc/gold_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -24,7 +24,7 @@ class _AddGoldRateDialogState extends State<AddGoldRateDialog> {
 
   final List<String> types = ["Gold", "Silver"];
   final List<String> goldCarats = ["24K", "22K", "18K"];
-  final List<String> silverCarats = ["99.9% (Pure Silver)"];
+  final List<String> silverCarats = ["99.9%","99.9% (Pure Silver)"];
   final List<String> units = ["1g", "10g", "1Kg"];
 
   @override
@@ -157,7 +157,7 @@ class _AddGoldRateDialogState extends State<AddGoldRateDialog> {
     );
   }
 
- void _onSavePressed() {
+void _onSavePressed() async {
   if (selectedType == null ||
       selectedCarat == null ||
       selectedUnit == null ||
@@ -176,21 +176,37 @@ class _AddGoldRateDialogState extends State<AddGoldRateDialog> {
     price: double.tryParse(priceController.text) ?? 0,
   );
 
-if (widget.existingPrice != null && widget.existingPrice!.id != null) {
-  context.read<AddGoldPriceBloc>().add(
-    UpdateGoldPrice(id: widget.existingPrice!.id!, input: input),
-  );
-} else {
-  context.read<AddGoldPriceBloc>().add(SubmitGoldPrice(input));
-}
+  final addBloc = context.read<AddGoldPriceBloc>();
+  final goldBloc = context.read<GoldPriceBloc>();
 
+  if (widget.existingPrice != null && widget.existingPrice!.id != null) {
+    await addBloc.repository.updateGoldPrice(
+      widget.existingPrice!.id!,
+      input,
+    );
+  } else {
+    await addBloc.repository.addOrUpdateGoldPrice(input);
+  }
 
+  /// Refresh UI instantly
+  goldBloc.add(const FetchGoldPriceEvent());
 
-  //  Trigger Refresh of Header Data
-  context.read<GoldPriceBloc>().add(FetchGoldPrices());
-
+  ///  Close popup
   Navigator.pop(context);
+
+  /// Optional: Snackbar for success
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(widget.existingPrice != null
+          ? "Rate updated successfully"
+          : "Rate added successfully"),
+      backgroundColor: Colors.green,
+    ),
+  );
 }
+
+
+
 
 
 
@@ -240,7 +256,7 @@ if (widget.existingPrice != null && widget.existingPrice!.id != null) {
         ),
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
-          value: value,
+          value: items.contains(value) ? value : null,          
           isDense: true,
           decoration: InputDecoration(
             filled: true,
