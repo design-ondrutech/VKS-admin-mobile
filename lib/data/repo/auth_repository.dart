@@ -2,9 +2,12 @@
 import 'package:admin/data/models/add_gold_price.dart';
 import 'package:admin/data/models/barchart.dart';
 import 'package:admin/data/models/card.dart';
+import 'package:admin/data/models/cash_payment.dart';
 import 'package:admin/data/models/customer.dart';
 import 'package:admin/data/models/gold_rate.dart';
-import 'package:admin/data/models/table.dart';
+import 'package:admin/data/models/online_payment.dart';
+import 'package:admin/data/models/scheme.dart';
+import 'package:admin/data/models/today_active_scheme.dart';
 import 'package:admin/data/models/total_active_scheme';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
@@ -59,6 +62,7 @@ class CardRepository {
           totalOnlinePayment
           totalCashPayment
           totalActiveSchemes
+          todayActiveSchemes
         }
       }
     ''';
@@ -368,6 +372,7 @@ class CustomerRepository {
   }
 }
 
+// Total Active Scheme Repository
 class TotalActiveSchemesRepository {
   final GraphQLClient client;
 
@@ -409,5 +414,140 @@ class TotalActiveSchemesRepository {
     }
 
     return TotalActiveSchemesResponse.fromJson(result.data!);
+  }
+}
+
+
+// Today Active Scheme Repository
+class TodayActiveSchemeRepository {
+  final GraphQLClient client;
+  TodayActiveSchemeRepository(this.client);
+
+  Future<TodayActiveSchemeResponse> fetchTodayActiveSchemes(String startDate) async {
+    const String query = r'''
+      query GetTodayActiveSchemes($startDate: String) {
+        getTodayActiveSchemes(startDate: $startDate) {
+          data {
+            customer {
+              cName
+              cEmail
+              cPhoneNumber
+            }
+            totalAmount
+            status
+            scheme_type
+            scheme_name
+            scheme_purpose
+            total_gold_weight
+            start_date
+          }
+          limit
+          page
+          totalCount
+        }
+      }
+    ''';
+
+    final result = await client.query(
+      QueryOptions(
+        document: gql(query),
+        variables: {'startDate': startDate},
+      ),
+    );
+
+    if (result.hasException) {
+      throw Exception(result.exception.toString());
+    }
+
+    final data = result.data?['getTodayActiveSchemes'];
+    return TodayActiveSchemeResponse.fromJson(data);
+  }
+}
+
+// Online Payment Repository
+class OnlinePaymentRepository {
+  final GraphQLClient client;
+  OnlinePaymentRepository(this.client);
+
+  Future<OnlinePaymentResponse> fetchOnlinePayments() async {
+    const String query = r'''
+      query GetOnlinCashTransaction($transactionType: String) {
+        GetOnlinCashTransaction(transactionType: $transactionType) {
+          data {
+            transactionId
+            transactionAmount
+            transactionGoldGram
+            transactionDate
+            customer {
+              cName
+            }
+            transactionStatus
+            transactionType
+          }
+          limit
+          totalCount
+          totalPages
+          currentPage
+        }
+      }
+    ''';
+
+    final result = await client.query(
+      QueryOptions(
+        document: gql(query),
+        variables: {"transactionType": "online"},
+      ),
+    );
+
+    if (result.hasException) throw Exception(result.exception.toString());
+
+    final data = result.data?['GetOnlinCashTransaction'];
+    if (data == null) throw Exception("No online payments found");
+
+    return OnlinePaymentResponse.fromJson(data);
+  }
+}
+
+// Cash Payment Repository
+class CashPaymentRepository {
+  final GraphQLClient client;
+  CashPaymentRepository(this.client);
+
+  Future<CashPaymentResponse> fetchCashPayments() async {
+    const String query = r'''
+      query GetOnlinCashTransaction($transactionType: String) {
+        GetOnlinCashTransaction(transactionType: $transactionType) {
+          data {
+            transactionId
+            transactionAmount
+            transactionGoldGram
+            transactionDate
+            customer {
+              cName
+            }
+            transactionStatus
+            transactionType
+          }
+          limit
+          totalCount
+          totalPages
+          currentPage
+        }
+      }
+    ''';
+
+    final result = await client.query(
+      QueryOptions(
+        document: gql(query),
+        variables: {"transactionType": "cash"},
+      ),
+    );
+
+    if (result.hasException) throw Exception(result.exception.toString());
+
+    final data = result.data?['GetOnlinCashTransaction'];
+    if (data == null) throw Exception("No cash payments found");
+
+    return CashPaymentResponse.fromJson(data);
   }
 }

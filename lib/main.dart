@@ -4,11 +4,16 @@ import 'package:admin/blocs/auth/auth_bloc.dart';
 import 'package:admin/blocs/barchart/barchart_bloc.dart';
 import 'package:admin/blocs/card/card_bloc.dart';
 import 'package:admin/blocs/card/card_event.dart';
+import 'package:admin/blocs/cash_payment/cash_payment_bloc.dart';
+import 'package:admin/blocs/cash_payment/cash_payment_event.dart';
 import 'package:admin/blocs/customers/customer_bloc.dart';
 import 'package:admin/blocs/customers/customer_event.dart';
 import 'package:admin/blocs/dashboard/dashboard_bloc.dart';
 import 'package:admin/blocs/gold/add_gld_bloc.dart';
+import 'package:admin/blocs/online_payment/online_payment_bloc.dart';
+import 'package:admin/blocs/online_payment/online_payment_event.dart';
 import 'package:admin/blocs/schemes/schemes_bloc.dart';
+import 'package:admin/blocs/today_active_scheme/today_active_bloc.dart';
 import 'package:admin/data/repo/auth_repository.dart';
 import 'package:admin/screens/dashboard/gold_price/bloc/gold_bloc.dart';
 import 'package:admin/screens/dashboard/gold_price/bloc/gold_event.dart';
@@ -47,6 +52,12 @@ class MyApp extends StatelessWidget {
     final goldDashboardRepository = GoldDashboardRepository(client);
     final TotalActiveSchemesRepository totalActiveSchemesRepository =
         TotalActiveSchemesRepository(client);
+    final TodayActiveSchemeRepository todayActiveSchemeRepository =
+        TodayActiveSchemeRepository(client);
+    final OnlinePaymentRepository onlinePaymentRepository =
+        OnlinePaymentRepository(client);
+    final CashPaymentRepository cashPaymentRepository =
+        CashPaymentRepository(client);
 
     return MultiBlocProvider(
       providers: [
@@ -77,6 +88,17 @@ class MyApp extends StatelessWidget {
           create: (_) => TotalActiveSchemesBloc(totalActiveSchemesRepository)
             ..add(FetchTotalActiveSchemes()),
         ),
+        BlocProvider(
+          create: (_) => TodayActiveSchemeBloc(todayActiveSchemeRepository),
+        ),
+        BlocProvider(
+          create: (_) => OnlinePaymentBloc(onlinePaymentRepository)
+            ..add(FetchOnlinePayments(page: 1, limit: 10)),
+        ),
+        BlocProvider(
+          create: (_) => CashPaymentBloc(cashPaymentRepository)
+            ..add(FetchCashPayments(page: 1, limit: 10)),
+        ),  
         
       ],
       child: MaterialApp(

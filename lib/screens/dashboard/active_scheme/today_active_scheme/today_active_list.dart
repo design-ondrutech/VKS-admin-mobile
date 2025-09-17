@@ -1,37 +1,41 @@
-import 'package:admin/blocs/active_scheme/active_scheme_bloc.dart';
-import 'package:admin/blocs/active_scheme/active_scheme_event.dart';
-import 'package:admin/blocs/active_scheme/active_scheme_state.dart';
+import 'package:admin/blocs/today_active_scheme/today_active_bloc.dart';
+import 'package:admin/blocs/today_active_scheme/today_active_event.dart';
+import 'package:admin/blocs/today_active_scheme/today_active_state.dart';
+import 'package:admin/data/models/today_active_scheme.dart';
 import 'package:admin/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
-class TotalActiveSchemesScreen extends StatelessWidget {
-  const TotalActiveSchemesScreen({super.key});
+class TodayActiveSchemesScreen extends StatelessWidget {
+  const TodayActiveSchemesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        title: const Text("Total Active Schemes",
+        title: const Text("Today's Active Schemes",
             style: TextStyle(color: Appcolors.white,)),
         centerTitle: true,
         backgroundColor: Appcolors.headerbackground,
         elevation: 0,
       ),
-      body: BlocBuilder<TotalActiveSchemesBloc, TotalActiveSchemesState>(
+      body: BlocBuilder<TodayActiveSchemeBloc, TodayActiveSchemeState>(
         builder: (context, state) {
-          if (state is TotalActiveSchemesInitial) {
-            context.read<TotalActiveSchemesBloc>().add(FetchTotalActiveSchemes());
+          if (state is TodayActiveSchemeInitial) {
+            context.read<TodayActiveSchemeBloc>().add(FetchTodayActiveSchemes(today));
             return const Center(child: CircularProgressIndicator());
-          } else if (state is TotalActiveSchemesLoading) {
+          } else if (state is TodayActiveSchemeLoading) {
             return const Center(child: CircularProgressIndicator());
-          } else if (state is TotalActiveSchemesLoaded) {
+          } else if (state is TodayActiveSchemeLoaded) {
             final schemes = state.response.data;
             if (schemes.isEmpty) {
               return const Center(
                 child: Text(
-                  "No Active Schemes Found",
+                  "No active schemes found for today.",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
               );
@@ -40,7 +44,7 @@ class TotalActiveSchemesScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               itemCount: schemes.length,
               itemBuilder: (context, index) {
-                final scheme = schemes[index];
+                final TodayActiveScheme scheme = schemes[index];
 
                 return Container(
                   margin: const EdgeInsets.only(bottom: 12),
@@ -49,7 +53,7 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color:Appcolors.white,
+                        color: Colors.black.withOpacity(0.05),
                         blurRadius: 6,
                         offset: const Offset(0, 4),
                       )
@@ -58,7 +62,7 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header with Scheme Name + Status
+                      // Header with scheme name + status
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
@@ -98,7 +102,7 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                         ),
                       ),
 
-                      // Body Content
+                      // Body with customer details
                       Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
@@ -109,6 +113,7 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                             _infoRow(Icons.email, scheme.customer.cEmail),
                             const Divider(height: 24),
                             _infoRow(Icons.category, "Type: ${scheme.schemeType}"),
+                            _infoRow(Icons.work_outline, "Purpose: ${scheme.schemePurpose}"),
                             _infoRow(Icons.scale, "Gold: ${scheme.totalGoldWeight} gm"),
                             _infoRow(Icons.currency_rupee, "Amount: ₹${scheme.totalAmount}"),
                             _infoRow(Icons.calendar_today, "Start Date: ${scheme.startDate}"),
@@ -120,7 +125,7 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                 );
               },
             );
-          } else if (state is TotalActiveSchemesError) {
+          } else if (state is TodayActiveSchemeError) {
             return Center(
               child: Text(
                 "Error: ${state.message}",

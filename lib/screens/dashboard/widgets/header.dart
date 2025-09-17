@@ -16,13 +16,13 @@ class DashboardTopHeader extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(
           bottom: Radius.circular(20),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
+        // boxShadow: [
+        //   BoxShadow(
+        //     color: Colors.grey.withOpacity(0.2),
+        //     blurRadius: 8,
+        //     offset: const Offset(0, 3),
+        //   ),
+        // ],
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       child: Row(

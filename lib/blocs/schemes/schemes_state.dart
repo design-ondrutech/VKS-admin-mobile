@@ -1,4 +1,4 @@
-import 'package:admin/data/models/table.dart'; // Scheme model
+import 'package:admin/data/models/scheme.dart'; // Scheme model
 
 class SchemesState {
   final bool isLoading;
