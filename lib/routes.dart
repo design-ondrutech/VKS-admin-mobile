@@ -1,7 +1,9 @@
 
 import 'package:admin/screens/dashboard/dashboard_screen.dart';
-import 'package:admin/screens/dashboard/widgets/notification.dart';
-import 'package:admin/screens/dashboard/widgets/schemes.dart';
+import 'package:admin/screens/dashboard/gold_price/gold_add_popup.dart';
+import 'package:admin/screens/dashboard/gold_price/goldrate.dart';
+import 'package:admin/screens/dashboard/notification/notification.dart';
+import 'package:admin/screens/dashboard/scheme/schemes.dart';
 import 'package:flutter/material.dart';
 import 'screens/login_screen.dart';
 
@@ -11,6 +13,8 @@ class AppRoutes {
   static const String overview = '/dashboard/overview';
   static const String schemes = '/dashboard/schemes';
   static const String notifications = '/dashboard/notifications';
+  static const String goldPrice = '/dashboard/gold_price';
+  static const String addGoldPrice = '/dashboard/gold_price/add';
   
 
 
@@ -31,7 +35,13 @@ class AppRoutes {
       case notifications:
         return MaterialPageRoute(builder: (_) => NotificationsTab());  
 
-       
+      case goldPrice:
+        return MaterialPageRoute(builder: (_) => GoldPriceScreen());
+
+      case addGoldPrice:
+        return MaterialPageRoute(builder: (_) => AddGoldRateDialog());
+
+     
 
       default:
         return MaterialPageRoute(

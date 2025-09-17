@@ -7,14 +7,15 @@ import 'package:admin/screens/dashboard/customer/customer_list.dart';
 import 'package:admin/screens/dashboard/gold_price/bloc/gold_bloc.dart';
 import 'package:admin/screens/dashboard/gold_price/bloc/gold_state.dart';
 import 'package:admin/screens/dashboard/gold_price/goldrate.dart';
-import 'package:admin/screens/dashboard/widgets/notification.dart';
+import 'package:admin/screens/dashboard/notification/notification.dart';
+import 'package:admin/screens/dashboard/scheme/schemes.dart';
+import 'package:admin/screens/dashboard/widgets/header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:admin/blocs/dashboard/dashboard_bloc.dart';
 import 'package:admin/blocs/dashboard/dashboard_event.dart';
 import 'package:admin/blocs/dashboard/dashboard_state.dart';
 import 'package:admin/widgets/bottom_navigation.dart';
-import 'widgets/schemes.dart';
 import 'widgets/barchart.dart';
 import 'package:admin/utils/colors.dart';
 
@@ -34,15 +35,13 @@ class DashboardScreen extends StatelessWidget {
 class DashboardHeader extends StatelessWidget {
   const DashboardHeader({super.key});
 
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7FC),
       body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(context),
+            const DashboardTopHeader(), 
             Expanded(
               child: BlocBuilder<DashboardBloc, DashboardState>(
                 builder: (context, state) {
@@ -57,7 +56,6 @@ class DashboardHeader extends StatelessWidget {
           ],
         ),
       ),
-
       bottomNavigationBar: BlocBuilder<DashboardBloc, DashboardState>(
         builder: (context, state) {
           return CustomBottomNav(
@@ -71,93 +69,95 @@ class DashboardHeader extends StatelessWidget {
     );
   }
 
- Widget _buildHeader(BuildContext context) {
-  return Container(
-    color: Colors.white,
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-    child: Row(
-      children: [
-        Image.asset('assets/images/icon.jpg', height: 40),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                "Dashboard",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-              const Text(
-                "Welcome back, Admin",
-                style: TextStyle(color: Colors.grey, fontSize: 13),
-              ),
-              const SizedBox(height: 6),
+  Widget _buildHeader(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        children: [
+          Image.asset('assets/images/icon.jpg', height: 40),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Dashboard",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                const Text(
+                  "Welcome back, Admin",
+                  style: TextStyle(color: Colors.grey, fontSize: 13),
+                ),
+                const SizedBox(height: 6),
 
-              BlocBuilder<GoldPriceBloc, GoldPriceState>(
-                builder: (context, state) {
-                  if (state is GoldPriceLoading) { 
-                    return const Text(
-                      "Loading prices...",
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
-                    );
-                  }
+                BlocBuilder<GoldPriceBloc, GoldPriceState>(
+                  builder: (context, state) {
+                    if (state is GoldPriceLoading) {
+                      return const Text(
+                        "Loading prices...",
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      );
+                    }
 
-                  if (state is GoldPriceLoaded) {
-                    final todayGold =
-                        state.goldRates.isNotEmpty ? state.goldRates.first.price : "N/A";
-                    final todaySilver =
-                        state.silverRates.isNotEmpty ? state.silverRates.first.price : "N/A";
-                        
-                    return Row(
-                      children: [
-                        Text(
-                          "Gold: ₹$todayGold",
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.orange,
+                    if (state is GoldPriceLoaded) {
+                      final todayGold =
+                          state.goldRates.isNotEmpty
+                              ? state.goldRates.first.price
+                              : "N/A";
+                      final todaySilver =
+                          state.silverRates.isNotEmpty
+                              ? state.silverRates.first.price
+                              : "N/A";
+
+                      return Row(
+                        children: [
+                          Text(
+                            "Gold: ₹$todayGold",
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          "Silver: ₹$todaySilver",
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blueGrey,
+                          const SizedBox(width: 12),
+                          Text(
+                            "Silver: ₹$todaySilver",
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blueGrey,
+                            ),
                           ),
-                        ),
-                      ],
-                    );
-                  }
+                        ],
+                      );
+                    }
 
-                  if (state is GoldPriceError) {
-                    return Text(
-                      "Error: ${state.message}",
-                      style: const TextStyle(fontSize: 12, color: Colors.red),
-                    );
-                  }
+                    if (state is GoldPriceError) {
+                      return Text(
+                        "Error: ${state.message}",
+                        style: const TextStyle(fontSize: 12, color: Colors.red),
+                      );
+                    }
 
-                  return const SizedBox();
-                },
-              ),
-            ],
+                    return const SizedBox();
+                  },
+                ),
+              ],
+            ),
           ),
-        ),
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Appcolors.buttoncolor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Appcolors.buttoncolor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.menu, size: 26, color: Colors.black87),
           ),
-          child: const Icon(Icons.menu, size: 26, color: Colors.black87),
-        ),
-      ],
-    ),
-  );
- }
-
-
+        ],
+      ),
+    );
+  }
 
   ///  Tab Selection
   Widget _getSelectedTab(BuildContext context, String selectedTab) {
@@ -220,13 +220,13 @@ class DashboardHeader extends StatelessWidget {
                             builder: (_) => const TotalActiveSchemesScreen(),
                           ),
                         );
-                      },                    
+                      },
                     ),
                     _iconCard(
                       "Online Payment",
                       "₹${summary.totalOnlinePayment}",
                       Icons.account_balance_wallet,
-                      Colors.teal,   
+                      Colors.teal,
                     ),
                     _iconCard(
                       "Cash Payment",
