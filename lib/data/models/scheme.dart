@@ -1,33 +1,53 @@
 class Scheme {
   final String schemeName;
+  final String schemeType;
+  final String durationType;
   final int duration;
   final double minAmount;
-  final double maxAmount;
 
   Scheme({
     required this.schemeName,
+    required this.schemeType,
+    required this.durationType,
     required this.duration,
     required this.minAmount,
-    required this.maxAmount,
   });
 
-  // Factory constructor to create from GraphQL response map
   factory Scheme.fromJson(Map<String, dynamic> json) {
     return Scheme(
       schemeName: json['scheme_name'] ?? '',
-      duration: int.tryParse(json['duration'].toString()) ?? 0,
-      minAmount: double.tryParse(json['min_amount'].toString()) ?? 0.0,
-      maxAmount: double.tryParse(json['max_amount'].toString()) ?? 0.0,
+      schemeType: json['scheme_type'] ?? '',
+      durationType: json['duration_type'] ?? '',
+      duration: (json['duration'] ?? 0).toInt(),
+      minAmount: (json['min_amount'] ?? 0).toDouble(),
     );
   }
+}
 
-  // Convert back to Map (for mutation)
-  Map<String, dynamic> toJson() {
-    return {
-      'scheme_name': schemeName,
-      'duration': duration,
-      'min_amount': minAmount,
-      'max_amount': maxAmount,
-    };
+class SchemesResponse {
+  final List<Scheme> data;
+  final int limit;
+  final int totalCount;
+  final int totalPages;
+  final int currentPage;
+
+  SchemesResponse({
+    required this.data,
+    required this.limit,
+    required this.totalCount,
+    required this.totalPages,
+    required this.currentPage,
+  });
+
+  factory SchemesResponse.fromJson(Map<String, dynamic> json) {
+    return SchemesResponse(
+      data: (json['data'] as List<dynamic>)
+          .map((e) => Scheme.fromJson(e))
+          .toList(),
+      limit: json['limit'] ?? 0,
+      totalCount: json['totalCount'] ?? 0,
+      totalPages: json['totalPages'] ?? 0,
+      currentPage: json['currentPage'] ?? 0,
+    );
   }
 }

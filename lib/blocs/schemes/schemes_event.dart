@@ -8,14 +8,17 @@ class CloseAddSchemePopup extends SchemesEvent {}
 
 class SubmitScheme extends SchemesEvent {
   final String schemeName;
+  final String schemeType;
+  final String durationType;
   final String duration;
   final String minAmount;
-  final String maxAmount;
 
   SubmitScheme({
     required this.schemeName,
+    required this.schemeType,
+    required this.durationType,
     required this.duration,
     required this.minAmount,
-    required this.maxAmount,
   });
 }
+

@@ -88,17 +88,37 @@ class SchemeRepository {
 
   SchemeRepository(this.client);
 
-  Future<List<Scheme>> fetchSchemes() async {
+  Future<SchemesResponse> fetchSchemes() async {
     const String query = r'''
       query GetAllSchemes {
         getAllSchemes {
-          currentPage
           data {
+            scheme_id
             scheme_name
-            max_amount
-            min_amount
+            scheme_type
+            duration_type
             duration
+            benefits
+            amount_benefits
+            min_amount
+            max_amount
+            increment_amount
+            is_active
+            redemption_terms
+            interest_rate
+            created_date
+            last_update_date
+            isDeleted
+            scheme_icon
+            scheme_image
+            scheme_notes
+            is_benifit_popup
+            popup_benifits
           }
+          limit
+          totalCount
+          totalPages
+          currentPage
         }
       }
     ''';
@@ -109,12 +129,11 @@ class SchemeRepository {
       throw Exception(result.exception.toString());
     }
 
-    final List<dynamic> schemesData =
-        result.data?['getAllSchemes']['data'] ?? [];
-
-    return schemesData.map((json) => Scheme.fromJson(json)).toList();
+    final json = result.data?['getAllSchemes'] ?? {};
+    return SchemesResponse.fromJson(json);
   }
 }
+
 
 // Gold Dashboard Repository barchart
 

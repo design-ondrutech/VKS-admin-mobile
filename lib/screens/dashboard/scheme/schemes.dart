@@ -1,5 +1,6 @@
 import 'package:admin/data/graphql_config.dart';
 import 'package:admin/data/repo/auth_repository.dart';
+import 'package:admin/screens/dashboard/scheme/add_scheme.dart';
 import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -14,11 +15,7 @@ class SchemesTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create:
-          (_) =>
-              SchemesBloc(SchemeRepository(getGraphQLClient()))
-                ..add(FetchSchemes()),
-
+      create: (_) => SchemesBloc(SchemeRepository(getGraphQLClient()))..add(FetchSchemes()),
       child: BlocConsumer<SchemesBloc, SchemesState>(
         listener: (context, state) {
           if (state.isPopupOpen) {
@@ -32,75 +29,34 @@ class SchemesTab extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
                 children: [
                   // -------- Header Row --------
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        "Schemes",
-                        style:ThemeText.titleLarge
-                      ),
+                      const Text("Schemes", style: ThemeText.titleLarge),
                       ElevatedButton(
-                        onPressed: () {
-                          context.read<SchemesBloc>().add(OpenAddSchemePopup());
-                        },
+                        onPressed: () => context.read<SchemesBloc>().add(OpenAddSchemePopup()),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Appcolors.buttoncolor,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
-                        child: const Text(
-                          "Add Scheme",
-                          style: TextStyle(fontSize: 14, color: Colors.white),
-                        ),
+                        child: const Text("Add Scheme", style: TextStyle(fontSize: 14, color: Colors.white)),
                       ),
                     ],
                   ),
                   const SizedBox(height: 20),
 
-                  // ---- Table Header ----
-                  // Container(
-                  //   padding: const EdgeInsets.symmetric(
-                  //     vertical: 12,
-                  //     horizontal: 10,
-                  //   ),
-                  //   decoration: const BoxDecoration(
-                  //     color: Color(0xFFE2E8F0),
-                  //     borderRadius: BorderRadius.vertical(
-                  //       top: Radius.circular(8),
-                  //     ),
-                  //   ),
-                  //   // child: Row(
-                  //   //   children: const [
-                  //   //     _HeaderCell("ID", flex: 1),
-                  //   //     _HeaderCell("SCHEME", flex: 2),
-                  //   //     _HeaderCell("DURATION", flex: 2),
-                  //   //     _HeaderCell("MIN AMOUNT", flex: 2),
-                  //   //     _HeaderCell("MAX AMOUNT", flex: 2),
-                  //   //   ],
-                  //   // ),
-                  // ),
-
-                  // ---- API Data Rows ----
                   if (state.isLoading)
                     const Padding(
                       padding: EdgeInsets.all(20),
                       child: Center(child: CircularProgressIndicator()),
                     )
-                 else if (state.error != null && state.error!.isNotEmpty)
+                  else if (state.error != null && state.error!.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.all(20),
-                      child: Text(
-                        "Error: ${state.error}",
-                        style: const TextStyle(color: Colors.red),
-                      ),
+                      child: Text("Error: ${state.error}", style: const TextStyle(color: Colors.red)),
                     )
                   else if (state.schemes.isEmpty)
                     const Padding(
@@ -109,19 +65,41 @@ class SchemesTab extends StatelessWidget {
                     )
                   else
                     Column(
-                      children:
-                          state.schemes.asMap().entries.map((entry) {
-                            final index = entry.key + 1;
-                            final scheme =
-                                entry.value; 
-                            return _buildRow(
-                              index.toString(),
-                              scheme.schemeName,
-                              "${scheme.duration} months",
-                              scheme.minAmount.toString(),
-                              scheme.maxAmount.toString(),
+                      children: state.schemes.asMap().entries.map((entry) {
+                        final index = entry.key + 1;
+                        final scheme = entry.value;
+                        return _buildSchemeCard(
+                          id: index.toString(),
+                          schemeName: scheme.schemeName,
+                          schemeType: scheme.schemeType,
+                          duration: "${scheme.duration} ${scheme.durationType}",
+                          minAmount: scheme.minAmount.toString(),
+                          onEdit: () => context.read<SchemesBloc>().add(OpenAddSchemePopup()),
+                          onDelete: () {
+                            showDialog(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                title: const Text("Delete Scheme"),
+                                content: Text("Are you sure you want to delete '${scheme.schemeName}'?"),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx),
+                                    child: const Text("Cancel"),
+                                  ),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                    onPressed: () {
+                                      // TODO: Add Delete API
+                                      Navigator.pop(ctx);
+                                    },
+                                    child: const Text("Delete", style: TextStyle(color: Appcolors.white)),
+                                  ),
+                                ],
+                              ),
                             );
-                          }).toList(),
+                          },
+                        );
+                      }).toList(),
                     ),
                 ],
               ),
@@ -129,290 +107,78 @@ class SchemesTab extends StatelessWidget {
           );
         },
       ),
-      
     );
-    
   }
 
-  // ---------------- POPUP FORM ----------------
   void _showAddSchemePopup(BuildContext context) {
-    final formKey = GlobalKey<FormState>();
-    final schemeNameController = TextEditingController();
-    final durationController = TextEditingController();
-    final minAmountController = TextEditingController();
-    final maxAmountController = TextEditingController();
-
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) {
-        return BlocBuilder<SchemesBloc, SchemesState>(
-          builder: (context, state) {
-            return Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              insetPadding: const EdgeInsets.all(20),
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: const [
-                          Icon(
-                            Icons.add_chart,
-                            color: Colors.deepPurple,
-                            size: 28,
-                          ),
-                          SizedBox(width: 10),
-                          Text(
-                            "Create New Scheme",
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.deepPurple,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-
-                      Form(
-                        key: formKey,
-                        child: Column(
-                          children: [
-                            TextFormField(
-                              controller: schemeNameController,
-                              decoration: InputDecoration(
-                                labelText: "Scheme Name",
-                                prefixIcon: const Icon(Icons.card_giftcard),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              validator:
-                                  (value) =>
-                                      value!.isEmpty
-                                          ? "Enter scheme name"
-                                          : null,
-                            ),
-                            const SizedBox(height: 15),
-                            TextFormField(
-                              controller: durationController,
-                              decoration: InputDecoration(
-                                labelText: "Duration (Months)",
-                                prefixIcon: const Icon(Icons.timer),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 15),
-                            TextFormField(
-                              controller: minAmountController,
-                              decoration: InputDecoration(
-                                labelText: "Minimum Amount",
-                                prefixIcon: const Icon(Icons.money),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              keyboardType: TextInputType.number,
-                            ),
-                            const SizedBox(height: 15),
-                            TextFormField(
-                              controller: maxAmountController,
-                              decoration: InputDecoration(
-                                labelText: "Maximum Amount",
-                                prefixIcon: const Icon(Icons.attach_money),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              keyboardType: TextInputType.number,
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 25),
-
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          TextButton.icon(
-                            onPressed: () {
-                              context.read<SchemesBloc>().add(
-                                CloseAddSchemePopup(),
-                              );
-                              Navigator.pop(context);
-                            },
-                            icon: const Icon(Icons.close, color: Colors.red),
-                            label: const Text(
-                              "Cancel",
-                              style: TextStyle(color: Colors.red),
-                            ),
-                          ),
-                          ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Appcolors.buttoncolor,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                                vertical: 12,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            onPressed: () {
-                              if (formKey.currentState!.validate()) {
-                                context.read<SchemesBloc>().add(
-                                  SubmitScheme(
-                                    schemeName: schemeNameController.text,
-                                    duration: durationController.text,
-                                    minAmount: minAmountController.text,
-                                    maxAmount: maxAmountController.text,
-                                  ),
-                                );
-                              }
-                            },
-                            icon:
-                                state.isSubmitting
-                                    ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                    : const Icon(
-                                      Icons.save,
-                                      color: Colors.white,
-                                    ),
-                            label: const Text(
-                              "Save",
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
+      builder: (_) => AddSchemeDialog(),
     ).then((_) {
       context.read<SchemesBloc>().add(CloseAddSchemePopup());
     });
   }
 }
 
-// ---------------- Table Header + Rows ----------------
-// ignore: unused_element
-class _HeaderCell extends StatelessWidget {
-  final String text;
-  final int flex;
-  const _HeaderCell(this.text, {required this.flex});
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      flex: flex,
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-          color: Colors.black87,
-        ),
-      ),
-    );
-  }
-}
-
-Widget _buildRow(
-  String id,
-  String scheme,
-  String duration,
-  String minAmt,
-  String maxAmt,
-) {
+/// ------------- SCHEME CARD WIDGET -------------
+Widget _buildSchemeCard({
+  required String id,
+  required String schemeName,
+  required String schemeType,
+  required String duration,
+  required String minAmount,
+  VoidCallback? onEdit,
+  VoidCallback? onDelete,
+}) {
   return Card(
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
-    ),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     margin: const EdgeInsets.symmetric(vertical: 8),
-    elevation: 2,
+    elevation: 3,
     child: Padding(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top row: ID + Scheme Name
+          /// Top Row: Name + Actions
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                "ID: $id",
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(schemeName,
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF4A235A))),
+                    const SizedBox(height: 4),
+                    Text("Scheme Type: $schemeType", style: const TextStyle(fontSize: 13, color: Colors.grey)),
+                  ],
                 ),
               ),
-              Text(
-                scheme,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF4A235A),
-                ),
+              Row(
+                children: [
+                  IconButton(icon: const Icon(Icons.edit, color: Colors.blue), tooltip: "Edit", onPressed: onEdit),
+                  IconButton(icon: const Icon(Icons.delete, color: Colors.red), tooltip: "Delete", onPressed: onDelete),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const Divider(),
 
-          // Duration
+          /// Info Rows
           Row(
             children: [
               const Icon(Icons.timer, size: 16, color: Colors.deepPurple),
               const SizedBox(width: 6),
-              Text(
-                duration,
-                style: const TextStyle(fontSize: 14),
-              ),
+              Text(duration, style: const TextStyle(fontSize: 14)),
             ],
           ),
           const SizedBox(height: 6),
-
-          // Min Amount
           Row(
             children: [
-              const Icon(Icons.arrow_downward, size: 16, color: Colors.green),
+              const Icon(Icons.currency_rupee, size: 16, color: Colors.green),
               const SizedBox(width: 6),
-              Text(
-                "Min: ₹$minAmt",
-                style: const TextStyle(fontSize: 14),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-
-          // Max Amount
-          Row(
-            children: [
-              const Icon(Icons.arrow_upward, size: 16, color: Colors.red),
-              const SizedBox(width: 6),
-              Text(
-                "Max: ₹$maxAmt",
-                style: const TextStyle(fontSize: 14),
-              ),
+              Text("Min Amount: ₹$minAmount", style: const TextStyle(fontSize: 14)),
             ],
           ),
         ],
@@ -420,5 +186,3 @@ Widget _buildRow(
     ),
   );
 }
-
-

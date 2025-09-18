@@ -11,9 +11,12 @@ class SchemesBloc extends Bloc<SchemesEvent, SchemesState> {
     on<FetchSchemes>((event, emit) async {
       emit(state.copyWith(isLoading: true, error: ""));
       try {
-        final schemes = await repository.fetchSchemes();
+        final response = await repository.fetchSchemes(); //  SchemesResponse
         emit(state.copyWith(
-          schemes: schemes,
+          schemes: response.data, //  extract only List<Scheme>
+          totalCount: response.totalCount, //  add total count
+          currentPage: response.currentPage,
+          totalPages: response.totalPages,
           isLoading: false,
           error: "",
         ));
