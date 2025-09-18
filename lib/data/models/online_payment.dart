@@ -43,14 +43,16 @@ class OnlinePayment {
     required this.transactionStatus,
   });
 
-factory OnlinePayment.fromJson(Map<String, dynamic> json) {
-  return OnlinePayment(
-    transactionId: json['transactionId']?.toString() ?? '',
-    transactionAmount: (json['transactionAmount'] ?? 0).toDouble(),
-    transactionGoldGram: (json['transactionGoldGram'] ?? 0).toDouble(),
-    transactionDate: json['transactionDate'] ?? '',
-    customerName: json['customer']?['cName'] ?? '',
-    transactionStatus: json['transactionStatus'] ?? '',
-  );
-}
+  factory OnlinePayment.fromJson(Map<String, dynamic> json) {
+    return OnlinePayment(
+      transactionId: json['transactionId']?.toString() ?? '',
+      transactionAmount:
+          double.tryParse(json['transactionAmount']?.toString() ?? '0') ?? 0,
+      transactionGoldGram:
+          double.tryParse(json['transactionGoldGram']?.toString() ?? '0') ?? 0,
+      transactionDate: json['transactionDate']?.toString() ?? '',
+      customerName: json['customer']?['cName']?.toString() ?? '',
+      transactionStatus: json['transactionStatus']?.toString() ?? '',
+    );
+  }
 }

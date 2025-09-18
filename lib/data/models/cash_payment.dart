@@ -15,13 +15,21 @@ class CashPaymentResponse {
 
   factory CashPaymentResponse.fromJson(Map<String, dynamic> json) {
     return CashPaymentResponse(
-      data: (json['data'] as List)
+      data: (json['data'] as List<dynamic>? ?? [])
           .map((item) => CashPayment.fromJson(item))
           .toList(),
-      limit: json['limit'] ?? 0,
-      totalCount: json['totalCount'] ?? 0,
-      totalPages: json['totalPages'] ?? 0,
-      currentPage: json['currentPage'] ?? 1,
+      limit: (json['limit'] ?? 0) is String
+          ? int.tryParse(json['limit']) ?? 0
+          : json['limit'] ?? 0,
+      totalCount: (json['totalCount'] ?? 0) is String
+          ? int.tryParse(json['totalCount']) ?? 0
+          : json['totalCount'] ?? 0,
+      totalPages: (json['totalPages'] ?? 0) is String
+          ? int.tryParse(json['totalPages']) ?? 0
+          : json['totalPages'] ?? 0,
+      currentPage: (json['currentPage'] ?? 1) is String
+          ? int.tryParse(json['currentPage']) ?? 1
+          : json['currentPage'] ?? 1,
     );
   }
 }
@@ -45,12 +53,14 @@ class CashPayment {
 
   factory CashPayment.fromJson(Map<String, dynamic> json) {
     return CashPayment(
-      transactionId: json['transactionId'] ?? '',
-      transactionAmount: (json['transactionAmount'] ?? 0).toDouble(),
-      transactionGoldGram: (json['transactionGoldGram'] ?? 0).toDouble(),
-      transactionDate: json['transactionDate'] ?? '',
-      customerName: json['customer']?['cName'] ?? '',
-      transactionStatus: json['transactionStatus'] ?? '',
+      transactionId: json['transactionId']?.toString() ?? '', //  Safe conversion
+      transactionAmount:
+          (json['transactionAmount'] ?? 0).toDouble(), //  Safe conversion
+      transactionGoldGram:
+          (json['transactionGoldGram'] ?? 0).toDouble(), //  Safe conversion
+      transactionDate: json['transactionDate']?.toString() ?? '',
+      customerName: json['customer']?['cName']?.toString() ?? '',
+      transactionStatus: json['transactionStatus']?.toString() ?? '',
     );
   }
 }

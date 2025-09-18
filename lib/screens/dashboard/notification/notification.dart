@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:admin/utils/colors.dart';
 
-
 class NotificationsTab extends StatefulWidget {
   const NotificationsTab({super.key});
 
@@ -20,6 +19,20 @@ class _NotificationsTabState extends State<NotificationsTab>
 
   final TextEditingController headerCtrl = TextEditingController();
   final TextEditingController contentCtrl = TextEditingController();
+
+  //  store today's notifications locally
+  final List<Map<String, String>> todayNotifications = [
+    {
+      "title": "Gold Eleven",
+      "subtitle": "John Doe Completed this Scheme",
+      "time": "12 minutes ago",
+    },
+    {
+      "title": "Feel good Friday",
+      "subtitle": "Feels better with gold in your Wallet",
+      "time": "50 minutes ago",
+    },
+  ];
 
   @override
   void initState() {
@@ -75,20 +88,18 @@ class _NotificationsTabState extends State<NotificationsTab>
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
           ),
           const SizedBox(height: 16),
+
+          //  Dynamically render today's notifications
           Column(
-            children: [
-              notificationItem(
-                title: "Gold Eleven",
-                subtitle: "John Doe Completed this Scheme",
-                time: "12 minutes ago",
-              ),
-              notificationItem(
-                title: "Feel good Friday",
-                subtitle: "Feels better with gold in your Wallet",
-                time: "50 minutes ago",
-              ),
-            ],
+            children: todayNotifications
+                .map((n) => notificationItem(
+                      title: n["title"]!,
+                      subtitle: n["subtitle"]!,
+                      time: n["time"]!,
+                    ))
+                .toList(),
           ),
+
           const SizedBox(height: 16),
           Center(
             child: ElevatedButton(
@@ -137,13 +148,23 @@ class _NotificationsTabState extends State<NotificationsTab>
       listener: (context, state) {
         if (state is NotificationSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("✅ Notification Sent Successfully!")),
+            const SnackBar(content: Text("Notification Sent Successfully!")),
           );
+
+          //  ADD to today's notification list dynamically
+          setState(() {
+            todayNotifications.insert(0, {
+              "title": headerCtrl.text,
+              "subtitle": contentCtrl.text,
+              "time": "Just now"
+            });
+          });
+
           headerCtrl.clear();
           contentCtrl.clear();
         } else if (state is NotificationFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("❌ ${state.error}")),
+            SnackBar(content: Text(" ${state.error}")),
           );
         }
       },
@@ -210,19 +231,30 @@ class _NotificationsTabState extends State<NotificationsTab>
                     onPressed: state is NotificationLoading
                         ? null
                         : () {
-                            context.read<NotificationBloc>().add(
-                                  SendNotificationEvent(
-                                    cHeader: headerCtrl.text,
-                                    cDescription: contentCtrl.text,
-                                  ),
-                                );
+                            if (headerCtrl.text.isNotEmpty &&
+                                contentCtrl.text.isNotEmpty) {
+                              context.read<NotificationBloc>().add(
+                                    SendNotificationEvent(
+                                      cHeader: headerCtrl.text,
+                                      cDescription: contentCtrl.text,
+                                    ),
+                                  );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Please enter title & content"),
+                                ),
+                              );
+                            }
                           },
                     icon: state is NotificationLoading
                         ? const SizedBox(
                             width: 16,
                             height: 16,
                             child: CircularProgressIndicator(
-                                strokeWidth: 2, color: Colors.white),
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
                           )
                         : const Icon(Icons.send, size: 16),
                     label: state is NotificationLoading
@@ -286,8 +318,7 @@ class _NotificationsTabState extends State<NotificationsTab>
                     const SizedBox(width: 8),
                     Text(
                       "($time)",
-                      style:
-                          const TextStyle(color: Colors.grey, fontSize: 12),
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                   ],
                 ),
