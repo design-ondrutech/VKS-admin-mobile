@@ -1,6 +1,6 @@
 
 import 'package:admin/screens/dashboard/dashboard_screen.dart';
-import 'package:admin/screens/dashboard/gold_price/gold_add_popup.dart';
+import 'package:admin/screens/dashboard/gold_price/add_gold_price/gold_add_popup.dart';
 import 'package:admin/screens/dashboard/gold_price/goldrate.dart';
 import 'package:admin/screens/dashboard/notification/notification.dart';
 import 'package:admin/screens/dashboard/scheme/schemes.dart';
@@ -15,6 +15,7 @@ class AppRoutes {
   static const String notifications = '/dashboard/notifications';
   static const String goldPrice = '/dashboard/gold_price';
   static const String addGoldPrice = '/dashboard/gold_price/add';
+  
   
 
 

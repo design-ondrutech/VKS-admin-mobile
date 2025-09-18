@@ -1,9 +1,9 @@
 import 'package:admin/data/models/add_gold_price.dart';
 import 'package:admin/data/models/gold_rate.dart';
-import 'package:admin/screens/dashboard/gold_price/bloc/gold_bloc.dart';
-import 'package:admin/screens/dashboard/gold_price/bloc/gold_event.dart';
-import 'package:admin/screens/dashboard/gold_price/bloc/gold_state.dart';
-import 'package:admin/screens/dashboard/gold_price/gold_add_popup.dart';
+import 'package:admin/blocs/gold_price/gold_bloc.dart';
+import 'package:admin/blocs/gold_price/gold_event.dart';
+import 'package:admin/blocs/gold_price/gold_state.dart';
+import 'package:admin/screens/dashboard/gold_price/add_gold_price/gold_add_popup.dart';
 import 'package:admin/utils/colors.dart';
 import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';

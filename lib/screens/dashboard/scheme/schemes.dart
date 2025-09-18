@@ -1,6 +1,7 @@
 import 'package:admin/data/graphql_config.dart';
 import 'package:admin/data/repo/auth_repository.dart';
-import 'package:admin/screens/dashboard/scheme/add_scheme.dart';
+import 'package:admin/screens/dashboard/scheme/add_scheme/bloc/create_scheme_bloc.dart';
+import 'package:admin/screens/dashboard/scheme/add_scheme/create_scheme.dart';
 import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -112,12 +113,18 @@ class SchemesTab extends StatelessWidget {
 
   void _showAddSchemePopup(BuildContext context) {
     showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => AddSchemeDialog(),
-    ).then((_) {
-      context.read<SchemesBloc>().add(CloseAddSchemePopup());
-    });
+  context: context,
+  builder: (context) => BlocProvider.value(
+    value: context.read<CreateSchemeBloc>(), // use existing bloc
+    child: const AddSchemeDialog(),
+  ),
+).then((refresh) {
+  if (refresh == true) {
+    //  Reload scheme list from API
+    // context.read<GetAllSchemesBloc>().add(FetchAllSchemes());
+  }
+});
+
   }
 }
 

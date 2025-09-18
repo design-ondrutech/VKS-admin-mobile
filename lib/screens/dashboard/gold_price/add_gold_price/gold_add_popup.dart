@@ -1,7 +1,7 @@
-import 'package:admin/blocs/gold/add_gld_bloc.dart';
+import 'package:admin/screens/dashboard/gold_price/add_gold_price/bloc/add_gld_bloc.dart';
 import 'package:admin/data/models/add_gold_price.dart';
-import 'package:admin/screens/dashboard/gold_price/bloc/gold_bloc.dart';
-import 'package:admin/screens/dashboard/gold_price/bloc/gold_event.dart';
+import 'package:admin/blocs/gold_price/gold_bloc.dart';
+import 'package:admin/blocs/gold_price/gold_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

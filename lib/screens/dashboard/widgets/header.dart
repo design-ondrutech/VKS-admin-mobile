@@ -1,5 +1,5 @@
-import 'package:admin/screens/dashboard/gold_price/bloc/gold_bloc.dart';
-import 'package:admin/screens/dashboard/gold_price/bloc/gold_state.dart';
+import 'package:admin/blocs/gold_price/gold_bloc.dart';
+import 'package:admin/blocs/gold_price/gold_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:admin/utils/colors.dart';

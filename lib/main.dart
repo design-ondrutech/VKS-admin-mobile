@@ -9,14 +9,16 @@ import 'package:admin/blocs/cash_payment/cash_payment_event.dart';
 import 'package:admin/blocs/customers/customer_bloc.dart';
 import 'package:admin/blocs/customers/customer_event.dart';
 import 'package:admin/blocs/dashboard/dashboard_bloc.dart';
-import 'package:admin/blocs/gold/add_gld_bloc.dart';
+import 'package:admin/blocs/notification/notification_bloc.dart';
+import 'package:admin/screens/dashboard/gold_price/add_gold_price/bloc/add_gld_bloc.dart';
 import 'package:admin/blocs/online_payment/online_payment_bloc.dart';
 import 'package:admin/blocs/online_payment/online_payment_event.dart';
 import 'package:admin/blocs/schemes/schemes_bloc.dart';
 import 'package:admin/blocs/today_active_scheme/today_active_bloc.dart';
 import 'package:admin/data/repo/auth_repository.dart';
-import 'package:admin/screens/dashboard/gold_price/bloc/gold_bloc.dart';
-import 'package:admin/screens/dashboard/gold_price/bloc/gold_event.dart';
+import 'package:admin/blocs/gold_price/gold_bloc.dart';
+import 'package:admin/blocs/gold_price/gold_event.dart';
+import 'package:admin/screens/dashboard/scheme/add_scheme/bloc/create_scheme_bloc.dart';
 import 'package:admin/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -56,8 +58,14 @@ class MyApp extends StatelessWidget {
         TodayActiveSchemeRepository(client);
     final OnlinePaymentRepository onlinePaymentRepository =
         OnlinePaymentRepository(client);
-    final CashPaymentRepository cashPaymentRepository =
-        CashPaymentRepository(client);
+    final CashPaymentRepository cashPaymentRepository = CashPaymentRepository(
+      client,
+    );
+    final CreateSchemeRepository createSchemeRepository =
+        CreateSchemeRepository(client);
+
+    final NotificationRepository notificationRepository =
+        NotificationRepository(client);
 
     return MultiBlocProvider(
       providers: [
@@ -68,38 +76,36 @@ class MyApp extends StatelessWidget {
           create: (_) => CardBloc(dashboardRepository)..add(FetchCardSummary()),
         ),
         BlocProvider(
-          create:
-              (_) =>
-                  GoldPriceBloc(goldRepository)
-                    ..add(const FetchGoldPriceEvent()),
+          create: (_) =>
+              GoldPriceBloc(goldRepository)..add(const FetchGoldPriceEvent()),
         ),
-
         BlocProvider(create: (_) => AddGoldPriceBloc(addGoldPriceRepository)),
         BlocProvider(
-          create:
-              (_) =>
-                  CustomerBloc(customerRepository)
-                    ..add(FetchCustomers(page: 1, limit: 10)),
+          create: (_) =>
+              CustomerBloc(customerRepository)..add(FetchCustomers(page: 1, limit: 10)),
         ),
-
         BlocProvider(create: (_) => GoldDashboardBloc(goldDashboardRepository)),
-
         BlocProvider(
-          create: (_) => TotalActiveSchemesBloc(totalActiveSchemesRepository)
-            ..add(FetchTotalActiveSchemes()),
+          create: (_) =>
+              TotalActiveSchemesBloc(totalActiveSchemesRepository)
+                ..add(FetchTotalActiveSchemes()),
         ),
         BlocProvider(
           create: (_) => TodayActiveSchemeBloc(todayActiveSchemeRepository),
         ),
         BlocProvider(
-          create: (_) => OnlinePaymentBloc(onlinePaymentRepository)
-            ..add(FetchOnlinePayments(page: 1, limit: 10)),
+          create: (_) =>
+              OnlinePaymentBloc(onlinePaymentRepository)
+                ..add(FetchOnlinePayments(page: 1, limit: 10)),
         ),
         BlocProvider(
-          create: (_) => CashPaymentBloc(cashPaymentRepository)
-            ..add(FetchCashPayments(page: 1, limit: 10)),
-        ),  
-        
+          create: (_) =>
+              CashPaymentBloc(cashPaymentRepository)
+                ..add(FetchCashPayments(page: 1, limit: 10)),
+        ),
+        BlocProvider(create: (_) => CreateSchemeBloc(createSchemeRepository)),
+
+        BlocProvider(create: (_) => NotificationBloc(notificationRepository)),
       ],
       child: MaterialApp(
         title: 'VKS Admin',

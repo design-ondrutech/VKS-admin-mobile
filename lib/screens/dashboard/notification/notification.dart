@@ -1,6 +1,11 @@
+import 'package:admin/blocs/notification/notification_bloc.dart';
+import 'package:admin/blocs/notification/notification_event.dart';
+import 'package:admin/blocs/notification/notification_state.dart';
 import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:admin/utils/colors.dart';
+
 
 class NotificationsTab extends StatefulWidget {
   const NotificationsTab({super.key});
@@ -13,6 +18,9 @@ class _NotificationsTabState extends State<NotificationsTab>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
+  final TextEditingController headerCtrl = TextEditingController();
+  final TextEditingController contentCtrl = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -22,6 +30,8 @@ class _NotificationsTabState extends State<NotificationsTab>
   @override
   void dispose() {
     _tabController.dispose();
+    headerCtrl.dispose();
+    contentCtrl.dispose();
     super.dispose();
   }
 
@@ -36,9 +46,9 @@ class _NotificationsTabState extends State<NotificationsTab>
         automaticallyImplyLeading: false,
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: Appcolors.buttoncolor, // underline color
-          indicatorWeight: 3, // underline thickness
-          labelColor: Appcolors.buttoncolor, // selected text color
+          indicatorColor: Appcolors.buttoncolor,
+          indicatorWeight: 3,
+          labelColor: Appcolors.buttoncolor,
           unselectedLabelColor: Colors.black54,
           labelStyle: const TextStyle(fontWeight: FontWeight.w600),
           tabs: const [Tab(text: "Send All"), Tab(text: "Send Specific")],
@@ -52,7 +62,6 @@ class _NotificationsTabState extends State<NotificationsTab>
   }
 
   /// -------------------- SEND ALL TAB --------------------
-
   Widget _buildSendAll() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -66,7 +75,6 @@ class _NotificationsTabState extends State<NotificationsTab>
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
           ),
           const SizedBox(height: 16),
-
           Column(
             children: [
               notificationItem(
@@ -81,9 +89,7 @@ class _NotificationsTabState extends State<NotificationsTab>
               ),
             ],
           ),
-
           const SizedBox(height: 16),
-
           Center(
             child: ElevatedButton(
               onPressed: () {},
@@ -127,90 +133,123 @@ class _NotificationsTabState extends State<NotificationsTab>
 
   /// -------------------- MESSAGE INPUT CARD --------------------
   Widget _messageCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Title",
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+    return BlocConsumer<NotificationBloc, NotificationState>(
+      listener: (context, state) {
+        if (state is NotificationSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("✅ Notification Sent Successfully!")),
+          );
+          headerCtrl.clear();
+          contentCtrl.clear();
+        } else if (state is NotificationFailure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("❌ ${state.error}")),
+          );
+        }
+      },
+      builder: (context, state) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade300),
           ),
-          const SizedBox(height: 8),
-          TextField(
-            decoration: InputDecoration(
-              hintText: "Title",
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          const Text(
-            "Content",
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            maxLines: 3,
-            decoration: InputDecoration(
-              hintText: "Content",
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 8),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                "0/120",
-                style: TextStyle(color: Colors.grey, fontSize: 12),
+                "Title",
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
               ),
-              ElevatedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.send, size: 16),
-                label: const Text("Send"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Appcolors.buttoncolor,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+              const SizedBox(height: 8),
+              TextField(
+                controller: headerCtrl,
+                decoration: InputDecoration(
+                  hintText: "Title",
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
                   ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
                   ),
                 ),
               ),
+              const SizedBox(height: 16),
+              const Text(
+                "Content",
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: contentCtrl,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  hintText: "Content",
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "0/120",
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: state is NotificationLoading
+                        ? null
+                        : () {
+                            context.read<NotificationBloc>().add(
+                                  SendNotificationEvent(
+                                    cHeader: headerCtrl.text,
+                                    cDescription: contentCtrl.text,
+                                  ),
+                                );
+                          },
+                    icon: state is NotificationLoading
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Icon(Icons.send, size: 16),
+                    label: state is NotificationLoading
+                        ? const SizedBox.shrink()
+                        : const Text("Send"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Appcolors.buttoncolor,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
   /// -------------------- NOTIFICATION ITEM --------------------
-
   Widget notificationItem({
     required String title,
     required String subtitle,
@@ -247,7 +286,8 @@ class _NotificationsTabState extends State<NotificationsTab>
                     const SizedBox(width: 8),
                     Text(
                       "($time)",
-                      style: const TextStyle(color: Colors.grey, fontSize: 12),
+                      style:
+                          const TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                   ],
                 ),

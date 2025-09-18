@@ -3,8 +3,10 @@ import 'package:admin/data/models/add_gold_price.dart';
 import 'package:admin/data/models/barchart.dart';
 import 'package:admin/data/models/card.dart';
 import 'package:admin/data/models/cash_payment.dart';
+import 'package:admin/data/models/create_scheme.dart';
 import 'package:admin/data/models/customer.dart';
 import 'package:admin/data/models/gold_rate.dart';
+import 'package:admin/data/models/notification_model.dart';
 import 'package:admin/data/models/online_payment.dart';
 import 'package:admin/data/models/scheme.dart';
 import 'package:admin/data/models/today_active_scheme.dart';
@@ -569,4 +571,93 @@ class CashPaymentRepository {
 
     return CashPaymentResponse.fromJson(data);
   }
+}
+
+
+class CreateSchemeRepository {
+  final GraphQLClient client;
+  CreateSchemeRepository(this.client);
+
+  Future<CreateSchemeModel> createScheme(Map<String, dynamic> data) async {
+    const String mutation = r'''
+      mutation CreateScheme($data: ProductSchemesInput!) {
+        createScheme(data: $data) {
+          scheme_id
+          scheme_name
+          scheme_type
+          duration_type
+          duration
+          min_amount
+          max_amount
+          increment_amount
+          is_active
+          scheme_icon
+          scheme_image
+          scheme_notes
+          redemption_terms
+          interest_rate
+          isDeleted
+        }
+      }
+    ''';
+
+    final result = await client.mutate(MutationOptions(
+      document: gql(mutation),
+      variables: {"data": data},
+    ));
+
+    if (result.hasException) {
+      throw Exception(result.exception.toString());
+    }
+
+    final schemeJson = result.data?['createScheme'];
+    return CreateSchemeModel.fromJson(schemeJson);
+  }
+}
+
+// Notification Repository
+class NotificationRepository {
+  final GraphQLClient client;
+
+  NotificationRepository(this.client);
+
+  Future<NotificationModel> sendNotification({
+    required String cDescription,
+    required String cHeader,
+  }) async {
+    const String mutation = r'''
+      mutation Mutation($cDescription: String!, $cHeader: String!) {
+        sendNotification(c_description: $cDescription, c_header: $cHeader) {
+          c_description
+          c_header
+          c_send_date
+          c_icon_img
+          c_id
+          c_is_deleted
+          c_notification_id
+          c_receive_date
+          tenant_id
+        }
+      }
+    ''';
+
+    final options = MutationOptions(
+      document: gql(mutation),
+      variables: {
+        "cDescription": cDescription,
+        "cHeader": cHeader,
+      },
+    );
+
+    final result = await client.mutate(options);
+
+    if (result.hasException) {
+      throw Exception(result.exception.toString());
+    }
+
+    return NotificationModel.fromJson(
+        result.data!['sendNotification']);
+  }
+
+  fetchNotifications() {}
 }
