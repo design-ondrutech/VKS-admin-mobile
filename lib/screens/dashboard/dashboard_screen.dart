@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:admin/blocs/card/card_bloc.dart';
 import 'package:admin/blocs/card/card_event.dart';
 import 'package:admin/blocs/card/card_state.dart';
@@ -25,8 +26,11 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => CardBloc(repository)..add(FetchCardSummary()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => CardBloc(repository)..add(FetchCardSummary())),
+        BlocProvider(create: (_) => DashboardBloc(repository)),
+      ],
       child: const DashboardHeader(),
     );
   }
@@ -35,20 +39,18 @@ class DashboardScreen extends StatelessWidget {
 class DashboardHeader extends StatelessWidget {
   const DashboardHeader({super.key});
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7FC),
       body: SafeArea(
         child: Column(
           children: [
-            const DashboardTopHeader(), 
+            const DashboardTopHeader(),
             Expanded(
               child: BlocBuilder<DashboardBloc, DashboardState>(
                 builder: (context, state) {
-                  final tab =
-                      state.selectedTab.isEmpty
-                          ? "Overview"
-                          : state.selectedTab;
+                  final tab = state.selectedTab.isEmpty ? "Overview" : state.selectedTab;
                   return _getSelectedTab(context, tab);
                 },
               ),
@@ -69,12 +71,20 @@ class DashboardHeader extends StatelessWidget {
     );
   }
 
-  ///  Tab Selection
+  /// Tab Selection
   Widget _getSelectedTab(BuildContext context, String selectedTab) {
     if (selectedTab == "Overview") {
-      return SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: _overviewContent(),
+      return RefreshIndicator(
+        onRefresh: () async {
+          //  Swipe down refresh trigger
+          context.read<CardBloc>().add(FetchCardSummary());
+          await Future.delayed(const Duration(seconds: 1));
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
+          child: _overviewContent(),
+        ),
       );
     } else if (selectedTab == "Schemes") {
       return const SchemesTab();
@@ -96,93 +106,36 @@ class DashboardHeader extends StatelessWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Icon Cards Row
               SizedBox(
                 height: 120,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 5),
                   children: [
-                    _iconCard(
-                      "Customers",
-                      "${summary.totalCustomers}",
-                      Icons.group,
-                      Colors.blue,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const CustomersScreen(),
-                          ),
-                        );
-                      },
-                    ),
-
-                    _iconCard(
-                      "Total Active",
-                      "${summary.totalActiveSchemes}",
-                      Icons.layers,
-                      Colors.orange,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const TotalActiveSchemesScreen(),
-                          ),
-                        );
-                      },
-                    ),
-
-                     _iconCard(
-                      "Today Active",
-                      "${summary.todayActiveSchemes}",
-                      Icons.layers,
-                      const Color.fromARGB(255, 86, 136, 211),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const TodayActiveSchemesScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    
-                    _iconCard(
-                      "Online Payment",
-                      "₹${summary.totalOnlinePayment}",
-                      Icons.account_balance_wallet,
-                      Colors.teal,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const OnlinePaymentScreen(),
-                          ),
-                        );
-                      },
-                    ),
-
-                    _iconCard(
-                      "Cash Payment",
-                      "₹${summary.totalCashPayment}",
-                      Icons.monetization_on,
-                      Colors.purple,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const CashPaymentScreen(),
-                          ),
-                        );
-                      },
-                    ),
+                    _iconCard("Customers", "${summary.totalCustomers}", Icons.group, Colors.blue,
+                        onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomersScreen()));
+                    }),
+                    _iconCard("Total Active", "${summary.totalActiveSchemes}", Icons.layers, Colors.orange,
+                        onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const TotalActiveSchemesScreen()));
+                    }),
+                    _iconCard("Today Active", "${summary.todayActiveSchemes}", Icons.layers,
+                        const Color.fromARGB(255, 86, 136, 211), onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const TodayActiveSchemesScreen()));
+                    }),
+                    _iconCard("Online Payment", "₹${summary.totalOnlinePayment}", Icons.account_balance_wallet,
+                        Colors.teal, onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const OnlinePaymentScreen()));
+                    }),
+                    _iconCard("Cash Payment", "₹${summary.totalCashPayment}", Icons.monetization_on, Colors.purple,
+                        onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const CashPaymentScreen()));
+                    }),
                   ],
                 ),
               ),
               const SizedBox(height: 20),
-
-              // Chart Section
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 5),
                 child: SizedBox(height: 500, child: PerformanceChartScreen()),
@@ -197,14 +150,7 @@ class DashboardHeader extends StatelessWidget {
     );
   }
 
-  // Simple Icon Card Widget
-  Widget _iconCard(
-    String title,
-    String value,
-    IconData icon,
-    Color color, {
-    VoidCallback? onTap,
-  }) {
+  Widget _iconCard(String title, String value, IconData icon, Color color, {VoidCallback? onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -221,22 +167,12 @@ class DashboardHeader extends StatelessWidget {
           children: [
             Icon(icon, color: Colors.white, size: 28),
             const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(color: Colors.white70, fontSize: 14),
-            ),
-            Text(
-              value,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            Text(title, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+            Text(value,
+                style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
           ],
         ),
       ),
     );
   }
 }
-

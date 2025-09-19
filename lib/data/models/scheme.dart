@@ -5,12 +5,19 @@ class Scheme {
   final int duration;
   final double minAmount;
 
+  final double? maxAmount;
+  final double? incrementAmount;
+  final AmountBenefits? amountBenefits;
+
   Scheme({
     required this.schemeName,
     required this.schemeType,
     required this.durationType,
     required this.duration,
     required this.minAmount,
+    this.maxAmount,
+    this.incrementAmount,
+    this.amountBenefits,
   });
 
   factory Scheme.fromJson(Map<String, dynamic> json) {
@@ -20,6 +27,31 @@ class Scheme {
       durationType: json['duration_type'] ?? '',
       duration: (json['duration'] ?? 0).toInt(),
       minAmount: (json['min_amount'] ?? 0).toDouble(),
+
+      //  New fields
+      maxAmount: json['max_amount'] != null ? (json['max_amount']).toDouble() : null,
+      incrementAmount: json['increment_amount'] != null ? (json['increment_amount']).toDouble() : null,
+      amountBenefits: json['amount_benefits'] != null
+          ? AmountBenefits.fromJson(json['amount_benefits'])
+          : null,
+    );
+  }
+}
+
+///  New Model for amount_benefits
+class AmountBenefits {
+  final double? threshold;
+  final double? bonus;
+
+  AmountBenefits({
+    this.threshold,
+    this.bonus,
+  });
+
+  factory AmountBenefits.fromJson(Map<String, dynamic> json) {
+    return AmountBenefits(
+      threshold: json['threshold'] != null ? (json['threshold']).toDouble() : null,
+      bonus: json['bonus'] != null ? (json['bonus']).toDouble() : null,
     );
   }
 }

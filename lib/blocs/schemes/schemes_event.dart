@@ -21,4 +21,4 @@ class SubmitScheme extends SchemesEvent {
     required this.minAmount,
   });
 }
-
+class FetchAllSchemes extends SchemesEvent {} 
