@@ -7,6 +7,8 @@ class CreateSchemeModel {
   final double minAmount;
   final double? maxAmount;
   final double? incrementAmount;
+  final double? threshold;  //  NEW
+  final double? bonus;      //  NEW
   final bool isActive;
   final String? schemeIcon;
   final String? schemeImage;
@@ -24,6 +26,8 @@ class CreateSchemeModel {
     required this.minAmount,
     this.maxAmount,
     this.incrementAmount,
+    this.threshold,
+    this.bonus,
     required this.isActive,
     this.schemeIcon,
     this.schemeImage,
@@ -43,6 +47,8 @@ class CreateSchemeModel {
       minAmount: (json['min_amount'] ?? 0).toDouble(),
       maxAmount: json['max_amount'] != null ? (json['max_amount']).toDouble() : null,
       incrementAmount: json['increment_amount'] != null ? (json['increment_amount']).toDouble() : null,
+      threshold: json['threshold'] != null ? (json['threshold']).toDouble() : null, // 
+      bonus: json['bonus'] != null ? (json['bonus']).toDouble() : null,           // 
       isActive: json['is_active'] ?? false,
       schemeIcon: json['scheme_icon'],
       schemeImage: json['scheme_image'],

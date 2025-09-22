@@ -1,0 +1,201 @@
+import 'package:admin/utils/colors.dart';
+import 'package:flutter/material.dart';
+
+class TotalActiveSchemeDetailScreen extends StatelessWidget {
+  final dynamic scheme; // Replace with your TotalActiveScheme model
+
+  const TotalActiveSchemeDetailScreen({super.key, required this.scheme});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(scheme.schemeName ?? "Scheme Details",style: const TextStyle(color: Appcolors.white,)),
+        centerTitle: true,
+        backgroundColor: Appcolors.headerbackground,
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          // ---------------- SUMMARY CARDS ----------------
+          Row(
+            children: [
+              Expanded(
+                child: _summaryCard(
+                  title: "Total Amount",
+                  value: "₹${scheme.totalAmount.toStringAsFixed(2)}",
+                  color: Colors.green[400]!,
+                  icon: Icons.account_balance_wallet,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _summaryCard(
+                  title: "Total Gold Weight",
+                  value: "${scheme.totalGoldWeight} g",
+                  color: Colors.amber[700]!,
+                  icon: Icons.scale,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // ---------------- SCHEME DETAILS ----------------
+          _sectionTitle("Scheme Details"),
+          _infoCard([
+            _infoRow("Saving ID", scheme.savingId),
+            _infoRow("Scheme Name", scheme.schemeName),
+            _infoRow("Scheme Type", scheme.schemeType),
+            _infoRow("Status", scheme.status),
+            _infoRow("Gold Delivered", scheme.goldDelivered ? "Yes" : "No"),
+            _infoRow("Purpose", scheme.schemePurpose),
+            _infoRow("KYC Completed", scheme.isKyc ? "Yes" : "No"),
+            _infoRow("Completed", scheme.isCompleted ? "Yes" : "No"),
+            _infoRow("Start Date", scheme.startDate),
+            _infoRow("End Date", scheme.endDate),
+            _infoRow("Last Updated", scheme.lastUpdated),
+          ]),
+          const SizedBox(height: 16),
+
+          // ---------------- CUSTOMER INFO ----------------
+          _sectionTitle("Customer Info"),
+          _infoCard([
+            _infoRow("Name", scheme.customer.cName),
+            _infoRow("Email", scheme.customer.cEmail),
+            _infoRow("Phone", scheme.customer.cPhoneNumber),
+          ]),
+          const SizedBox(height: 16),
+
+          // ---------------- PAYMENT DETAILS ----------------
+          _sectionTitle("Payment Details"),
+          _infoCard([
+            _infoRow("Total Amount", "₹${scheme.totalAmount.toStringAsFixed(2)}"),
+            _infoRow("Paid Amount", "₹${scheme.paidAmount.toStringAsFixed(2)}"),
+            if (scheme.history.isNotEmpty)
+              _infoRow("Next Due On", scheme.history.first.dueDate),
+            if (scheme.history.isNotEmpty)
+              _infoRow("Gold Gram", "${scheme.history.first.goldWeight} g"),
+          ]),
+          const SizedBox(height: 16),
+
+          // ---------------- PAYMENT HISTORY ----------------
+          _sectionTitle("Payment History"),
+          if (scheme.history.isNotEmpty)
+            Column(
+              children: scheme.history.map<Widget>((tx) {
+                return Card(
+                  elevation: 3,
+                  margin: const EdgeInsets.symmetric(vertical: 6),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("₹${tx.amount.toStringAsFixed(2)}",
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16)),
+                        const SizedBox(height: 4),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("Due: ${tx.dueDate}"),
+                            Text("Paid: ${tx.paidDate}"),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("Mode: ${tx.paymentMode}"),
+                            Text("Status: ${tx.status}"),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            )
+          else
+            const Center(
+                child: Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text("No Payment History Found"),
+            )),
+        ],
+      ),
+    );
+  }
+
+  // ---------------- HELPERS ----------------
+  Widget _sectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Text(
+        title,
+        style: const TextStyle(
+            fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey),
+      ),
+    );
+  }
+
+  Widget _infoCard(List<Widget> children) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(children: children),
+      ),
+    );
+  }
+
+  Widget _infoRow(String key, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(key, style: const TextStyle(fontWeight: FontWeight.w600)),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _summaryCard(
+      {required String title,
+      required String value,
+      required Color color,
+      required IconData icon}) {
+    return Card(
+      color: color,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Icon(icon, color: Colors.white, size: 28),
+            const SizedBox(height: 8),
+            Text(title,
+                style:
+                    const TextStyle(color: Colors.white70, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            Text(value,
+                style: const TextStyle(
+                    color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+          ],
+        ),
+      ),
+    );
+  }
+}

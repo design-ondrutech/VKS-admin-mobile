@@ -23,19 +23,29 @@ class _AddGoldRateDialogState extends State<AddGoldRateDialog> {
 
   final List<String> types = ["Gold", "Silver"];
   final List<String> goldCarats = ["24K", "22K", "18K"];
-  final List<String> silverCarats = ["99.9%","99.9% (Pure Silver)"];
+  final List<String> silverCarats = ["99.9%(Pure Silver)"];
   final List<String> units = ["1g", "10g", "1Kg"];
 
   @override
   void initState() {
     super.initState();
 
-    // Prefill if editing
     if (widget.existingPrice != null) {
       final price = widget.existingPrice!;
       selectedType = price.metal;
       selectedCarat = price.value;
-      selectedUnit = price.unit;
+
+      // Normalize unit to match dropdown items
+      if (units.contains(price.unit)) {
+        selectedUnit = price.unit;
+      } else {
+        // Try to match ignoring case and spaces
+        selectedUnit = units.firstWhere(
+          (u) => u.toLowerCase().replaceAll(' ', '') == price.unit.toLowerCase().replaceAll(' ', ''),
+          orElse: () => units.first,
+        );
+      }
+
       priceController.text = price.price.toString();
       dateController.text = price.date;
     } else {
@@ -255,7 +265,7 @@ void _onSavePressed() async {
         ),
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
-          value: items.contains(value) ? value : null,          
+          value: items.contains(value) ? value : (value != null ? items.first : null),
           isDense: true,
           decoration: InputDecoration(
             filled: true,

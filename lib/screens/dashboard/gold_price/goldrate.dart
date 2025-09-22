@@ -138,7 +138,7 @@ class _GoldPriceScreenState extends State<GoldPriceScreen> {
                                 date: price.date,
                                 metal: price.metal,
                                 value: price.value,
-                                unit: price.unit,
+                                unit: price.unit, 
                                 price: price.price,
                               ),
                             ),

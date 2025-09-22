@@ -1,15 +1,17 @@
 class Scheme {
+
+  final String schemeId;
   final String schemeName;
   final String schemeType;
   final String durationType;
   final int duration;
   final double minAmount;
-
   final double? maxAmount;
   final double? incrementAmount;
   final AmountBenefits? amountBenefits;
 
   Scheme({
+    required this.schemeId,
     required this.schemeName,
     required this.schemeType,
     required this.durationType,
@@ -22,6 +24,7 @@ class Scheme {
 
   factory Scheme.fromJson(Map<String, dynamic> json) {
     return Scheme(
+      schemeId: json['scheme_id'] ?? '',
       schemeName: json['scheme_name'] ?? '',
       schemeType: json['scheme_type'] ?? '',
       durationType: json['duration_type'] ?? '',

@@ -15,7 +15,8 @@ class AppRoutes {
   static const String notifications = '/dashboard/notifications';
   static const String goldPrice = '/dashboard/gold_price';
   static const String addGoldPrice = '/dashboard/gold_price/add';
-  
+  // ignore: constant_identifier_names
+  static const String AddSchemeDialog = '/dashboard/schemes/add';
   
 
 
@@ -42,6 +43,8 @@ class AppRoutes {
       case addGoldPrice:
         return MaterialPageRoute(builder: (_) => AddGoldRateDialog());
 
+      case AddSchemeDialog:
+        return MaterialPageRoute(builder: (_) => SchemesTab());
      
 
       default:

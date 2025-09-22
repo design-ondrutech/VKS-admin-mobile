@@ -18,6 +18,7 @@ class AddSchemeDialog extends StatefulWidget {
 }
 
 class _AddSchemeDialogState extends State<AddSchemeDialog> {
+  
   late final TextEditingController nameCtrl;
   late final TextEditingController durationCtrl;
   late final TextEditingController minAmtCtrl;
@@ -37,6 +38,7 @@ class _AddSchemeDialogState extends State<AddSchemeDialog> {
   void initState() {
     super.initState();
     final s = widget.initialScheme;
+    
     nameCtrl = TextEditingController(text: s?.schemeName ?? "");
     durationCtrl = TextEditingController(text: s?.duration?.toString() ?? "");
     minAmtCtrl = TextEditingController(text: s?.minAmount?.toString() ?? "");
@@ -182,55 +184,56 @@ class _AddSchemeDialogState extends State<AddSchemeDialog> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          onPressed:
-                              state.isLoading
-                                  ? null
-                                  : () {
-                                      setState(() {
-                                        nameError = nameCtrl.text.isEmpty ? "Please enter scheme name" : null;
-                                        durationError = durationCtrl.text.isEmpty ? "Please enter duration" : null;
-                                        minAmtError = minAmtCtrl.text.isEmpty ? "Please enter minimum amount" : null;
-                                      });
+                          onPressed: state.isLoading
+                              ? null
+                              : () {
+                                  setState(() {
+                                    nameError = nameCtrl.text.isEmpty ? "Please enter scheme name" : null;
+                                    durationError = durationCtrl.text.isEmpty ? "Please enter duration" : null;
+                                    minAmtError = minAmtCtrl.text.isEmpty ? "Please enter minimum amount" : null;
+                                  });
 
-                                      if (nameError != null || durationError != null || minAmtError != null) {
-                                        return;
-                                      }
+                                  if (nameError != null || durationError != null || minAmtError != null) {
+                                    return;
+                                  }
 
-                                      final data = {
-                                        "scheme_name": nameCtrl.text.trim(),
-                                        "scheme_type": selectedType.toLowerCase(),
-                                        "duration_type": selectedDurationType.toLowerCase(),
-                                        "duration": int.tryParse(durationCtrl.text) ?? 0,
-                                        "min_amount": double.tryParse(minAmtCtrl.text) ?? 0,
-                                        "max_amount": double.tryParse(maxAmtCtrl.text) ?? 0,
-                                        "increment_amount": double.tryParse(incrementCtrl.text) ?? 0,
-                                        "threshold": double.tryParse(thresholdCtrl.text) ?? 0,
-                                        "bonus": double.tryParse(bonusCtrl.text) ?? 0,
-                                        "is_active": true,
-                                      };
+                                  final data = {
 
-                                      context.read<CreateSchemeBloc>().add(
-                                        SubmitCreateScheme(data),
-                                      );
-                                    },
-                          child:
-                              state.isLoading
-                                  ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                  : Text(
-                                    widget.initialScheme == null
-                                        ? "Save"
-                                        : "Update",
-                                    style: const TextStyle(
-                                      color: Appcolors.white,
-                                    ),
+                                    "scheme_name": nameCtrl.text.trim(),
+                                    "scheme_type": selectedType.toLowerCase(),
+                                    "duration_type": selectedDurationType.toLowerCase(),
+                                    "duration": int.tryParse(durationCtrl.text) ?? 0,
+                                    "min_amount": double.tryParse(minAmtCtrl.text) ?? 0,
+                                    "max_amount": double.tryParse(maxAmtCtrl.text) ?? 0,
+                                    "increment_amount": double.tryParse(incrementCtrl.text) ?? 0,
+                                    "threshold": double.tryParse(thresholdCtrl.text) ?? 0,
+                                    "bonus": double.tryParse(bonusCtrl.text) ?? 0,
+                                    "is_active": true,
+                                  };
+
+                                  if (widget.initialScheme == null) {
+                                    context.read<CreateSchemeBloc>().add(SubmitCreateScheme(data));
+                                  } else {
+                                    context.read<CreateSchemeBloc>().add(
+                                      SubmitUpdateScheme(widget.initialScheme!.schemeId, data),
+                                    );
+                                  }
+                                },
+                          child: state.isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
                                   ),
+                                )
+                              : Text(
+                                  widget.initialScheme == null ? "Save" : "Update",
+                                  style: const TextStyle(
+                                    color: Appcolors.white,
+                                  ),
+                                ),
                         ),
                       ],
                     ),

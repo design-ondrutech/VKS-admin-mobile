@@ -136,10 +136,10 @@ class DashboardHeader extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 5),
-                child: SizedBox(height: 500, child: PerformanceChartScreen()),
-              ),
+              // Padding(
+              //   padding: const EdgeInsets.symmetric(horizontal: 5),
+              //   child: SizedBox(height: 500, child: PerformanceChartScreen()),
+              // ),
             ],
           );
         } else if (state is CardError) {

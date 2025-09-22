@@ -31,12 +31,19 @@ void main() async {
     'http://api-vkskumaran-0env-env.eba-jpagnpin.ap-south-1.elasticbeanstalk.com/graphql/admin',
   );
 
-  final GraphQLClient client = GraphQLClient(
-    cache: GraphQLCache(),
-    link: httpLink,
+  final ValueNotifier<GraphQLClient> client = ValueNotifier(
+    GraphQLClient(
+      cache: GraphQLCache(),
+      link: httpLink,
+    ),
   );
 
-  runApp(MyApp(client: client));
+  runApp(
+    GraphQLProvider(
+      client: client,
+      child: MyApp(client: client.value),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -63,7 +70,6 @@ class MyApp extends StatelessWidget {
     );
     final CreateSchemeRepository createSchemeRepository =
         CreateSchemeRepository(client);
-
     final NotificationRepository notificationRepository =
         NotificationRepository(client);
 
@@ -81,30 +87,26 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider(create: (_) => AddGoldPriceBloc(addGoldPriceRepository)),
         BlocProvider(
-          create: (_) =>
-              CustomerBloc(customerRepository)..add(FetchCustomers(page: 1, limit: 10)),
+          create: (_) => CustomerBloc(customerRepository)
+            ..add(FetchCustomers(page: 1, limit: 10)),
         ),
         BlocProvider(create: (_) => GoldDashboardBloc(goldDashboardRepository)),
         BlocProvider(
-          create: (_) =>
-              TotalActiveSchemesBloc(totalActiveSchemesRepository)
-                ..add(FetchTotalActiveSchemes()),
+          create: (_) => TotalActiveSchemesBloc(totalActiveSchemesRepository)
+            ..add(FetchTotalActiveSchemes()),
         ),
         BlocProvider(
           create: (_) => TodayActiveSchemeBloc(todayActiveSchemeRepository),
         ),
         BlocProvider(
-          create: (_) =>
-              OnlinePaymentBloc(onlinePaymentRepository)
-                ..add(FetchOnlinePayments(page: 1, limit: 10)),
+          create: (_) => OnlinePaymentBloc(onlinePaymentRepository)
+            ..add(FetchOnlinePayments(page: 1, limit: 10)),
         ),
         BlocProvider(
-          create: (_) =>
-              CashPaymentBloc(cashPaymentRepository)
-                ..add(FetchCashPayments(page: 1, limit: 10)),
+          create: (_) => CashPaymentBloc(cashPaymentRepository)
+            ..add(FetchCashPayments(page: 1, limit: 10)),
         ),
         BlocProvider(create: (_) => CreateSchemeBloc(createSchemeRepository)),
-
         BlocProvider(create: (_) => NotificationBloc(notificationRepository)),
       ],
       child: MaterialApp(

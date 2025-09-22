@@ -1,12 +1,11 @@
+import 'package:admin/data/models/customer.dart';
 import 'package:equatable/equatable.dart';
-import '../../data/models/customer.dart';
 
 abstract class CustomerState extends Equatable {
+  const CustomerState();
   @override
   List<Object?> get props => [];
 }
-
-class CustomerInitial extends CustomerState {}
 
 class CustomerLoading extends CustomerState {}
 
@@ -14,38 +13,29 @@ class CustomerLoaded extends CustomerState {
   final List<Customer> customers;
   final int currentPage;
   final int totalPages;
-  final bool hasReachedEnd;
 
-  CustomerLoaded({
+  const CustomerLoaded({
     required this.customers,
     required this.currentPage,
     required this.totalPages,
-    this.hasReachedEnd = false,
   });
 
-  CustomerLoaded copyWith({
-    List<Customer>? customers,
-    int? currentPage,
-    int? totalPages,
-    bool? hasReachedEnd,
-  }) {
-    return CustomerLoaded(
-      customers: customers ?? this.customers,
-      currentPage: currentPage ?? this.currentPage,
-      totalPages: totalPages ?? this.totalPages,
-      hasReachedEnd: hasReachedEnd ?? this.hasReachedEnd,
-    );
-  }
-
   @override
-  List<Object?> get props => [customers, currentPage, totalPages, hasReachedEnd];
+  List<Object?> get props => [customers, currentPage, totalPages];
+}
+
+class CustomerDetailsLoading extends CustomerState {}
+
+class CustomerDetailsLoaded extends CustomerState {
+  final Customer details;
+  const CustomerDetailsLoaded({required this.details});
+  @override
+  List<Object?> get props => [details];
 }
 
 class CustomerError extends CustomerState {
   final String message;
-
-  CustomerError(this.message);
-
+  const CustomerError(this.message);
   @override
   List<Object?> get props => [message];
 }
