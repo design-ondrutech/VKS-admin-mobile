@@ -5,6 +5,7 @@ import 'package:admin/data/models/cash_payment.dart';
 import 'package:admin/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
 class CashPaymentScreen extends StatelessWidget {
   const CashPaymentScreen({super.key});
@@ -12,105 +13,152 @@ class CashPaymentScreen extends StatelessWidget {
   Color _statusColor(String status) {
     switch (status.toLowerCase()) {
       case "paid":
-        return Colors.green.shade600;
+        return Colors.green.shade100;
       case "unpaid":
-        return Colors.orange.shade600;
+        return Colors.orange.shade100;
       case "failed":
-        return Colors.red.shade600;
+        return Colors.red.shade100;
       default:
-        return Colors.grey.shade400;
+        return Colors.grey.shade300;
     }
   }
 
-  Icon _statusIcon(String status) {
+  Color _statusTextColor(String status) {
     switch (status.toLowerCase()) {
       case "paid":
-        return const Icon(Icons.check_circle, color: Colors.white, size: 16);
+        return Colors.green.shade800;
       case "unpaid":
-        return const Icon(
-          Icons.hourglass_bottom,
-          color: Colors.white,
-          size: 16,
-        );
+        return Colors.orange.shade800;
       case "failed":
-        return const Icon(Icons.error, color: Colors.white, size: 16);
+        return Colors.red.shade800;
       default:
-        return const Icon(Icons.help, color: Colors.white, size: 16);
+        return Colors.grey.shade800;
     }
+  }
+
+  IconData _statusIcon(String status) {
+    switch (status.toLowerCase()) {
+      case "paid":
+        return Icons.check_circle;
+      case "unpaid":
+        return Icons.pending;
+      case "failed":
+        return Icons.cancel;
+      default:
+        return Icons.help;
+    }
+  }
+
+  String _formatDate(String date) {
+    try {
+      final parsed = DateTime.tryParse(date);
+      if (parsed != null) {
+        return DateFormat("dd MMM yyyy, hh:mm a").format(parsed);
+      }
+    } catch (_) {}
+    return date;
+  }
+
+  String _statusString(dynamic status) {
+    if (status == 2 || status == '2') return "paid";
+    if (status == 1 || status == '1') return "unpaid";
+    if (status == 3 || status == '3') return "failed";
+    return "unknown";
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        title: const Text("Cash Payments",style: TextStyle(color: Appcolors.white),),
+        title: const Text("Cash Payments", style: TextStyle(color: Appcolors.white)),
         centerTitle: true,
-         backgroundColor: Appcolors.headerbackground,
+        backgroundColor: Appcolors.headerbackground,
+        elevation: 0,
       ),
       body: BlocBuilder<CashPaymentBloc, CashPaymentState>(
         builder: (context, state) {
           if (state is CashPaymentInitial) {
-            context.read<CashPaymentBloc>().add(
-              FetchCashPayments(page: 1, limit: 10),
-            );
+            context.read<CashPaymentBloc>().add(FetchCashPayments(page: 1, limit: 10));
             return const Center(child: CircularProgressIndicator());
           } else if (state is CashPaymentLoading) {
             return const Center(child: CircularProgressIndicator());
           } else if (state is CashPaymentLoaded) {
             final payments = state.response.data;
             if (payments.isEmpty) {
-              return const Center(child: Text("No Cash Payments Found"));
+              return const Center(
+                child: Text(
+                  "No Cash Payments Found",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+              );
             }
 
             return ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.all(16),
               itemCount: payments.length,
               itemBuilder: (context, index) {
                 final CashPayment payment = payments[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 6),
-                  shape: RoundedRectangleBorder(
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 6,
+                        offset: const Offset(0, 4),
+                      )
+                    ],
                   ),
-                  elevation: 3,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Top Row: Customer & Status
-                        Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header (Customer + Status)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                        ),
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Expanded(
                               child: Text(
-                                payment.customerName,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
+                                payment.customerName.isNotEmpty
+                                    ? payment.customerName
+                                    : "No Name",
+                                style: TextStyle(
                                   fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue.shade900,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: _statusColor(payment.transactionStatus),
-                                borderRadius: BorderRadius.circular(20),
+                                color: _statusColor(_statusString(payment.transactionStatus)),
+                                borderRadius: BorderRadius.circular(12),
                               ),
                               child: Row(
                                 children: [
-                                  _statusIcon(payment.transactionStatus),
-                                  const SizedBox(width: 6),
+                                  Icon(
+                                    _statusIcon(_statusString(payment.transactionStatus)),
+                                    size: 16,
+                                    color: _statusTextColor(_statusString(payment.transactionStatus)),
+                                  ),
+                                  const SizedBox(width: 4),
                                   Text(
-                                    payment.transactionStatus.toUpperCase(),
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
+                                    _statusString(payment.transactionStatus).toUpperCase(),
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13,
+                                      color: _statusTextColor(_statusString(payment.transactionStatus)),
                                     ),
                                   ),
                                 ],
@@ -118,72 +166,57 @@ class CashPaymentScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 10),
-                        // Middle Row: ID & Date
-                        // Middle Row: ID & Date
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                "ID: ${payment.transactionId}",
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                                overflow:
-                                    TextOverflow.ellipsis, // prevents overflow
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 8,
-                            ), // spacing between ID & Date
-                            Expanded(
-                              child: Text(
-                                "Date: ${payment.transactionDate}",
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                                textAlign:
-                                    TextAlign.end, // align date to the right
-                                overflow:
-                                    TextOverflow.ellipsis, // prevents overflow
-                              ),
-                            ),
-                          ],
-                        ),
+                      ),
 
-                        const Divider(height: 16, thickness: 1),
-                        // Bottom Row: Gold & Amount
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      // Body
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              "Gold: ${payment.transactionGoldGram} gm",
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                            Text(
-                              "₹${payment.transactionAmount.toStringAsFixed(2)}",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.deepOrange,
-                                fontSize: 16,
-                              ),
-                            ),
+                            _infoRow(Icons.receipt, "Txn ID: ${payment.transactionId}"),
+                            _infoRow(Icons.calendar_today, _formatDate(payment.transactionDate)),
+                            const Divider(height: 24),
+                            _infoRow(Icons.workspace_premium,
+                                "${payment.transactionGoldGram.toStringAsFixed(2)} gm"),
+                            _infoRow(Icons.currency_rupee,
+                                "₹${payment.transactionAmount.toStringAsFixed(2)}"),
                           ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 );
               },
             );
           } else if (state is CashPaymentError) {
-            return Center(child: Text("Error: ${state.message}"));
+            return Center(
+              child: Text(
+                "Error: ${state.message}",
+                style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+              ),
+            );
           }
-          return const SizedBox();
+          return const SizedBox.shrink();
         },
+      ),
+    );
+  }
+
+  Widget _infoRow(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: Colors.grey.shade700),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,4 +1,8 @@
 
+import 'package:admin/screens/dashboard/active_scheme/today_active_scheme/today_active_list.dart';
+import 'package:admin/screens/dashboard/active_scheme/total_active_scheme/total_active_list.dart';
+import 'package:admin/screens/dashboard/customer/customer_detail/customer_detail_screen.dart';
+import 'package:admin/screens/dashboard/customer/customer_list.dart';
 import 'package:admin/screens/dashboard/dashboard_screen.dart';
 import 'package:admin/screens/dashboard/gold_price/add_gold_price/gold_add_popup.dart';
 import 'package:admin/screens/dashboard/gold_price/goldrate.dart';
@@ -17,7 +21,9 @@ class AppRoutes {
   static const String addGoldPrice = '/dashboard/gold_price/add';
   // ignore: constant_identifier_names
   static const String AddSchemeDialog = '/dashboard/schemes/add';
-  
+  static const String customerDetail = '/dashboard/customer/detail';
+  static const String totalActiveSchemes = '/dashboard/active_schemes/total';
+  static const String todayActiveSchemes = '/dashboard/active_schemes/today';  
 
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -46,6 +52,15 @@ class AppRoutes {
       case AddSchemeDialog:
         return MaterialPageRoute(builder: (_) => SchemesTab());
      
+      case customerDetail:
+        return MaterialPageRoute(builder: (_) => CustomersScreen());
+
+      case totalActiveSchemes:
+        return MaterialPageRoute(builder: (_) => const TotalActiveSchemesScreen());
+
+      case todayActiveSchemes:
+        return MaterialPageRoute(builder: (_) => const TodayActiveSchemesScreen());  
+      
 
       default:
         return MaterialPageRoute(

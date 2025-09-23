@@ -13,13 +13,26 @@ class OnlinePaymentScreen extends StatelessWidget {
   Color _statusColor(String status) {
     switch (status.toLowerCase()) {
       case "paid":
-        return Colors.green.shade600;
+        return Colors.green.shade100;
       case "unpaid":
-        return Colors.orange.shade600;
+        return Colors.orange.shade100;
       case "failed":
-        return Colors.red.shade600;
+        return Colors.red.shade100;
       default:
-        return Colors.grey.shade600;
+        return Colors.grey.shade300;
+    }
+  }
+
+  Color _statusTextColor(String status) {
+    switch (status.toLowerCase()) {
+      case "paid":
+        return Colors.green.shade800;
+      case "unpaid":
+        return Colors.orange.shade800;
+      case "failed":
+        return Colors.red.shade800;
+      default:
+        return Colors.grey.shade800;
     }
   }
 
@@ -46,22 +59,27 @@ class OnlinePaymentScreen extends StatelessWidget {
     return date;
   }
 
+  String _statusString(dynamic status) {
+    if (status == 2 || status == '2') return "paid";
+    if (status == 1 || status == '1') return "unpaid";
+    if (status == 3 || status == '3') return "failed";
+    return "unknown";
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
+      backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        title: const Text("Online Payments",style: TextStyle(color: Appcolors.white),),
+        title: const Text("Online Payments", style: TextStyle(color: Appcolors.white)),
         centerTitle: true,
-         backgroundColor: Appcolors.headerbackground,
+        backgroundColor: Appcolors.headerbackground,
         elevation: 0,
       ),
       body: BlocBuilder<OnlinePaymentBloc, OnlinePaymentState>(
         builder: (context, state) {
           if (state is OnlinePaymentInitial) {
-            context.read<OnlinePaymentBloc>().add(
-                  FetchOnlinePayments(page: 1, limit: 10),
-                );
+            context.read<OnlinePaymentBloc>().add(FetchOnlinePayments(page: 1, limit: 10));
             return const Center(child: CircularProgressIndicator());
           } else if (state is OnlinePaymentLoading) {
             return const Center(child: CircularProgressIndicator());
@@ -82,19 +100,30 @@ class OnlinePaymentScreen extends StatelessWidget {
               itemBuilder: (context, index) {
                 final OnlinePayment payment = payments[index];
 
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 14),
-                  elevation: 3,
-                  shape: RoundedRectangleBorder(
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 6,
+                        offset: const Offset(0, 4),
+                      )
+                    ],
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        /// Top Row - Customer Name + Status Chip
-                        Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header Section (Customer Name + Status)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                        ),
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Expanded(
@@ -102,105 +131,60 @@ class OnlinePaymentScreen extends StatelessWidget {
                                 payment.customerName.isNotEmpty
                                     ? payment.customerName
                                     : "No Name",
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Chip(
-                              avatar: Icon(
-                                _statusIcon(payment.transactionStatus),
-                                color: Colors.white,
-                                size: 18,
-                              ),
-                              label: Text(
-                                payment.transactionStatus.toUpperCase(),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              backgroundColor:
-                                  _statusColor(payment.transactionStatus),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 0),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-
-                        /// Transaction ID + Date
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                "Txn ID: ${payment.transactionId}",
                                 style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey.shade700,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue.shade900,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            Flexible(
-                              child: Text(
-                                _formatDate(payment.transactionDate),
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey.shade700,
-                                ),
-                                textAlign: TextAlign.end,
-                                overflow: TextOverflow.ellipsis,
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: _statusColor(_statusString(payment.transactionStatus)),
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                            ),
-                          ],
-                        ),
-                        const Divider(height: 20, thickness: 1),
-
-                        /// Bottom Row - Gold + Amount
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Flexible(
                               child: Row(
                                 children: [
-                                  const Icon(Icons.workspace_premium,
-                                      color: Colors.amber, size: 20),
+                                  Icon(
+                                    _statusIcon(_statusString(payment.transactionStatus)),
+                                    size: 16,
+                                    color: _statusTextColor(_statusString(payment.transactionStatus)),
+                                  ),
                                   const SizedBox(width: 4),
-                                  Flexible(
-                                    child: Text(
-                                      "${payment.transactionGoldGram.toStringAsFixed(2)} gm",
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
+                                  Text(
+                                    _statusString(payment.transactionStatus).toUpperCase(),
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13,
+                                      color: _statusTextColor(_statusString(payment.transactionStatus)),
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                            Flexible(
-                              child: Text(
-                                "₹${payment.transactionAmount.toStringAsFixed(2)}",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: Colors.orange.shade700,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
                           ],
                         ),
-                      ],
-                    ),
+                      ),
+
+                      // Body Content
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _infoRow(Icons.receipt, "Txn ID: ${payment.transactionId}"),
+                            _infoRow(Icons.calendar_today, _formatDate(payment.transactionDate)),
+                            const Divider(height: 24),
+                            _infoRow(Icons.workspace_premium,
+                                "${payment.transactionGoldGram.toStringAsFixed(2)} gm"),
+                            _infoRow(Icons.currency_rupee,
+                                "₹${payment.transactionAmount.toStringAsFixed(2)}"),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 );
               },
@@ -209,13 +193,30 @@ class OnlinePaymentScreen extends StatelessWidget {
             return Center(
               child: Text(
                 "Error: ${state.message}",
-                style: const TextStyle(
-                    color: Colors.red, fontWeight: FontWeight.w500),
+                style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
               ),
             );
           }
-          return const SizedBox();
+          return const SizedBox.shrink();
         },
+      ),
+    );
+  }
+
+  Widget _infoRow(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: Colors.grey.shade700),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            ),
+          ),
+        ],
       ),
     );
   }

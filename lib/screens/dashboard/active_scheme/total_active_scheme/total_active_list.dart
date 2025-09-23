@@ -1,7 +1,7 @@
-import 'package:admin/blocs/active_scheme/active_scheme_bloc.dart';
-import 'package:admin/blocs/active_scheme/active_scheme_event.dart';
-import 'package:admin/blocs/active_scheme/active_scheme_state.dart';
-import 'package:admin/screens/dashboard/active_scheme/total_active_scheme/TotalActiveSchemeDetailScreen.dart';
+import 'package:admin/blocs/total_active_scheme/active_scheme_bloc.dart';
+import 'package:admin/blocs/total_active_scheme/active_scheme_event.dart';
+import 'package:admin/blocs/total_active_scheme/active_scheme_state.dart';
+import 'package:admin/screens/dashboard/active_scheme/total_active_scheme/total_active_detail_screen.dart';
 import 'package:admin/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

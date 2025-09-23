@@ -1,8 +1,9 @@
+import 'package:admin/data/models/total_active_scheme';
 import 'package:admin/utils/colors.dart';
 import 'package:flutter/material.dart';
 
 class TotalActiveSchemeDetailScreen extends StatelessWidget {
-  final dynamic scheme; // Replace with your TotalActiveScheme model
+  final TotalActiveScheme scheme; // Replace with your TotalActiveScheme model
 
   const TotalActiveSchemeDetailScreen({super.key, required this.scheme});
 
@@ -10,7 +11,7 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(scheme.schemeName ?? "Scheme Details",style: const TextStyle(color: Appcolors.white,)),
+        title: Text(scheme.schemeName,style: const TextStyle(color: Appcolors.white,)),
         centerTitle: true,
         backgroundColor: Appcolors.headerbackground,
       ),

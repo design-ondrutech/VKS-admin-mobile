@@ -36,29 +36,36 @@ class _CustomersScreenState extends State<CustomersScreen> {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        title: Text(
-          " Total Customers",
+        title: const Text(
+          "Total Customers",
           style: TextStyle(color: Appcolors.white),
         ),
-        backgroundColor: Appcolors.headerbackground,
         centerTitle: true,
-        elevation: 2,
+        backgroundColor: Appcolors.headerbackground,
+        elevation: 0,
       ),
       body: BlocBuilder<CustomerBloc, CustomerState>(
         builder: (context, state) {
           if (state is CustomerLoading) {
             return const Center(child: CircularProgressIndicator());
           } else if (state is CustomerLoaded) {
+            if (state.customers.isEmpty) {
+              return const Center(
+                child: Text(
+                  "No Customers Found",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+              );
+            }
+
             return Column(
               children: [
                 Expanded(
                   child: ListView.builder(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(16),
                     itemCount: state.customers.length,
                     itemBuilder: (context, index) {
                       final Customer customer = state.customers[index];
-                      final rollNumber =
-                          ((state.currentPage - 1) * limit) + (index + 1);
 
                       return InkWell(
                         borderRadius: BorderRadius.circular(16),
@@ -66,116 +73,85 @@ class _CustomersScreenState extends State<CustomersScreen> {
                           showDialog(
                             context: context,
                             barrierDismissible: false,
-                            builder:
-                                (_) => const Center(
-                                  child: CircularProgressIndicator(),
-                                ),
+                            builder: (_) => const Center(
+                              child: CircularProgressIndicator(),
+                            ),
                           );
 
                           try {
                             final client = GraphQLProvider.of(context).value;
-                            final details = await CustomerDetailsRepository(
-                              client,
-                            ).fetchCustomerDetails(customer.id);
+                            final details = await CustomerDetailsRepository(client)
+                                .fetchCustomerDetails(customer.id);
 
                             if (!mounted) return;
-                            Navigator.pop(context); // Close loader
+                            Navigator.pop(context);
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder:
-                                    (_) =>
-                                        CustomerDetailScreen(details: details),
+                                builder: (_) => CustomerDetailScreen(details: details),
                               ),
                             );
                           } catch (e) {
                             if (!mounted) return;
                             Navigator.pop(context);
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Failed to load details: $e'),
-                              ),
+                              SnackBar(content: Text('Failed to load details: $e')),
                             );
                           }
                         },
-
-                        child: Card(
-                          elevation: 3,
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          shape: RoundedRectangleBorder(
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 6,
+                                offset: const Offset(0, 4),
+                              )
+                            ],
                           ),
-                          color: Colors.white,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 12,
-                              horizontal: 16,
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CircleAvatar(
-                                  backgroundColor: Colors.blue.shade50,
-                                  child: Text(
-                                    customer.name.isNotEmpty
-                                        ? customer.name[0].toUpperCase()
-                                        : "?",
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                      color: Colors.blue,
-                                    ),
-                                  ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Card Header with name + ID
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.shade50,
+                                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                                 ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        customer.name,
+                                child: Row(
+                                  children: [
+                                    CircleAvatar(
+                                      backgroundColor: Colors.blue.shade100,
+                                      child: Text(
+                                        customer.name.isNotEmpty
+                                            ? customer.name[0].toUpperCase()
+                                            : "?",
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 16,
+                                          fontSize: 18,
+                                          color: Colors.blue,
                                         ),
                                       ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        "Id: ${customer.id}",
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Row(
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          const Icon(
-                                            Icons.phone,
-                                            size: 14,
-                                            color: Colors.green,
-                                          ),
-                                          const SizedBox(width: 4),
                                           Text(
-                                            customer.phoneNumber,
-                                            style: const TextStyle(
-                                              fontSize: 13,
+                                            customer.name,
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.blue.shade900,
                                             ),
                                           ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.email,
-                                            size: 14,
-                                            color: Colors.blue,
-                                          ),
-                                          const SizedBox(width: 4),
                                           Text(
-                                            customer.email,
+                                            "ID: ${customer.id}",
                                             style: const TextStyle(
                                               fontSize: 12,
                                               color: Colors.grey,
@@ -183,11 +159,23 @@ class _CustomersScreenState extends State<CustomersScreen> {
                                           ),
                                         ],
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+
+                              // Card Body with info rows
+                              Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _infoRow(Icons.phone, customer.phoneNumber),
+                                    _infoRow(Icons.email, customer.email),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       );
@@ -195,17 +183,12 @@ class _CustomersScreenState extends State<CustomersScreen> {
                   ),
                 ),
 
-                // Pagination bar
+                // Pagination footer
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 12,
-                    horizontal: 16,
-                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(16),
-                    ),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.05),
@@ -223,45 +206,11 @@ class _CustomersScreenState extends State<CustomersScreen> {
                       ),
                       Row(
                         children: [
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  state.currentPage > 1
-                                      ? Appcolors.buttoncolor
-                                      : Colors.grey.shade300,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            onPressed:
-                                state.currentPage > 1
-                                    ? () => _loadPage(state.currentPage - 1)
-                                    : null,
-                            child: const Text(
-                              "Previous",
-                              style: TextStyle(color: Appcolors.black),
-                            ),
-                          ),
+                          _pageButton("Previous", state.currentPage > 1,
+                              () => _loadPage(state.currentPage - 1)),
                           const SizedBox(width: 8),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  state.currentPage < state.totalPages
-                                      ? Appcolors.buttoncolor
-                                      : Colors.grey.shade300,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            onPressed:
-                                state.currentPage < state.totalPages
-                                    ? () => _loadPage(state.currentPage + 1)
-                                    : null,
-                            child: const Text(
-                              "Next",
-                              style: TextStyle(color: Appcolors.black),
-                            ),
-                          ),
+                          _pageButton("Next", state.currentPage < state.totalPages,
+                              () => _loadPage(state.currentPage + 1)),
                         ],
                       ),
                     ],
@@ -273,13 +222,42 @@ class _CustomersScreenState extends State<CustomersScreen> {
             return Center(
               child: Text(
                 state.message,
-                style: const TextStyle(color: Colors.red),
+                style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
               ),
             );
           }
-          return const SizedBox();
+          return const SizedBox.shrink();
         },
       ),
+    );
+  }
+
+  Widget _infoRow(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: Colors.grey.shade700),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _pageButton(String label, bool enabled, VoidCallback onTap) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: enabled ? Appcolors.buttoncolor : Colors.grey.shade300,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      onPressed: enabled ? onTap : null,
+      child: Text(label, style: const TextStyle(color: Appcolors.black)),
     );
   }
 }

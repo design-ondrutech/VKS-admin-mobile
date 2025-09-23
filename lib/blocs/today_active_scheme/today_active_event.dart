@@ -1,6 +1,8 @@
 abstract class TodayActiveSchemeEvent {}
 
 class FetchTodayActiveSchemes extends TodayActiveSchemeEvent {
-  final String startDate;
-  FetchTodayActiveSchemes(this.startDate);
+  final String? startDate;
+  final String? savingId;
+
+  FetchTodayActiveSchemes({this.startDate, this.savingId});
 }

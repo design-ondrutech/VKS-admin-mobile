@@ -10,7 +10,11 @@ class TodayActiveSchemeBloc extends Bloc<TodayActiveSchemeEvent, TodayActiveSche
     on<FetchTodayActiveSchemes>((event, emit) async {
       emit(TodayActiveSchemeLoading());
       try {
-        final response = await repository.fetchTodayActiveSchemes(event.startDate);
+        //  Pass both startDate and savingId to repository
+        final response = await repository.fetchTodayActiveSchemes(
+          startDate: event.startDate,
+          savingId: event.savingId,
+        );
         emit(TodayActiveSchemeLoaded(response));
       } catch (e) {
         emit(TodayActiveSchemeError(e.toString()));

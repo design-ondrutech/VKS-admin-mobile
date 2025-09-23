@@ -14,7 +14,7 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 
 GraphQLClient getGraphQLClient() {
   final HttpLink httpLink = HttpLink(
-    'http://api-vkskumaran-0env-env.eba-jpagnpin.ap-south-1.elasticbeanstalk.com/graphql/admin', 
+    'http://localhost:4000/graphql/admin', 
   );
 
   return GraphQLClient(

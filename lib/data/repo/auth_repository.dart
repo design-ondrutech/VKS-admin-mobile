@@ -512,25 +512,90 @@ class TotalActiveSchemesRepository {
 // Today Active Scheme Repository
 class TodayActiveSchemeRepository {
   final GraphQLClient client;
+
   TodayActiveSchemeRepository(this.client);
 
-  Future<TodayActiveSchemeResponse> fetchTodayActiveSchemes(String startDate) async {
+  Future<TodayActiveSchemeResponse> fetchTodayActiveSchemes({
+    String? startDate,
+    String? savingId,
+  }) async {
     const String query = r'''
-      query GetTodayActiveSchemes($startDate: String) {
-        getTodayActiveSchemes(startDate: $startDate) {
+      query GetTodayActiveSchemes($startDate: String, $savingId: String) {
+        getTodayActiveSchemes(startDate: $startDate, savingId: $savingId) {
           data {
+            saving_id
+            paidAmount
             customer {
+              id
               cName
               cEmail
+              cDob
+              cPasswordHash
               cPhoneNumber
+              nominees {
+                c_nominee_id
+                c_id
+                c_nominee_name
+                c_nominee_email
+                c_nominee_phone_no
+                c_created_at
+                pin_code
+              }
+              addresses {
+                c_address_id
+                id
+                c_door_no
+                c_address_line1
+                c_address_line2
+                c_city
+                c_state
+                c_pin_code
+                c_is_primary
+                c_created_at
+                tenant_id
+              }
+              documents {
+                c_document_id
+                c_id
+                c_aadhar_no
+                c_pan_no
+                c_created_at
+              }
+              c_profile_image
+              reset_password
+              fcmToken
+              firebaseUid
+              isPhoneVerified
+              lastOtpVerifiedAt
+              lastRegisteredId
+              lastRegisteredAt
             }
-            totalAmount
-            status
             scheme_type
-            scheme_name
-            scheme_purpose
-            total_gold_weight
+            scheme_id
             start_date
+            end_date
+            status
+            total_gold_weight
+            last_updated
+            scheme_purpose
+            scheme_name
+            is_kyc
+            is_completed
+            percentage
+            totalAmount
+            gold_delivered
+            delivered_gold_weight
+            pending_gold_weight
+            pending_amount
+            history {
+              dueDate
+              status
+              paidDate
+              paymentMode
+              monthly_amount
+              goldWeight
+              amount
+            }
           }
           limit
           page
@@ -542,7 +607,10 @@ class TodayActiveSchemeRepository {
     final result = await client.query(
       QueryOptions(
         document: gql(query),
-        variables: {'startDate': startDate},
+        variables: {
+          'startDate': startDate,
+          'savingId': savingId,
+        },
       ),
     );
 
@@ -554,6 +622,7 @@ class TodayActiveSchemeRepository {
     return TodayActiveSchemeResponse.fromJson(data);
   }
 }
+
 
 // Online Payment Repository
 class OnlinePaymentRepository {

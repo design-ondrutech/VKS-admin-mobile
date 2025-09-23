@@ -1,5 +1,5 @@
-import 'package:admin/blocs/active_scheme/active_scheme_bloc.dart';
-import 'package:admin/blocs/active_scheme/active_scheme_event.dart';
+import 'package:admin/blocs/total_active_scheme/active_scheme_bloc.dart';
+import 'package:admin/blocs/total_active_scheme/active_scheme_event.dart';
 import 'package:admin/blocs/auth/auth_bloc.dart';
 import 'package:admin/blocs/barchart/barchart_bloc.dart';
 import 'package:admin/blocs/card/card_bloc.dart';
@@ -28,7 +28,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final HttpLink httpLink = HttpLink(
-    'http://api-vkskumaran-0env-env.eba-jpagnpin.ap-south-1.elasticbeanstalk.com/graphql/admin',
+    'http://localhost:4000/graphql/admin',
   );
 
   final ValueNotifier<GraphQLClient> client = ValueNotifier(

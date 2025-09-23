@@ -1,5 +1,5 @@
-import 'package:admin/blocs/active_scheme/active_scheme_event.dart';
-import 'package:admin/blocs/active_scheme/active_scheme_state.dart';
+import 'package:admin/blocs/total_active_scheme/active_scheme_event.dart';
+import 'package:admin/blocs/total_active_scheme/active_scheme_state.dart';
 import 'package:admin/data/repo/auth_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
