@@ -20,14 +20,14 @@ class TotalActiveSchemesScreen extends StatelessWidget {
         backgroundColor: Appcolors.headerbackground,
         elevation: 0,
       ),
-      body: BlocBuilder<TotalActiveSchemesBloc, TotalActiveSchemesState>(
+      body: BlocBuilder<TotalActiveBloc, TotalActiveState>(
         builder: (context, state) {
-          if (state is TotalActiveSchemesInitial) {
-            context.read<TotalActiveSchemesBloc>().add(FetchTotalActiveSchemes());
+          if (state is TotalActiveInitial) {
+            context.read<TotalActiveBloc>().add(FetchTotalActiveSchemes());
             return const Center(child: CircularProgressIndicator());
-          } else if (state is TotalActiveSchemesLoading) {
+          } else if (state is TotalActiveLoading) {
             return const Center(child: CircularProgressIndicator());
-          } else if (state is TotalActiveSchemesLoaded) {
+          } else if (state is TotalActiveLoaded) {
             final schemes = state.response.data;
             if (schemes.isEmpty) {
               return const Center(
@@ -132,7 +132,7 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                 );
               },
             );
-          } else if (state is TotalActiveSchemesError) {
+          } else if (state is TotalActiveError) {
             return Center(
               child: Text(
                 "Error: ${state.message}",

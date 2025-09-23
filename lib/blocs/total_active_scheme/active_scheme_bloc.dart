@@ -1,22 +1,22 @@
+// active_scheme_bloc.dart
 import 'package:admin/blocs/total_active_scheme/active_scheme_event.dart';
 import 'package:admin/blocs/total_active_scheme/active_scheme_state.dart';
 import 'package:admin/data/repo/auth_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class TotalActiveSchemesBloc
-    extends Bloc<TotalActiveSchemesEvent, TotalActiveSchemesState> {
+class TotalActiveBloc extends Bloc<TotalActiveEvent, TotalActiveState> {
   final TotalActiveSchemesRepository repository;
 
-  TotalActiveSchemesBloc(this.repository)
-      : super(TotalActiveSchemesInitial()) {
+  TotalActiveBloc({required this.repository}) : super(TotalActiveInitial()) {
     on<FetchTotalActiveSchemes>((event, emit) async {
-      emit(TotalActiveSchemesLoading());
+      emit(TotalActiveLoading());
       try {
-        final response = await repository.fetchTotalActiveSchemes();
-        emit(TotalActiveSchemesLoaded(response));
+        final response = await repository.getTotalActiveSchemes();
+        emit(TotalActiveLoaded(response: response));
       } catch (e) {
-        emit(TotalActiveSchemesError(e.toString()));
+        emit(TotalActiveError(message: e.toString()));
       }
     });
   }
 }
+

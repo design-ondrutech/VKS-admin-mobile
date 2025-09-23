@@ -1,52 +1,327 @@
-import 'package:admin/data/models/total_active_scheme';
+// total_active_scheme.dart
 
-class TotalActiveSchemesResponse {
+double parseDouble(dynamic value) {
+  if (value == null) return 0.0;
+  if (value is double) return value;
+  if (value is int) return value.toDouble();
+  if (value is bool) return value ? 1.0 : 0.0;
+  if (value is String) return double.tryParse(value) ?? 0.0;
+  return 0.0;
+}
+
+class TotalActiveSchemeResponse {
   final List<TotalActiveScheme> data;
   final int limit;
   final int page;
   final int totalCount;
-  final double totalSchemeAmount;
-  final double totalSchemeGoldWeight;
 
-  TotalActiveSchemesResponse({
+  TotalActiveSchemeResponse({
     required this.data,
     required this.limit,
     required this.page,
     required this.totalCount,
-    required this.totalSchemeAmount,
-    required this.totalSchemeGoldWeight,
   });
 
-  factory TotalActiveSchemesResponse.fromJson(Map<String, dynamic> json) {
-    return TotalActiveSchemesResponse(
-      data: (json['data'] as List<dynamic>? ?? [])
+  factory TotalActiveSchemeResponse.fromJson(Map<String, dynamic> json) {
+    return TotalActiveSchemeResponse(
+      data: (json['data'] as List? ?? [])
           .map((e) => TotalActiveScheme.fromJson(e))
           .toList(),
       limit: json['limit'] ?? 0,
       page: json['page'] ?? 0,
       totalCount: json['totalCount'] ?? 0,
-      totalSchemeAmount: (json['total_scheme_amount'] ?? 0).toDouble(),
-      totalSchemeGoldWeight: (json['total_scheme_gold_weight'] ?? 0).toDouble(),
-    );
-  }
-
-  ///  copyWith method for immutability support
-  TotalActiveSchemesResponse copyWith({
-    List<TotalActiveScheme>? data,
-    int? limit,
-    int? page,
-    int? totalCount,
-    double? totalSchemeAmount,
-    double? totalSchemeGoldWeight,
-  }) {
-    return TotalActiveSchemesResponse(
-      data: data ?? this.data,
-      limit: limit ?? this.limit,
-      page: page ?? this.page,
-      totalCount: totalCount ?? this.totalCount,
-      totalSchemeAmount: totalSchemeAmount ?? this.totalSchemeAmount,
-      totalSchemeGoldWeight:
-          totalSchemeGoldWeight ?? this.totalSchemeGoldWeight,
     );
   }
 }
+
+class TotalActiveScheme {
+  final String savingId;
+  final double paidAmount;
+  final Customer customer;
+  final String schemeType;
+  final String schemeId;
+  final String startDate;
+  final String endDate;
+  final String status;
+  final double totalGoldWeight;
+  final String lastUpdated;
+  final String schemePurpose;
+  final String schemeName;
+  final bool isKyc;
+  final bool isCompleted;
+  final double percentage;
+  final double totalAmount;
+  final double goldDelivered;
+  final double deliveredGoldWeight;
+  final double pendingGoldWeight;
+  final double pendingAmount;
+  final List<History> history;
+
+  TotalActiveScheme({
+    required this.savingId,
+    required this.paidAmount,
+    required this.customer,
+    required this.schemeType,
+    required this.schemeId,
+    required this.startDate,
+    required this.endDate,
+    required this.status,
+    required this.totalGoldWeight,
+    required this.lastUpdated,
+    required this.schemePurpose,
+    required this.schemeName,
+    required this.isKyc,
+    required this.isCompleted,
+    required this.percentage,
+    required this.totalAmount,
+    required this.goldDelivered,
+    required this.deliveredGoldWeight,
+    required this.pendingGoldWeight,
+    required this.pendingAmount,
+    required this.history,
+  });
+
+  factory TotalActiveScheme.fromJson(Map<String, dynamic> json) {
+    return TotalActiveScheme(
+      savingId: json['saving_id']?.toString() ?? '',
+      paidAmount: parseDouble(json['paidAmount']),
+      customer: Customer.fromJson(json['customer'] ?? {}),
+      schemeType: json['scheme_type']?.toString() ?? '',
+      schemeId: json['scheme_id']?.toString() ?? '',
+      startDate: json['start_date']?.toString() ?? '',
+      endDate: json['end_date']?.toString() ?? '',
+      status: json['status']?.toString() ?? '',
+      totalGoldWeight: parseDouble(json['total_gold_weight']),
+      lastUpdated: json['last_updated']?.toString() ?? '',
+      schemePurpose: json['scheme_purpose']?.toString() ?? '',
+      schemeName: json['scheme_name']?.toString() ?? '',
+      isKyc: json['is_kyc'] ?? false,
+      isCompleted: json['is_completed'] ?? false,
+      percentage: parseDouble(json['percentage']),
+      totalAmount: parseDouble(json['totalAmount']),
+      goldDelivered: parseDouble(json['gold_delivered']),
+      deliveredGoldWeight: parseDouble(json['delivered_gold_weight']),
+      pendingGoldWeight: parseDouble(json['pending_gold_weight']),
+      pendingAmount: parseDouble(json['pending_amount']),
+      history: (json['history'] as List? ?? [])
+          .map((e) => History.fromJson(e))
+          .toList(),
+    );
+  }
+}
+
+// History / PaymentHistory model
+class History {
+  final String dueDate;
+  final String status;
+  final String paidDate;
+  final String paymentMode;
+  final double monthlyAmount;
+  final double goldWeight;
+  final double amount;
+
+  History({
+    required this.dueDate,
+    required this.status,
+    required this.paidDate,
+    required this.paymentMode,
+    required this.monthlyAmount,
+    required this.goldWeight,
+    required this.amount,
+  });
+
+  factory History.fromJson(Map<String, dynamic> json) {
+    return History(
+      dueDate: json['dueDate']?.toString() ?? '',
+      status: json['status']?.toString() ?? '',
+      paidDate: json['paidDate']?.toString() ?? '',
+      paymentMode: json['paymentMode']?.toString() ?? '',
+      monthlyAmount: parseDouble(json['monthly_amount']),
+      goldWeight: parseDouble(json['goldWeight']),
+      amount: parseDouble(json['amount']),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'dueDate': dueDate,
+        'status': status,
+        'paidDate': paidDate,
+        'paymentMode': paymentMode,
+        'monthly_amount': monthlyAmount,
+        'goldWeight': goldWeight,
+        'amount': amount,
+      };
+}
+
+// Customer + nested models
+class Customer {
+  final String id;
+  final String cName;
+  final String cEmail;
+  final String cDob;
+  final String cPasswordHash;
+  final String cPhoneNumber;
+  final List<Nominee> nominees;
+  final List<Address> addresses;
+  final List<Document> documents;
+  final String? cProfileImage;
+  final String? resetPassword;
+  final String? fcmToken;
+  final String? firebaseUid;
+  final bool? isPhoneVerified;
+  final String? lastOtpVerifiedAt;
+  final String? lastRegisteredId;
+  final String? lastRegisteredAt;
+
+  Customer({
+    required this.id,
+    required this.cName,
+    required this.cEmail,
+    required this.cDob,
+    required this.cPasswordHash,
+    required this.cPhoneNumber,
+    required this.nominees,
+    required this.addresses,
+    required this.documents,
+    this.cProfileImage,
+    this.resetPassword,
+    this.fcmToken,
+    this.firebaseUid,
+    this.isPhoneVerified,
+    this.lastOtpVerifiedAt,
+    this.lastRegisteredId,
+    this.lastRegisteredAt,
+  });
+
+  factory Customer.fromJson(Map<String, dynamic> json) {
+    return Customer(
+      id: json['id']?.toString() ?? '',
+      cName: json['cName']?.toString() ?? '',
+      cEmail: json['cEmail']?.toString() ?? '',
+      cDob: json['cDob']?.toString() ?? '',
+      cPasswordHash: json['cPasswordHash']?.toString() ?? '',
+      cPhoneNumber: json['cPhoneNumber']?.toString() ?? '',
+      nominees: (json['nominees'] as List? ?? [])
+          .map((n) => Nominee.fromJson(n))
+          .toList(),
+      addresses: (json['addresses'] as List? ?? [])
+          .map((a) => Address.fromJson(a))
+          .toList(),
+      documents: (json['documents'] as List? ?? [])
+          .map((d) => Document.fromJson(d))
+          .toList(),
+      cProfileImage: json['c_profile_image']?.toString(),
+      resetPassword: json['reset_password']?.toString(),
+      fcmToken: json['fcmToken']?.toString(),
+      firebaseUid: json['firebaseUid']?.toString(),
+      isPhoneVerified: json['isPhoneVerified'] as bool?,
+      lastOtpVerifiedAt: json['lastOtpVerifiedAt']?.toString(),
+      lastRegisteredId: json['lastRegisteredId']?.toString(),
+      lastRegisteredAt: json['lastRegisteredAt']?.toString(),
+    );
+  }
+}
+
+class Nominee {
+  final String cNomineeId;
+  final String cId;
+  final String cNomineeName;
+  final String cNomineeEmail;
+  final String cNomineePhoneNo;
+  final String cCreatedAt;
+  final String pinCode;
+
+  Nominee({
+    required this.cNomineeId,
+    required this.cId,
+    required this.cNomineeName,
+    required this.cNomineeEmail,
+    required this.cNomineePhoneNo,
+    required this.cCreatedAt,
+    required this.pinCode,
+  });
+
+  factory Nominee.fromJson(Map<String, dynamic> json) {
+    return Nominee(
+      cNomineeId: json['c_nominee_id']?.toString() ?? '',
+      cId: json['c_id']?.toString() ?? '',
+      cNomineeName: json['c_nominee_name']?.toString() ?? '',
+      cNomineeEmail: json['c_nominee_email']?.toString() ?? '',
+      cNomineePhoneNo: json['c_nominee_phone_no']?.toString() ?? '',
+      cCreatedAt: json['c_created_at']?.toString() ?? '',
+      pinCode: json['pin_code']?.toString() ?? '',
+    );
+  }
+}
+
+class Address {
+  final String cAddressId;
+  final String id;
+  final String cDoorNo;
+  final String cAddressLine1;
+  final String cAddressLine2;
+  final String cCity;
+  final String cState;
+  final String cPinCode;
+  final bool cIsPrimary;
+  final String cCreatedAt;
+  final String tenantId;
+
+  Address({
+    required this.cAddressId,
+    required this.id,
+    required this.cDoorNo,
+    required this.cAddressLine1,
+    required this.cAddressLine2,
+    required this.cCity,
+    required this.cState,
+    required this.cPinCode,
+    required this.cIsPrimary,
+    required this.cCreatedAt,
+    required this.tenantId,
+  });
+
+  factory Address.fromJson(Map<String, dynamic> json) {
+    return Address(
+      cAddressId: json['c_address_id']?.toString() ?? '',
+      id: json['id']?.toString() ?? '',
+      cDoorNo: json['c_door_no']?.toString() ?? '',
+      cAddressLine1: json['c_address_line1']?.toString() ?? '',
+      cAddressLine2: json['c_address_line2']?.toString() ?? '',
+      cCity: json['c_city']?.toString() ?? '',
+      cState: json['c_state']?.toString() ?? '',
+      cPinCode: json['c_pin_code']?.toString() ?? '',
+      cIsPrimary: json['c_is_primary'] ?? false,
+      cCreatedAt: json['c_created_at']?.toString() ?? '',
+      tenantId: json['tenant_id']?.toString() ?? '',
+    );
+  }
+}
+
+class Document {
+  final String cDocumentId;
+  final String cId;
+  final String cAadharNo;
+  final String cPanNo;
+  final String cCreatedAt;
+
+  Document({
+    required this.cDocumentId,
+    required this.cId,
+    required this.cAadharNo,
+    required this.cPanNo,
+    required this.cCreatedAt,
+  });
+
+  factory Document.fromJson(Map<String, dynamic> json) {
+    return Document(
+      cDocumentId: json['c_document_id']?.toString() ?? '',
+      cId: json['c_id']?.toString() ?? '',
+      cAadharNo: json['c_aadhar_no']?.toString() ?? '',
+      cPanNo: json['c_pan_no']?.toString() ?? '',
+      cCreatedAt: json['c_created_at']?.toString() ?? '',
+    );
+  }
+}
+
+

@@ -1,9 +1,9 @@
-import 'package:admin/data/models/total_active_scheme';
+import 'package:admin/data/models/total_active_scheme.dart';
 import 'package:admin/utils/colors.dart';
 import 'package:flutter/material.dart';
 
 class TotalActiveSchemeDetailScreen extends StatelessWidget {
-  final TotalActiveScheme scheme; // Replace with your TotalActiveScheme model
+  final TotalActiveScheme scheme;
 
   const TotalActiveSchemeDetailScreen({super.key, required this.scheme});
 
@@ -11,7 +11,10 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(scheme.schemeName,style: const TextStyle(color: Appcolors.white,)),
+        title: Text(
+          scheme.schemeName,
+          style: const TextStyle(color: Appcolors.white),
+        ),
         centerTitle: true,
         backgroundColor: Appcolors.headerbackground,
       ),
@@ -49,7 +52,7 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
             _infoRow("Scheme Name", scheme.schemeName),
             _infoRow("Scheme Type", scheme.schemeType),
             _infoRow("Status", scheme.status),
-            _infoRow("Gold Delivered", scheme.goldDelivered ? "Yes" : "No"),
+            _infoRow("Gold Delivered", scheme.goldDelivered.toString()),
             _infoRow("Purpose", scheme.schemePurpose),
             _infoRow("KYC Completed", scheme.isKyc ? "Yes" : "No"),
             _infoRow("Completed", scheme.isCompleted ? "Yes" : "No"),
@@ -95,7 +98,7 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("₹${tx.amount.toStringAsFixed(2)}",
+                        Text("₹${tx.amount?.toStringAsFixed(2)}",
                             style: const TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 16)),
                         const SizedBox(height: 4),
@@ -103,7 +106,7 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text("Due: ${tx.dueDate}"),
-                            Text("Paid: ${tx.paidDate}"),
+                            Text("Paid: ${tx.paidDate.isNotEmpty ? tx.paidDate : '-'}"),
                           ],
                         ),
                         Row(
@@ -188,8 +191,8 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
             Icon(icon, color: Colors.white, size: 28),
             const SizedBox(height: 8),
             Text(title,
-                style:
-                    const TextStyle(color: Colors.white70, fontWeight: FontWeight.w600)),
+                style: const TextStyle(
+                    color: Colors.white70, fontWeight: FontWeight.w600)),
             const SizedBox(height: 4),
             Text(value,
                 style: const TextStyle(

@@ -1,3 +1,5 @@
+import 'package:admin/data/models/total_active_scheme.dart';
+
 class TodayActiveSchemeResponse {
   final List<TodayActiveScheme> data;
   final int limit;
@@ -10,21 +12,23 @@ class TodayActiveSchemeResponse {
     required this.data,
     required this.limit,
     required this.page,
-    required this.totalCount, 
+    required this.totalCount,
     this.totalSchemeAmount,
     this.totalSchemeGoldWeight,
   });
 
   factory TodayActiveSchemeResponse.fromJson(Map<String, dynamic> json) {
     return TodayActiveSchemeResponse(
-      data: (json['data'] as List<dynamic>)
-          .map((e) => TodayActiveScheme.fromJson(e))
-          .toList(),
+      data: (json['data'] as List<dynamic>?)
+              ?.map((e) => TodayActiveScheme.fromJson(e))
+              .toList() ??
+          [], //  Prevents crash if null
       limit: json['limit'] ?? 0,
       page: json['page'] ?? 0,
       totalCount: json['totalCount'] ?? 0,
       totalSchemeAmount: (json['total_scheme_amount'] as num?)?.toDouble(),
-      totalSchemeGoldWeight: (json['total_scheme_gold_weight'] as num?)?.toDouble(),
+      totalSchemeGoldWeight:
+          (json['total_scheme_gold_weight'] as num?)?.toDouble(),
     );
   }
 }
@@ -80,7 +84,7 @@ class TodayActiveScheme {
     return TodayActiveScheme(
       savingId: json['saving_id'] ?? '',
       paidAmount: (json['paidAmount'] as num?)?.toDouble(),
-      customer: Customer.fromJson(json['customer']),
+      customer: Customer.fromJson(json['customer'] ?? {}),
       schemeType: json['scheme_type'] ?? '',
       schemeId: json['scheme_id'] ?? '',
       startDate: json['start_date'] ?? '',
@@ -98,12 +102,31 @@ class TodayActiveScheme {
       deliveredGoldWeight: (json['delivered_gold_weight'] as num?)?.toDouble(),
       pendingGoldWeight: (json['pending_gold_weight'] as num?)?.toDouble(),
       pendingAmount: (json['pending_amount'] as num?)?.toDouble(),
-      history: (json['history'] as List<dynamic>)
-          .map((e) => PaymentHistory.fromJson(e))
-          .toList(),
+      history: (json['history'] as List<dynamic>?)
+              ?.map((e) => PaymentHistory.fromJson(e))
+              .toList() ??
+          [], //  Safe
     );
   }
 }
+
+class PaymentHistory {
+  final double? amount;
+  final String? dueDate;
+  final bool? isPaid;
+
+  PaymentHistory({this.amount, this.dueDate, this.isPaid});
+
+  factory PaymentHistory.fromJson(Map<String, dynamic> json) {
+    return PaymentHistory(
+      amount: (json['amount'] as num?)?.toDouble(),
+      dueDate: json['due_date'] ?? '',
+      isPaid: json['is_paid'] ?? false,
+    );
+  }
+
+}
+
 
 class Customer {
   final String id;
@@ -136,128 +159,19 @@ class Customer {
       cDob: json['cDob'] ?? '',
       cPhoneNumber: json['cPhoneNumber'] ?? '',
       cProfileImage: json['c_profile_image'],
-      nominees: (json['nominees'] as List<dynamic>)
-          .map((e) => Nominee.fromJson(e))
-          .toList(),
-      addresses: (json['addresses'] as List<dynamic>)
-          .map((e) => Address.fromJson(e))
-          .toList(),
-      documents: (json['documents'] as List<dynamic>)
-          .map((e) => Document.fromJson(e))
-          .toList(),
+      nominees: (json['nominees'] as List<dynamic>?)
+              ?.map((e) => Nominee.fromJson(e))
+              .toList() ??
+          [],
+      addresses: (json['addresses'] as List<dynamic>?)
+              ?.map((e) => Address.fromJson(e))
+              .toList() ??
+          [],
+      documents: (json['documents'] as List<dynamic>?)
+              ?.map((e) => Document.fromJson(e))
+              .toList() ??
+          [],
     );
   }
 }
 
-class Nominee {
-  final String nomineeId;
-  final String nomineeName;
-  final String nomineeEmail;
-  final String nomineePhone;
-  final String pinCode;
-
-  Nominee({
-    required this.nomineeId,
-    required this.nomineeName,
-    required this.nomineeEmail,
-    required this.nomineePhone,
-    required this.pinCode,
-  });
-
-  factory Nominee.fromJson(Map<String, dynamic> json) {
-    return Nominee(
-      nomineeId: json['c_nominee_id'] ?? '',
-      nomineeName: json['c_nominee_name'] ?? '',
-      nomineeEmail: json['c_nominee_email'] ?? '',
-      nomineePhone: json['c_nominee_phone_no'] ?? '',
-      pinCode: json['pin_code'] ?? '',
-    );
-  }
-}
-
-class Address {
-  final String addressId;
-  final String doorNo;
-  final String line1;
-  final String line2;
-  final String city;
-  final String state;
-  final String pinCode;
-  final bool isPrimary;
-
-  Address({
-    required this.addressId,
-    required this.doorNo,
-    required this.line1,
-    required this.line2,
-    required this.city,
-    required this.state,
-    required this.pinCode,
-    required this.isPrimary,
-  });
-
-  factory Address.fromJson(Map<String, dynamic> json) {
-    return Address(
-      addressId: json['c_address_id'] ?? '',
-      doorNo: json['c_door_no'] ?? '',
-      line1: json['c_address_line1'] ?? '',
-      line2: json['c_address_line2'] ?? '',
-      city: json['c_city'] ?? '',
-      state: json['c_state'] ?? '',
-      pinCode: json['c_pin_code'] ?? '',
-      isPrimary: json['c_is_primary'] ?? false,
-    );
-  }
-}
-
-class Document {
-  final String documentId;
-  final String aadharNo;
-  final String panNo;
-
-  Document({
-    required this.documentId,
-    required this.aadharNo,
-    required this.panNo,
-  });
-
-  factory Document.fromJson(Map<String, dynamic> json) {
-    return Document(
-      documentId: json['c_document_id'] ?? '',
-      aadharNo: json['c_aadhar_no'] ?? '',
-      panNo: json['c_pan_no'] ?? '',
-    );
-  }
-}
-
-class PaymentHistory {
-  final String dueDate;
-  final String status;
-  final String paidDate;
-  final String paymentMode;
-  final double? monthlyAmount;
-  final double? goldWeight;
-  final double? amount;
-
-  PaymentHistory({
-    required this.dueDate,
-    required this.status,
-    required this.paidDate,
-    required this.paymentMode,
-    this.monthlyAmount,
-    this.goldWeight,
-    this.amount,
-  });
-
-  factory PaymentHistory.fromJson(Map<String, dynamic> json) {
-    return PaymentHistory(
-      dueDate: json['dueDate'] ?? '',
-      status: json['status'] ?? '',
-      paidDate: json['paidDate'] ?? '',
-      paymentMode: json['paymentMode'] ?? '',
-      monthlyAmount: (json['monthly_amount'] as num?)?.toDouble(),
-      goldWeight: (json['goldWeight'] as num?)?.toDouble(),
-      amount: (json['amount'] as num?)?.toDouble(),
-    );
-  }
-}

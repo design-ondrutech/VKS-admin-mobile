@@ -6,7 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class TodayActiveSchemeBloc extends Bloc<TodayActiveSchemeEvent, TodayActiveSchemeState> {
   final TodayActiveSchemeRepository repository;
 
-  TodayActiveSchemeBloc(this.repository) : super(TodayActiveSchemeInitial()) {
+  TodayActiveSchemeBloc({required this.repository}) : super(TodayActiveSchemeInitial()) {
     on<FetchTodayActiveSchemes>((event, emit) async {
       emit(TodayActiveSchemeLoading());
       try {

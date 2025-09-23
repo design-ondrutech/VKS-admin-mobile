@@ -1,18 +1,30 @@
-import 'package:admin/data/models/total_active_scheme';
+// active_scheme_state.dart
+import 'package:admin/data/models/total_active_scheme.dart';
+import 'package:equatable/equatable.dart';
 
-
-abstract class TotalActiveSchemesState {}
-
-class TotalActiveSchemesInitial extends TotalActiveSchemesState {}
-
-class TotalActiveSchemesLoading extends TotalActiveSchemesState {}
-
-class TotalActiveSchemesLoaded extends TotalActiveSchemesState {
-  final TotalActiveSchemesResponse response;
-  TotalActiveSchemesLoaded(this.response);
+abstract class TotalActiveState extends Equatable {
+  @override
+  List<Object?> get props => [];
 }
 
-class TotalActiveSchemesError extends TotalActiveSchemesState {
+class TotalActiveInitial extends TotalActiveState {}
+
+class TotalActiveLoading extends TotalActiveState {}
+
+class TotalActiveLoaded extends TotalActiveState {
+  final TotalActiveSchemeResponse response;
+
+  TotalActiveLoaded({required this.response});
+
+  @override
+  List<Object?> get props => [response];
+}
+
+class TotalActiveError extends TotalActiveState {
   final String message;
-  TotalActiveSchemesError(this.message);
+
+  TotalActiveError({required this.message});
+
+  @override
+  List<Object?> get props => [message];
 }

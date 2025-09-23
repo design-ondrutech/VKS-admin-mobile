@@ -10,7 +10,7 @@ import 'package:admin/data/models/notification_model.dart';
 import 'package:admin/data/models/online_payment.dart';
 import 'package:admin/data/models/scheme.dart';
 import 'package:admin/data/models/today_active_scheme.dart';
-import 'package:admin/data/models/total_active_scheme';
+import 'package:admin/data/models/total_active_scheme.dart';
 import 'package:admin/screens/dashboard/customer/customer_detail/model/customer_details_model.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
@@ -397,113 +397,93 @@ class CustomerRepository {
 }
 
 // Total Active Scheme Repository
+// total_active_scheme_repository.dart
+
 class TotalActiveSchemesRepository {
   final GraphQLClient client;
 
-  TotalActiveSchemesRepository(this.client);
+  TotalActiveSchemesRepository({required this.client});
 
-  Future<TotalActiveSchemesResponse> fetchTotalActiveSchemes({String? savingId}) async {
-    const String query = r'''
-    query GetTotalActiveSchemes($savingId: String) {
-      getTotalActiveSchemes(savingId: $savingId) {
-        data {
-          saving_id
-          paidAmount
-          customer {
-            id
-            cName
-            cEmail
-            cDob
-            cPasswordHash
-            cPhoneNumber
-            nominees {
-              c_nominee_id
-              c_id
-              c_nominee_name
-              c_nominee_email
-              c_nominee_phone_no
-              c_created_at
-              pin_code
-            }
-            addresses {
-              c_address_id
+  Future<TotalActiveSchemeResponse> getTotalActiveSchemes() async {
+    const query = r'''
+      query GetTotalActiveSchemes {
+        getTotalActiveSchemes {
+          data {
+            saving_id
+            paidAmount
+            customer {
               id
-              c_door_no
-              c_address_line1
-              c_address_line2
-              c_city
-              c_state
-              c_pin_code
-              c_is_primary
-              c_created_at
-              tenant_id
+              cName
+              cEmail
+              cDob
+              cPasswordHash
+              cPhoneNumber
+              nominees {
+                c_nominee_id
+                c_nominee_name
+                c_nominee_email
+                c_nominee_phone_no
+              }
+              addresses {
+                c_address_id
+                c_door_no
+                c_address_line1
+                c_address_line2
+                c_city
+                c_state
+                c_pin_code
+              }
+              documents {
+                c_document_id
+                c_aadhar_no
+                c_pan_no
+              }
+              c_profile_image
             }
-            documents {
-              c_document_id
-              c_id
-              c_aadhar_no
-              c_pan_no
-              c_created_at
-            }
-            c_profile_image
-            reset_password
-            fcmToken
-            firebaseUid
-            isPhoneVerified
-            lastOtpVerifiedAt
-            lastRegisteredId
-            lastRegisteredAt
-          }
-          scheme_type
-          scheme_id
-          start_date
-          end_date
-          status
-          total_gold_weight
-          last_updated
-          scheme_purpose
-          scheme_name
-          is_kyc
-          is_completed
-          percentage
-          totalAmount
-          gold_delivered
-          delivered_gold_weight
-          pending_gold_weight
-          pending_amount
-          history {
-            dueDate
+            scheme_type
+            scheme_id
+            start_date
+            end_date
             status
-            paidDate
-            paymentMode
-            monthly_amount
-            goldWeight
-            amount
+            total_gold_weight
+            last_updated
+            scheme_purpose
+            scheme_name
+            is_kyc
+            is_completed
+            percentage
+            totalAmount
+            gold_delivered
+            delivered_gold_weight
+            pending_gold_weight
+            pending_amount
+            history {
+              dueDate
+              status
+              paidDate
+              paymentMode
+              monthly_amount
+              goldWeight
+              amount
+            }
           }
+          limit
+          page
+          totalCount
         }
-        limit
-        page
-        totalCount
-        total_scheme_amount
-        total_scheme_gold_weight
       }
-    }
     ''';
 
     final result = await client.query(
-      QueryOptions(
-        document: gql(query),
-        variables: {'savingId': savingId},
-        fetchPolicy: FetchPolicy.networkOnly,
-      ),
+      QueryOptions(document: gql(query)),
     );
 
     if (result.hasException) {
       throw Exception(result.exception.toString());
     }
 
-    // Parse the nested "getTotalActiveSchemes" data
-    return TotalActiveSchemesResponse.fromJson(result.data!['getTotalActiveSchemes']);
+    return TotalActiveSchemeResponse.fromJson(
+        result.data!['getTotalActiveSchemes']);
   }
 }
 

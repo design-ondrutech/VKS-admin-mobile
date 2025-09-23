@@ -137,9 +137,9 @@ class TodayActiveSchemesScreen extends StatelessWidget {
                               if (scheme.paidAmount != null)
                                 _infoRow(Icons.check_circle, "Paid: ₹${scheme.paidAmount}"),
                               if (scheme.pendingAmount != null)
-                                _infoRow(Icons.hourglass_bottom, "Pending: ₹${scheme.pendingAmount}"),
+                            //    _infoRow(Icons.hourglass_bottom, "Pending: ₹${scheme.pendingAmount}"),
                               _infoRow(Icons.calendar_today, "Start: ${scheme.startDate}"),
-                              _infoRow(Icons.calendar_month, "End: ${scheme.endDate ?? '-'}"),
+                          //    _infoRow(Icons.calendar_month, "End: ${scheme.endDate ?? '-'}"),
                             ],
                           ),
                         ),
