@@ -1,4 +1,5 @@
 import 'package:admin/data/models/total_active_scheme.dart';
+import 'package:admin/screens/dashboard/customer/customer_detail/model/customer_details_model.dart';
 
 class TodayActiveSchemeResponse {
   final List<TodayActiveScheme> data;

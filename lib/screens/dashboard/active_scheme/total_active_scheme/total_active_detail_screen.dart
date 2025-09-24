@@ -65,9 +65,9 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
           // ---------------- CUSTOMER INFO ----------------
           _sectionTitle("Customer Info"),
           _infoCard([
-            _infoRow("Name", scheme.customer.cName),
-            _infoRow("Email", scheme.customer.cEmail),
-            _infoRow("Phone", scheme.customer.cPhoneNumber),
+            _infoRow("Name", scheme.customer.name),
+            _infoRow("Email", scheme.customer.email),
+            _infoRow("Phone", scheme.customer.phoneNumber),
           ]),
           const SizedBox(height: 16),
 

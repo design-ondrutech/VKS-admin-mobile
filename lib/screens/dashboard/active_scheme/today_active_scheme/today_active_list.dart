@@ -19,7 +19,7 @@ class TodayActiveSchemesScreen extends StatelessWidget {
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
         title: const Text(
-          "Today's Active Schemes",
+          "Total's Active Schemes",
           style: TextStyle(color: Appcolors.white),
         ),
         centerTitle: true,

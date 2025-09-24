@@ -14,7 +14,7 @@ class TotalActiveSchemesScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        title: const Text("Total Active Schemes",
+        title: const Text("Today Active Schemes",
             style: TextStyle(color: Appcolors.white,)),
         centerTitle: true,
         backgroundColor: Appcolors.headerbackground,
@@ -115,9 +115,9 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _infoRow(Icons.person, scheme.customer.cName),
-                              _infoRow(Icons.phone, scheme.customer.cPhoneNumber),
-                              _infoRow(Icons.email, scheme.customer.cEmail),
+                              _infoRow(Icons.person, scheme.customer.name),
+                              _infoRow(Icons.phone, scheme.customer.phoneNumber),
+                              _infoRow(Icons.email, scheme.customer.email),
                               const Divider(height: 24),
                               _infoRow(Icons.category, "Type: ${scheme.schemeType}"),
                               _infoRow(Icons.scale, "Gold: ${scheme.totalGoldWeight} gm"),

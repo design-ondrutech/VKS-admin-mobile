@@ -1,4 +1,4 @@
-// total_active_scheme.dart
+import 'package:admin/data/models/customer.dart';
 
 double parseDouble(dynamic value) {
   if (value == null) return 0.0;
@@ -30,6 +30,21 @@ class TotalActiveSchemeResponse {
       limit: json['limit'] ?? 0,
       page: json['page'] ?? 0,
       totalCount: json['totalCount'] ?? 0,
+    );
+  }
+
+  ///  copyWith added
+  TotalActiveSchemeResponse copyWith({
+    List<TotalActiveScheme>? data,
+    int? limit,
+    int? page,
+    int? totalCount,
+  }) {
+    return TotalActiveSchemeResponse(
+      data: data ?? this.data,
+      limit: limit ?? this.limit,
+      page: page ?? this.page,
+      totalCount: totalCount ?? this.totalCount,
     );
   }
 }
@@ -108,9 +123,56 @@ class TotalActiveScheme {
           .toList(),
     );
   }
-}
 
-// History / PaymentHistory model
+  ///  copyWith added (optional but useful)
+  TotalActiveScheme copyWith({
+    String? savingId,
+    double? paidAmount,
+    Customer? customer,
+    String? schemeType,
+    String? schemeId,
+    String? startDate,
+    String? endDate,
+    String? status,
+    double? totalGoldWeight,
+    String? lastUpdated,
+    String? schemePurpose,
+    String? schemeName,
+    bool? isKyc,
+    bool? isCompleted,
+    double? percentage,
+    double? totalAmount,
+    double? goldDelivered,
+    double? deliveredGoldWeight,
+    double? pendingGoldWeight,
+    double? pendingAmount,
+    List<History>? history,
+  }) {
+    return TotalActiveScheme(
+      savingId: savingId ?? this.savingId,
+      paidAmount: paidAmount ?? this.paidAmount,
+      customer: customer ?? this.customer,
+      schemeType: schemeType ?? this.schemeType,
+      schemeId: schemeId ?? this.schemeId,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      status: status ?? this.status,
+      totalGoldWeight: totalGoldWeight ?? this.totalGoldWeight,
+      lastUpdated: lastUpdated ?? this.lastUpdated,
+      schemePurpose: schemePurpose ?? this.schemePurpose,
+      schemeName: schemeName ?? this.schemeName,
+      isKyc: isKyc ?? this.isKyc,
+      isCompleted: isCompleted ?? this.isCompleted,
+      percentage: percentage ?? this.percentage,
+      totalAmount: totalAmount ?? this.totalAmount,
+      goldDelivered: goldDelivered ?? this.goldDelivered,
+      deliveredGoldWeight: deliveredGoldWeight ?? this.deliveredGoldWeight,
+      pendingGoldWeight: pendingGoldWeight ?? this.pendingGoldWeight,
+      pendingAmount: pendingAmount ?? this.pendingAmount,
+      history: history ?? this.history,
+    );
+  }
+}
 class History {
   final String dueDate;
   final String status;
@@ -151,177 +213,27 @@ class History {
         'goldWeight': goldWeight,
         'amount': amount,
       };
-}
 
-// Customer + nested models
-class Customer {
-  final String id;
-  final String cName;
-  final String cEmail;
-  final String cDob;
-  final String cPasswordHash;
-  final String cPhoneNumber;
-  final List<Nominee> nominees;
-  final List<Address> addresses;
-  final List<Document> documents;
-  final String? cProfileImage;
-  final String? resetPassword;
-  final String? fcmToken;
-  final String? firebaseUid;
-  final bool? isPhoneVerified;
-  final String? lastOtpVerifiedAt;
-  final String? lastRegisteredId;
-  final String? lastRegisteredAt;
-
-  Customer({
-    required this.id,
-    required this.cName,
-    required this.cEmail,
-    required this.cDob,
-    required this.cPasswordHash,
-    required this.cPhoneNumber,
-    required this.nominees,
-    required this.addresses,
-    required this.documents,
-    this.cProfileImage,
-    this.resetPassword,
-    this.fcmToken,
-    this.firebaseUid,
-    this.isPhoneVerified,
-    this.lastOtpVerifiedAt,
-    this.lastRegisteredId,
-    this.lastRegisteredAt,
-  });
-
-  factory Customer.fromJson(Map<String, dynamic> json) {
-    return Customer(
-      id: json['id']?.toString() ?? '',
-      cName: json['cName']?.toString() ?? '',
-      cEmail: json['cEmail']?.toString() ?? '',
-      cDob: json['cDob']?.toString() ?? '',
-      cPasswordHash: json['cPasswordHash']?.toString() ?? '',
-      cPhoneNumber: json['cPhoneNumber']?.toString() ?? '',
-      nominees: (json['nominees'] as List? ?? [])
-          .map((n) => Nominee.fromJson(n))
-          .toList(),
-      addresses: (json['addresses'] as List? ?? [])
-          .map((a) => Address.fromJson(a))
-          .toList(),
-      documents: (json['documents'] as List? ?? [])
-          .map((d) => Document.fromJson(d))
-          .toList(),
-      cProfileImage: json['c_profile_image']?.toString(),
-      resetPassword: json['reset_password']?.toString(),
-      fcmToken: json['fcmToken']?.toString(),
-      firebaseUid: json['firebaseUid']?.toString(),
-      isPhoneVerified: json['isPhoneVerified'] as bool?,
-      lastOtpVerifiedAt: json['lastOtpVerifiedAt']?.toString(),
-      lastRegisteredId: json['lastRegisteredId']?.toString(),
-      lastRegisteredAt: json['lastRegisteredAt']?.toString(),
+  ///  copyWith added
+  History copyWith({
+    String? dueDate,
+    String? status,
+    String? paidDate,
+    String? paymentMode,
+    double? monthlyAmount,
+    double? goldWeight,
+    double? amount,
+  }) {
+    return History(
+      dueDate: dueDate ?? this.dueDate,
+      status: status ?? this.status,
+      paidDate: paidDate ?? this.paidDate,
+      paymentMode: paymentMode ?? this.paymentMode,
+      monthlyAmount: monthlyAmount ?? this.monthlyAmount,
+      goldWeight: goldWeight ?? this.goldWeight,
+      amount: amount ?? this.amount,
     );
   }
 }
 
-class Nominee {
-  final String cNomineeId;
-  final String cId;
-  final String cNomineeName;
-  final String cNomineeEmail;
-  final String cNomineePhoneNo;
-  final String cCreatedAt;
-  final String pinCode;
-
-  Nominee({
-    required this.cNomineeId,
-    required this.cId,
-    required this.cNomineeName,
-    required this.cNomineeEmail,
-    required this.cNomineePhoneNo,
-    required this.cCreatedAt,
-    required this.pinCode,
-  });
-
-  factory Nominee.fromJson(Map<String, dynamic> json) {
-    return Nominee(
-      cNomineeId: json['c_nominee_id']?.toString() ?? '',
-      cId: json['c_id']?.toString() ?? '',
-      cNomineeName: json['c_nominee_name']?.toString() ?? '',
-      cNomineeEmail: json['c_nominee_email']?.toString() ?? '',
-      cNomineePhoneNo: json['c_nominee_phone_no']?.toString() ?? '',
-      cCreatedAt: json['c_created_at']?.toString() ?? '',
-      pinCode: json['pin_code']?.toString() ?? '',
-    );
-  }
-}
-
-class Address {
-  final String cAddressId;
-  final String id;
-  final String cDoorNo;
-  final String cAddressLine1;
-  final String cAddressLine2;
-  final String cCity;
-  final String cState;
-  final String cPinCode;
-  final bool cIsPrimary;
-  final String cCreatedAt;
-  final String tenantId;
-
-  Address({
-    required this.cAddressId,
-    required this.id,
-    required this.cDoorNo,
-    required this.cAddressLine1,
-    required this.cAddressLine2,
-    required this.cCity,
-    required this.cState,
-    required this.cPinCode,
-    required this.cIsPrimary,
-    required this.cCreatedAt,
-    required this.tenantId,
-  });
-
-  factory Address.fromJson(Map<String, dynamic> json) {
-    return Address(
-      cAddressId: json['c_address_id']?.toString() ?? '',
-      id: json['id']?.toString() ?? '',
-      cDoorNo: json['c_door_no']?.toString() ?? '',
-      cAddressLine1: json['c_address_line1']?.toString() ?? '',
-      cAddressLine2: json['c_address_line2']?.toString() ?? '',
-      cCity: json['c_city']?.toString() ?? '',
-      cState: json['c_state']?.toString() ?? '',
-      cPinCode: json['c_pin_code']?.toString() ?? '',
-      cIsPrimary: json['c_is_primary'] ?? false,
-      cCreatedAt: json['c_created_at']?.toString() ?? '',
-      tenantId: json['tenant_id']?.toString() ?? '',
-    );
-  }
-}
-
-class Document {
-  final String cDocumentId;
-  final String cId;
-  final String cAadharNo;
-  final String cPanNo;
-  final String cCreatedAt;
-
-  Document({
-    required this.cDocumentId,
-    required this.cId,
-    required this.cAadharNo,
-    required this.cPanNo,
-    required this.cCreatedAt,
-  });
-
-  factory Document.fromJson(Map<String, dynamic> json) {
-    return Document(
-      cDocumentId: json['c_document_id']?.toString() ?? '',
-      cId: json['c_id']?.toString() ?? '',
-      cAadharNo: json['c_aadhar_no']?.toString() ?? '',
-      cPanNo: json['c_pan_no']?.toString() ?? '',
-      cCreatedAt: json['c_created_at']?.toString() ?? '',
-    );
-  }
-}
-
-
+// --- Rest of your History, Customer, Nominee, Address, Document models remain same ---
