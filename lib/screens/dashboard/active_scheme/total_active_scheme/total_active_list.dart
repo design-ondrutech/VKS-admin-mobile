@@ -32,7 +32,7 @@ class TotalActiveSchemesScreen extends StatelessWidget {
             if (schemes.isEmpty) {
               return const Center(
                 child: Text(
-                  "No Active Schemes Found",
+                  "No active schemes found for today",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
               );
@@ -146,21 +146,21 @@ class TotalActiveSchemesScreen extends StatelessWidget {
     );
   }
 
-  Widget _infoRow(IconData icon, String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: Colors.grey.shade700),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-            ),
+Widget _infoRow(IconData icon, String? text) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Row(
+      children: [
+        Icon(icon, size: 18, color: Colors.grey.shade700),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text ?? "N/A", // Null-safe
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 }

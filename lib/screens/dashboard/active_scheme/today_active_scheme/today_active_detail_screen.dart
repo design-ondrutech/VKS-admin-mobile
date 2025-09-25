@@ -1,6 +1,5 @@
 import 'package:admin/data/models/today_active_scheme.dart';
 import 'package:flutter/material.dart';
-import 'package:admin/data/models/total_active_scheme.dart';
 import 'package:admin/utils/colors.dart';
 
 class TodayActiveSchemeDetailScreen extends StatelessWidget {
@@ -13,7 +12,7 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          scheme.schemeName,
+          scheme.schemeName.isNotEmpty ? scheme.schemeName : '-', // safe
           style: const TextStyle(color: Appcolors.white),
         ),
         centerTitle: true,
@@ -66,9 +65,9 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
           // ---------------- CUSTOMER INFO ----------------
           _sectionTitle("Customer Info"),
           _infoCard([
-            _infoRow("Name", scheme.customer.cName),
-            _infoRow("Email", scheme.customer.cEmail),
-            _infoRow("Phone", scheme.customer.cPhoneNumber),
+            _infoRow("Name", scheme.customer?.cName),
+            _infoRow("Email", scheme.customer?.cEmail),
+            _infoRow("Phone", scheme.customer?.cPhoneNumber),
           ]),
           const SizedBox(height: 16),
 
@@ -77,10 +76,17 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
           _infoCard([
             _infoRow("Total Amount", "₹${scheme.totalAmount?.toStringAsFixed(2) ?? '0.00'}"),
             _infoRow("Paid Amount", "₹${scheme.paidAmount?.toStringAsFixed(2) ?? '0.00'}"),
-            if (scheme.history.isNotEmpty)
-              _infoRow("Next Due On", scheme.history.first.dueDate ?? '-'),
-            if (scheme.history.isNotEmpty)
-              _infoRow("Gold Gram", "${scheme.history.first.amount?.toStringAsFixed(2) ?? '0.0'} g"),
+            _infoRow(
+              "Next Due On",
+              (scheme.history.isNotEmpty ? scheme.history.first.dueDate : '-') ?? '-',
+            ),
+            _infoRow(
+              "Gold Gram",
+              (scheme.history.isNotEmpty
+                      ? "${scheme.history.first.amount?.toStringAsFixed(2) ?? '0.0'} g"
+                      : '0.0 g') ??
+                  '0.0 g',
+            ),
           ]),
           const SizedBox(height: 16),
 
@@ -99,9 +105,11 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("₹${tx.amount?.toStringAsFixed(2) ?? '0.00'}",
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16)),
+                        Text(
+                          "₹${tx.amount?.toStringAsFixed(2) ?? '0.00'}",
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
                         const SizedBox(height: 4),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -151,7 +159,7 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _infoRow(String key, String value) {
+  Widget _infoRow(String key, String? value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -160,7 +168,7 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
           Text(key, style: const TextStyle(fontWeight: FontWeight.w600)),
           Flexible(
             child: Text(
-              value,
+              value ?? '-', // safe null handling
               textAlign: TextAlign.right,
             ),
           ),
@@ -169,11 +177,12 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _summaryCard(
-      {required String title,
-      required String value,
-      required Color color,
-      required IconData icon}) {
+  Widget _summaryCard({
+    required String title,
+    required String value,
+    required Color color,
+    required IconData icon,
+  }) {
     return Card(
       color: color,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -184,13 +193,16 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
           children: [
             Icon(icon, color: Colors.white, size: 28),
             const SizedBox(height: 8),
-            Text(title,
-                style:
-                    const TextStyle(color: Colors.white70, fontWeight: FontWeight.w600)),
+            Text(
+              title,
+              style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 4),
-            Text(value,
-                style: const TextStyle(
-                    color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              value,
+              style: const TextStyle(
+                  color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+            ),
           ],
         ),
       ),

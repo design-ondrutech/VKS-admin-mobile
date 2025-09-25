@@ -3,7 +3,8 @@ import 'package:admin/data/models/add_gold_price.dart';
 import 'package:admin/data/models/barchart.dart';
 import 'package:admin/data/models/card.dart';
 import 'package:admin/data/models/cash_payment.dart';
-import 'package:admin/data/models/create_scheme.dart';
+import 'package:admin/screens/dashboard/scheme/add_scheme/model/Update_Scheme%20.dart';
+import 'package:admin/screens/dashboard/scheme/add_scheme/model/create_scheme.dart';
 import 'package:admin/data/models/customer.dart';
 import 'package:admin/data/models/gold_rate.dart';
 import 'package:admin/data/models/notification_model.dart';
@@ -88,12 +89,12 @@ class CardRepository {
 // Scheme Repository
 class SchemeRepository {
   final GraphQLClient client;
-
   SchemeRepository(this.client);
 
-  Future<SchemesResponse> fetchSchemes() async {
+  // GET ALL
+  Future<List<Scheme>> getAllSchemes() async {
     const String query = r'''
-      query GetAllSchemes {
+      query GetScheme {
         getAllSchemes {
           data {
             scheme_id
@@ -101,41 +102,93 @@ class SchemeRepository {
             scheme_type
             duration_type
             duration
-            benefits
             amount_benefits
             min_amount
             max_amount
             increment_amount
             is_active
-            redemption_terms
-            interest_rate
-            created_date
-            last_update_date
             isDeleted
             scheme_icon
-            scheme_image
-            scheme_notes
-            is_benifit_popup
-            popup_benifits
           }
-          limit
-          totalCount
-          totalPages
-          currentPage
         }
       }
     ''';
 
     final result = await client.query(QueryOptions(document: gql(query)));
 
-    if (result.hasException) {
-      throw Exception(result.exception.toString());
-    }
+    if (result.hasException) throw Exception(result.exception.toString());
 
-    final json = result.data?['getAllSchemes'] ?? {};
-    return SchemesResponse.fromJson(json);
+    final List<dynamic> data = result.data?['getAllSchemes']['data'] ?? [];
+    return data.map((json) => Scheme.fromJson(json)).toList();
   }
+
+  // CREATE
+  Future<Scheme> createScheme(Scheme scheme) async {
+    const String mutation = r'''
+      mutation CreateScheme($data: ProductSchemesInput!) {
+        createScheme(data: $data) {
+          scheme_id
+          scheme_name
+          scheme_type
+          duration_type
+          duration
+          min_amount
+          max_amount
+          increment_amount
+          is_active
+          isDeleted
+        }
+      }
+    ''';
+
+    final result = await client.mutate(MutationOptions(
+      document: gql(mutation),
+      variables: {"data": scheme.toCreateJson()},
+    ));
+
+    if (result.hasException) throw Exception(result.exception.toString());
+
+    return Scheme.fromJson(result.data?['createScheme']);
+  }
+
+  // UPDATE
+  Future<Scheme> updateScheme(Scheme scheme) async {
+  const String mutation = r'''
+    mutation UpdateScheme($data: UpdateProductSchemesInput!, $schemeId: String!) {
+      updateScheme(data: $data, scheme_id: $schemeId) {
+        scheme_id
+        scheme_name
+        scheme_type
+        duration_type
+        duration
+        min_amount
+        max_amount
+        increment_amount
+        is_active
+        isDeleted
+      }
+    }
+  ''';
+
+  final result = await client.mutate(MutationOptions(
+    document: gql(mutation),
+    variables: {
+      "data": scheme.toUpdateJson(), // scheme_id excluded
+      "schemeId": scheme.schemeId,   // path variable
+    },
+  ));
+
+  if (result.hasException) throw Exception(result.exception.toString());
+
+  return Scheme.fromJson(result.data!['updateScheme']);
 }
+
+}
+
+
+
+
+
 
 
 // Gold Dashboard Repository barchart
@@ -605,6 +658,7 @@ class TodayActiveSchemeRepository {
 
 
 // Online Payment Repository
+
 class OnlinePaymentRepository {
   final GraphQLClient client;
   OnlinePaymentRepository(this.client);
@@ -641,12 +695,13 @@ class OnlinePaymentRepository {
 
     if (result.hasException) throw Exception(result.exception.toString());
 
-    final data = result.data?['GetOnlinCashTransaction'];
-    if (data == null) throw Exception("No online payments found");
+    final responseData = result.data?['GetOnlinCashTransaction'];
+    if (responseData == null) throw Exception("No online payments found");
 
-    return OnlinePaymentResponse.fromJson(data);
+    return OnlinePaymentResponse.fromJson(responseData);
   }
 }
+
 
 // Cash Payment Repository
 class CashPaymentRepository {
@@ -693,115 +748,98 @@ class CashPaymentRepository {
 }
 
 // Create Scheme Repository
-class CreateSchemeRepository {
-  final GraphQLClient client;
-  CreateSchemeRepository(this.client);
 
-  /// CREATE scheme
-  Future<CreateSchemeModel> createScheme(Map<String, dynamic> data) async {
-    const String mutation = r'''
-      mutation CreateScheme($data: ProductSchemesInput!) {
-        createScheme(data: $data) {
-          scheme_id
-          scheme_name
-          scheme_type
-          duration_type
-          duration
-          min_amount
-          max_amount
-          increment_amount
-          
-          #  Nested amount_benefits query
-          amount_benefits {
-            threshold
-            bonus
-          }
 
-          is_active
-          scheme_icon
-          scheme_image
-          scheme_notes
-          redemption_terms
-          interest_rate
-          isDeleted
-        }
-      }
-    ''';
 
-    final result = await client.mutate(
-      MutationOptions(
-        document: gql(mutation),
-        variables: {"data": data},
-      ),
-    );
 
-    if (result.hasException) {
-      throw Exception("CreateScheme Error: ${result.exception.toString()}");
-    }
+// class CreateSchemeRepository {
+//   final GraphQLClient client;
 
-    final schemeJson = result.data?['createScheme'];
-    if (schemeJson == null) {
-      throw Exception("No data returned from createScheme");
-    }
+//   CreateSchemeRepository(this.client);
 
-    return CreateSchemeModel.fromJson(schemeJson);
-  }
+//   // CREATE
+//   Future<CreateSchemeResponse> createScheme(Map<String, dynamic> data) async {
+//     const mutation = r'''
+//       mutation CreateScheme($data: ProductSchemesInput!) {
+//         createScheme(data: $data) {
+//           scheme_id
+//           scheme_name
+//           scheme_type
+//           duration_type
+//           duration
+//           min_amount
+//           max_amount
+//           increment_amount
+//           is_active
+//           scheme_icon
+//           isDeleted
+//           threshold
+//           bonus
+//         }
+//       }
+//     ''';
 
-  /// UPDATE scheme
-  Future<CreateSchemeModel> updateScheme(String id, Map<String, dynamic> data) async {
-    if (id.isEmpty) throw Exception("schemeId cannot be empty");
+//     final result = await client.mutate(
+//       MutationOptions(document: gql(mutation), variables: {'data': data}),
+//     );
 
-    const String mutation = r'''
-      mutation UpdateScheme($id: ID!, $data: ProductSchemesInput!) {
-        updateScheme(id: $id, data: $data) {
-          scheme_id
-          scheme_name
-          scheme_type
-          duration_type
-          duration
-          min_amount
-          max_amount
-          increment_amount
-          
-          #  Nested amount_benefits query
-          amount_benefits {
-            threshold
-            bonus
-          }
+//     if (result.hasException) throw Exception(result.exception.toString());
+//     final schemeJson = result.data?['createScheme'];
+//     if (schemeJson == null) throw Exception('Create scheme returned null');
+//     return CreateSchemeResponse.fromJson(schemeJson);
+//   }
 
-          is_active
-          scheme_icon
-          scheme_image
-          scheme_notes
-          redemption_terms
-          interest_rate
-          isDeleted
-        }
-      }
-    ''';
+//   // UPDATE
+//   Future<CreateSchemeResponse> updateScheme(
+//       String schemeId, Map<String, dynamic> data) async {
+//     const mutation = r'''
+//       mutation UpdateScheme($scheme_id: String!, $data: ProductSchemesInput!) {
+//         updateScheme(scheme_id: $scheme_id, data: $data) {
+//           scheme_id
+//           scheme_name
+//           scheme_type
+//           duration_type
+//           duration
+//           min_amount
+//           max_amount
+//           increment_amount
+//           is_active
+//           scheme_icon
+//           isDeleted
+//           threshold
+//           bonus
+//         }
+//       }
+//     ''';
 
-    final result = await client.mutate(
-      MutationOptions(
-        document: gql(mutation),
-        variables: {
-          "id": id, //  Corrected argument name
-          "data": data,
-        },
-      ),
-    );
+//     // Debug print to confirm variables
+//     print('updateScheme variables: ${{
+//       'scheme_id': schemeId,
+//       'data': data,
+//     }}');
 
-    if (result.hasException) {
-      throw Exception("UpdateScheme Error: ${result.exception.toString()}");
-    }
+//     final result = await client.mutate(
+//       MutationOptions(
+//         document: gql(mutation),
+//         variables: {
+//           'scheme_id': schemeId,
+//           'data': data,
+//         },
+//       ),
+//     );
 
-    final schemeJson = result.data?['updateScheme'];
-    if (schemeJson == null) {
-      throw Exception("No data returned from updateScheme");
-    }
+//     if (result.hasException) {
+//       throw Exception('UpdateScheme Error: ${result.exception.toString()}');
+//     }
 
-    return CreateSchemeModel.fromJson(schemeJson);
-  }
-}
+//     final schemeJson = result.data?['updateScheme'];
+//     if (schemeJson == null) throw Exception('Update scheme returned null');
+
+//     return CreateSchemeResponse.fromJson(schemeJson);
+//   }
+// }
+
+
 
 
 
@@ -947,3 +985,55 @@ Future<CustomerDetails> fetchCustomerDetails(String customerId) async {
 }
 
 }
+
+// class UpdateSchemeRepository {
+//   final GraphQLClient client;
+
+//   UpdateSchemeRepository(this.client);
+
+//   static const String updateSchemeMutation = r'''
+//     mutation UpdateScheme($data: UpdateProductSchemesInput!, $schemeId: String!) {
+//       updateScheme(data: $data, scheme_id: $schemeId) {
+//         scheme_id
+//         scheme_name
+//         scheme_type
+//         duration_type
+//         duration
+//         min_amount
+//         max_amount
+//         increment_amount
+//         is_active
+//         scheme_icon
+//         scheme_image
+//         scheme_notes
+//         redemption_terms
+//         interest_rate
+//         isDeleted
+//       }
+//     }
+//   ''';
+
+//   Future<UpdateSchemeModel> updateScheme(
+//     String schemeId,
+//     UpdateSchemeModel model,
+//   ) async {
+//     final result = await client.mutate(
+//       MutationOptions(
+//         document: gql(updateSchemeMutation),
+//         variables: {
+//           "schemeId": schemeId,
+//           "data": model.toJson(),
+//         },
+//       ),
+//     );
+
+//     if (result.hasException) {
+//       throw Exception("UpdateScheme Error: ${result.exception}");
+//     }
+
+//     final json = result.data?['updateScheme'];
+//     if (json == null) throw Exception("No data returned from updateScheme");
+
+//     return UpdateSchemeModel.fromJson(json);
+//   }
+// }

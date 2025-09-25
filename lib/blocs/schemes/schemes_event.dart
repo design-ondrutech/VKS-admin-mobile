@@ -1,24 +1,20 @@
+import 'package:admin/data/models/scheme.dart';
+
 abstract class SchemesEvent {}
 
 class FetchSchemes extends SchemesEvent {}
 
-class OpenAddSchemePopup extends SchemesEvent {}
-
-class CloseAddSchemePopup extends SchemesEvent {}
-
-class SubmitScheme extends SchemesEvent {
-  final String schemeName;
-  final String schemeType;
-  final String durationType;
-  final String duration;
-  final String minAmount;
-
-  SubmitScheme({
-    required this.schemeName,
-    required this.schemeType,
-    required this.durationType,
-    required this.duration,
-    required this.minAmount,
-  });
+class AddScheme extends SchemesEvent {
+  final Scheme scheme;
+  AddScheme(this.scheme);
 }
-class FetchAllSchemes extends SchemesEvent {} 
+
+class UpdateScheme extends SchemesEvent {
+  final Scheme scheme;
+  UpdateScheme(this.scheme);
+}
+
+class DeleteScheme extends SchemesEvent {
+  final String schemeId;
+  DeleteScheme(this.schemeId);
+}

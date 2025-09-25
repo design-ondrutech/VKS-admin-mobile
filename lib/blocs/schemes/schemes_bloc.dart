@@ -6,43 +6,39 @@ import 'schemes_state.dart';
 class SchemesBloc extends Bloc<SchemesEvent, SchemesState> {
   final SchemeRepository repository;
 
-  SchemesBloc(this.repository) : super(const SchemesState()) {
-    // Fetch API Data
+  SchemesBloc(this.repository) : super(SchemeInitial()) {
     on<FetchSchemes>((event, emit) async {
-      emit(state.copyWith(isLoading: true, error: ""));
+      emit(SchemeLoading());
       try {
-        final response = await repository.fetchSchemes(); //  SchemesResponse
-        emit(state.copyWith(
-          schemes: response.data, //  extract only List<Scheme>
-          totalCount: response.totalCount, //  add total count
-          currentPage: response.currentPage,
-          totalPages: response.totalPages,
-          isLoading: false,
-          error: "",
-        ));
+        final schemes = await repository.getAllSchemes();
+        emit(SchemeLoaded(schemes));
       } catch (e) {
-        emit(state.copyWith(
-          isLoading: false,
-          error: e.toString(),
-        ));
+        emit(SchemeError(e.toString()));
       }
     });
 
-    // Open Popup
-    on<OpenAddSchemePopup>((event, emit) {
-      emit(state.copyWith(isPopupOpen: true));
-    });
+   on<AddScheme>((event, emit) {
+  if (state is SchemeLoaded) {
+    final current = (state as SchemeLoaded).schemes;
+    final newList = [...current, event.scheme];
+    emit(SchemeLoaded(newList)); // UI refresh
+    emit(SchemeOperationSuccess(event.scheme)); // optional success message
+  }
+});
 
-    // Close Popup
-    on<CloseAddSchemePopup>((event, emit) {
-      emit(state.copyWith(isPopupOpen: false));
-    });
+on<UpdateScheme>((event, emit) async {
+  if (state is SchemeLoaded) {
+    final currentList = (state as SchemeLoaded).schemes;
+    final updatedList = currentList.map((s) {
+      if (s.schemeId == event.scheme.schemeId) return event.scheme;
+      return s;
+    }).toList();
+    
+    emit(SchemeLoaded(updatedList));  // <- update the list
+    emit(SchemeOperationSuccess(event.scheme)); // callback / success message
+  }
+});
 
-    // Submit Scheme (dummy for now)
-    on<SubmitScheme>((event, emit) async {
-      emit(state.copyWith(isSubmitting: true));
-      await Future.delayed(const Duration(seconds: 1));
-      emit(state.copyWith(isSubmitting: false, isPopupOpen: false));
-    });
+
   }
 }

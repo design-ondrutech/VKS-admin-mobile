@@ -40,7 +40,7 @@ class TodayActiveSchemesScreen extends StatelessWidget {
             if (schemes.isEmpty) {
               return const Center(
                 child: Text(
-                  "No active schemes found for today.",
+                  "No Active Schemes Found",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
               );

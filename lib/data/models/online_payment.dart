@@ -15,9 +15,10 @@ class OnlinePaymentResponse {
 
   factory OnlinePaymentResponse.fromJson(Map<String, dynamic> json) {
     return OnlinePaymentResponse(
-      data: (json['data'] as List)
-          .map((item) => OnlinePayment.fromJson(item))
-          .toList(),
+      data: (json['data'] as List?)
+              ?.map((item) => OnlinePayment.fromJson(item))
+              .toList() ??
+          [],
       limit: json['limit'] ?? 0,
       totalCount: json['totalCount'] ?? 0,
       totalPages: json['totalPages'] ?? 0,
@@ -44,12 +45,15 @@ class OnlinePayment {
   });
 
   factory OnlinePayment.fromJson(Map<String, dynamic> json) {
+    double parseDoubleSafe(dynamic value) {
+      final parsed = double.tryParse(value?.toString() ?? '0') ?? 0;
+      return parsed.isNaN ? 0 : parsed;
+    }
+
     return OnlinePayment(
       transactionId: json['transactionId']?.toString() ?? '',
-      transactionAmount:
-          double.tryParse(json['transactionAmount']?.toString() ?? '0') ?? 0,
-      transactionGoldGram:
-          double.tryParse(json['transactionGoldGram']?.toString() ?? '0') ?? 0,
+      transactionAmount: parseDoubleSafe(json['transactionAmount']),
+      transactionGoldGram: parseDoubleSafe(json['transactionGoldGram']),
       transactionDate: json['transactionDate']?.toString() ?? '',
       customerName: json['customer']?['cName']?.toString() ?? '',
       transactionStatus: json['transactionStatus']?.toString() ?? '',

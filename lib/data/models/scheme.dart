@@ -1,5 +1,8 @@
-class Scheme {
+import 'dart:convert';
+import 'package:admin/screens/dashboard/scheme/add_scheme/model/create_scheme.dart';
 
+
+class Scheme {
   final String schemeId;
   final String schemeName;
   final String schemeType;
@@ -8,7 +11,9 @@ class Scheme {
   final double minAmount;
   final double? maxAmount;
   final double? incrementAmount;
-  final AmountBenefits? amountBenefits;
+  final bool isActive;
+  final double? threshold;
+  final double? bonus;
 
   Scheme({
     required this.schemeId,
@@ -19,70 +24,92 @@ class Scheme {
     required this.minAmount,
     this.maxAmount,
     this.incrementAmount,
-    this.amountBenefits,
-  });
-
-  factory Scheme.fromJson(Map<String, dynamic> json) {
-    return Scheme(
-      schemeId: json['scheme_id'] ?? '',
-      schemeName: json['scheme_name'] ?? '',
-      schemeType: json['scheme_type'] ?? '',
-      durationType: json['duration_type'] ?? '',
-      duration: (json['duration'] ?? 0).toInt(),
-      minAmount: (json['min_amount'] ?? 0).toDouble(),
-
-      //  New fields
-      maxAmount: json['max_amount'] != null ? (json['max_amount']).toDouble() : null,
-      incrementAmount: json['increment_amount'] != null ? (json['increment_amount']).toDouble() : null,
-      amountBenefits: json['amount_benefits'] != null
-          ? AmountBenefits.fromJson(json['amount_benefits'])
-          : null,
-    );
-  }
-}
-
-///  New Model for amount_benefits
-class AmountBenefits {
-  final double? threshold;
-  final double? bonus;
-
-  AmountBenefits({
+    required this.isActive,
     this.threshold,
     this.bonus,
   });
 
-  factory AmountBenefits.fromJson(Map<String, dynamic> json) {
-    return AmountBenefits(
-      threshold: json['threshold'] != null ? (json['threshold']).toDouble() : null,
-      bonus: json['bonus'] != null ? (json['bonus']).toDouble() : null,
+  factory Scheme.fromJson(Map<String, dynamic> json) {
+    final benefits = json['amount_benefits'];
+    double? threshold;
+    double? bonus;
+
+    if (benefits != null) {
+      Map<String, dynamic> data = {};
+      if (benefits is String) {
+        try {
+          data = Map<String, dynamic>.from(jsonDecode(benefits));
+        } catch (_) {}
+      } else if (benefits is Map) {
+        data = Map<String, dynamic>.from(benefits);
+      }
+
+      threshold = (data['threshold'] ?? 0).toDouble();
+      bonus = (data['bonus'] ?? 0).toDouble();
+    }
+
+    return Scheme(
+      schemeId: json['scheme_id'] ?? "",
+      schemeName: json['scheme_name'] ?? "",
+      schemeType: json['scheme_type'] ?? "",
+      durationType: json['duration_type'] ?? "",
+      duration: json['duration'] ?? 0,
+      minAmount: (json['min_amount'] ?? 0).toDouble(),
+      maxAmount: json['max_amount']?.toDouble(),
+      incrementAmount: json['increment_amount']?.toDouble(),
+      isActive: json['is_active'] ?? true,
+      threshold: threshold,
+      bonus: bonus,
     );
   }
+
+  Map<String, dynamic> toCreateJson() {
+    return {
+      "scheme_name": schemeName,
+      "scheme_type": schemeType,
+      "duration_type": durationType,
+      "duration": duration,
+      "min_amount": minAmount,
+      "max_amount": maxAmount,
+      "increment_amount": incrementAmount,
+      "is_active": isActive,
+      "threshold": threshold ?? 0,
+      "bonus": bonus ?? 0,
+    };
+  }
+
+  Map<String, dynamic> toUpdateJson() {
+  return {
+    "scheme_name": schemeName,
+    "scheme_type": schemeType,
+    "duration_type": durationType,
+    "duration": duration,
+    "min_amount": minAmount,
+    "max_amount": maxAmount,
+    "increment_amount": incrementAmount,
+    "is_active": isActive,
+    "amount_benefits": {
+      "threshold": threshold ?? 0,
+      "bonus": bonus ?? 0,
+    },
+  };
 }
 
-class SchemesResponse {
-  final List<Scheme> data;
-  final int limit;
-  final int totalCount;
-  final int totalPages;
-  final int currentPage;
 
-  SchemesResponse({
-    required this.data,
-    required this.limit,
-    required this.totalCount,
-    required this.totalPages,
-    required this.currentPage,
-  });
-
-  factory SchemesResponse.fromJson(Map<String, dynamic> json) {
-    return SchemesResponse(
-      data: (json['data'] as List<dynamic>)
-          .map((e) => Scheme.fromJson(e))
-          .toList(),
-      limit: json['limit'] ?? 0,
-      totalCount: json['totalCount'] ?? 0,
-      totalPages: json['totalPages'] ?? 0,
-      currentPage: json['currentPage'] ?? 0,
+  CreateSchemeResponse toCreateSchemeResponse() {
+    return CreateSchemeResponse(
+      schemeId: schemeId,
+      schemeName: schemeName,
+      schemeType: schemeType,
+      durationType: durationType,
+      duration: duration,
+      minAmount: minAmount,
+      maxAmount: maxAmount ?? 0,
+      incrementAmount: incrementAmount ?? 0,
+      isActive: isActive,
+      isDeleted: false,
+      threshold: threshold,
+      bonus: bonus,
     );
   }
 }

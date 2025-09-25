@@ -1,25 +1,14 @@
-import 'package:equatable/equatable.dart';
+// import 'package:admin/screens/dashboard/scheme/add_scheme/model/create_scheme.dart';
 
-abstract class CreateSchemeEvent extends Equatable {
-  @override
-  List<Object?> get props => [];
-}
+// abstract class CreateSchemeEvent {}
 
-/// CREATE event
-class SubmitCreateScheme extends CreateSchemeEvent {
-  final Map<String, dynamic> data;
-  SubmitCreateScheme(this.data);
+// class SubmitCreateScheme extends CreateSchemeEvent {
+//   final CreateSchemeResponse model;
+//   SubmitCreateScheme(this.model);
+// }
 
-  @override
-  List<Object?> get props => [data];
-}
-
-/// UPDATE event
-class SubmitUpdateScheme extends CreateSchemeEvent {
-  final String schemeId;
-  final Map<String, dynamic> data;
-  SubmitUpdateScheme(this.schemeId, this.data);
-
-  @override
-  List<Object?> get props => [schemeId, data];
-}
+// class SubmitUpdateScheme extends CreateSchemeEvent {
+//   final String schemeId;
+//   final CreateSchemeResponse model;
+//   SubmitUpdateScheme({required this.schemeId, required this.model});
+// }

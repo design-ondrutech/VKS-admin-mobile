@@ -1,49 +1,36 @@
-import 'package:admin/data/models/scheme.dart';
+import 'package:equatable/equatable.dart';
+import '../../data/models/scheme.dart';
 
-class SchemesState {
+abstract class SchemesState extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
+
+class SchemeInitial extends SchemesState {}
+
+class SchemeLoading extends SchemesState {}
+
+class SchemeLoaded extends SchemesState {
   final List<Scheme> schemes;
-  final bool isLoading;
-  final String? error;
-  final bool isPopupOpen;
-  final bool isSubmitting;
-  final Scheme? editingScheme; // NEW: Used to prefill edit form
-  final int totalCount;
-  final int currentPage;
-  final int totalPages;
+  SchemeLoaded(this.schemes);
 
-  const SchemesState({
-    this.schemes = const [],
-    this.isLoading = false,
-    this.error,
-    this.isPopupOpen = false,
-    this.isSubmitting = false,
-    this.editingScheme,
-    this.totalCount = 0,
-    this.currentPage = 1,
-    this.totalPages = 1,
-  });
+  @override
+  List<Object?> get props => [schemes];
+}
 
-  SchemesState copyWith({
-    List<Scheme>? schemes,
-    bool? isLoading,
-    String? error,
-    bool? isPopupOpen,
-    bool? isSubmitting,
-    Scheme? editingScheme,
-    int? totalCount,
-    int? currentPage,
-    int? totalPages,
-  }) {
-    return SchemesState(
-      schemes: schemes ?? this.schemes,
-      isLoading: isLoading ?? this.isLoading,
-      error: error,
-      isPopupOpen: isPopupOpen ?? this.isPopupOpen,
-      isSubmitting: isSubmitting ?? this.isSubmitting,
-      editingScheme: editingScheme ?? this.editingScheme,
-      totalCount: totalCount ?? this.totalCount,
-      currentPage: currentPage ?? this.currentPage,
-      totalPages: totalPages ?? this.totalPages,
-    );
-  }
+class SchemeError extends SchemesState {
+  final String message;
+  SchemeError(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+
+///  NEW STATE TO FIX YOUR ISSUE
+class SchemeOperationSuccess extends SchemesState {
+  final Scheme scheme;
+  SchemeOperationSuccess(this.scheme);
+
+  @override
+  List<Object?> get props => [scheme];
 }
