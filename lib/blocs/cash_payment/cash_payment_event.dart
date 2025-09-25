@@ -5,6 +5,5 @@ class FetchCashPayments extends CashPaymentEvent {
 
   FetchCashPayments({required this.page, required this.limit});
 
-  @override
   List<Object> get props => [page, limit];
 }

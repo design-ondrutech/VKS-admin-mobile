@@ -235,54 +235,6 @@ class CustomerDetailScreen extends StatelessWidget {
   }
 
   // Profile header widget
-  Widget _profileHeader() {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 40,
-              backgroundColor: Colors.indigo,
-              child: Text(
-                details.cName.isNotEmpty ? details.cName[0] : "C",
-                style: const TextStyle(fontSize: 32, color: Colors.white),
-              ),
-            ),
-            const SizedBox(width: 20),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    details.cName.isNotEmpty ? details.cName : "Customer Name",
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    details.cEmail.isNotEmpty ? details.cEmail : 'N/A',
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    details.cPhoneNumber.isNotEmpty
-                        ? details.cPhoneNumber
-                        : 'N/A',
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   // Card builder for each section
   Widget _buildCard({

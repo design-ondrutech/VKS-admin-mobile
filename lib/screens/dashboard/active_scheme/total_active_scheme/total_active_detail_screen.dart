@@ -98,7 +98,7 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("₹${tx.amount?.toStringAsFixed(2)}",
+                        Text("₹${tx.amount.toStringAsFixed(2)}",
                             style: const TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 16)),
                         const SizedBox(height: 4),

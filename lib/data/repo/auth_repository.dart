@@ -3,8 +3,6 @@ import 'package:admin/data/models/add_gold_price.dart';
 import 'package:admin/data/models/barchart.dart';
 import 'package:admin/data/models/card.dart';
 import 'package:admin/data/models/cash_payment.dart';
-import 'package:admin/screens/dashboard/scheme/add_scheme/model/Update_Scheme%20.dart';
-import 'package:admin/screens/dashboard/scheme/add_scheme/model/create_scheme.dart';
 import 'package:admin/data/models/customer.dart';
 import 'package:admin/data/models/gold_rate.dart';
 import 'package:admin/data/models/notification_model.dart';
@@ -396,7 +394,7 @@ class AddGoldPriceRepository {
       throw Exception(result.exception.toString());
     }
 
-    final data = result.data?["silverRates"] as List<dynamic>? ?? [];
+    final data = result.data?["silverRates"] as List<dynamic>? ?? []; 
     return data.map((e) => GoldPrice.fromJson(e)).toList();
   }
 }

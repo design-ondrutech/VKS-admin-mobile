@@ -112,7 +112,7 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
         return DateFormat("dd MMM yyyy, hh:mm a").format(parsed);
       }
     } catch (_) {}
-    return date ?? "N/A";
+    return date;
   }
 
   Widget _infoRow(IconData icon, String text) {

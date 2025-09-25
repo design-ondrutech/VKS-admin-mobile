@@ -21,7 +21,6 @@ import 'package:admin/blocs/gold_price/gold_bloc.dart';
 import 'package:admin/blocs/gold_price/gold_event.dart';
 import 'package:admin/data/graphql_config.dart';
 import 'package:admin/screens/dashboard/gold_price/add_gold_price/bloc/add_gld_bloc.dart';
-import 'package:admin/screens/dashboard/scheme/add_scheme/bloc/create_scheme_bloc.dart';
 import 'package:admin/screens/login_screen.dart';
 import 'package:admin/data/repo/auth_repository.dart';
 import 'package:flutter/material.dart';

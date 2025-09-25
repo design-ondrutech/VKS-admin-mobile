@@ -18,7 +18,6 @@ import 'package:admin/blocs/dashboard/dashboard_bloc.dart';
 import 'package:admin/blocs/dashboard/dashboard_event.dart';
 import 'package:admin/blocs/dashboard/dashboard_state.dart';
 import 'package:admin/widgets/bottom_navigation.dart';
-import 'widgets/barchart.dart';
 
 class DashboardScreen extends StatelessWidget {
   final CardRepository repository;

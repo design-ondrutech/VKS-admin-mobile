@@ -65,9 +65,9 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
           // ---------------- CUSTOMER INFO ----------------
           _sectionTitle("Customer Info"),
           _infoCard([
-            _infoRow("Name", scheme.customer?.cName),
-            _infoRow("Email", scheme.customer?.cEmail),
-            _infoRow("Phone", scheme.customer?.cPhoneNumber),
+            _infoRow("Name", scheme.customer.cName),
+            _infoRow("Email", scheme.customer.cEmail),
+            _infoRow("Phone", scheme.customer.cPhoneNumber),
           ]),
           const SizedBox(height: 16),
 
@@ -84,8 +84,7 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
               "Gold Gram",
               (scheme.history.isNotEmpty
                       ? "${scheme.history.first.amount?.toStringAsFixed(2) ?? '0.0'} g"
-                      : '0.0 g') ??
-                  '0.0 g',
+                      : '0.0 g'),
             ),
           ]),
           const SizedBox(height: 16),

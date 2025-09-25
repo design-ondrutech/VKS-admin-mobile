@@ -1,7 +1,6 @@
 
 import 'package:admin/screens/dashboard/active_scheme/today_active_scheme/today_active_list.dart';
 import 'package:admin/screens/dashboard/active_scheme/total_active_scheme/total_active_list.dart';
-import 'package:admin/screens/dashboard/customer/customer_detail/customer_detail_screen.dart';
 import 'package:admin/screens/dashboard/customer/customer_list.dart';
 import 'package:admin/screens/dashboard/dashboard_screen.dart';
 import 'package:admin/screens/dashboard/gold_price/add_gold_price/gold_add_popup.dart';
