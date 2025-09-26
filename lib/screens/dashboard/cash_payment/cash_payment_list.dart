@@ -174,7 +174,7 @@ class CashPaymentScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _infoRow(Icons.receipt, "Txn ID: ${payment.transactionId}"),
+                            // _infoRow(Icons.receipt, "Txn ID: ${payment.transactionId}"),
                             _infoRow(Icons.calendar_today, _formatDate(payment.transactionDate)),
                             const Divider(height: 24),
                             _infoRow(Icons.workspace_premium,

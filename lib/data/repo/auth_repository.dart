@@ -13,6 +13,7 @@ import 'package:admin/data/models/total_active_scheme.dart';
 import 'package:admin/screens/dashboard/customer/customer_detail/model/customer_details_model.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 
+
 //login
 class AuthRepository {
   final GraphQLClient client;
@@ -171,7 +172,9 @@ class SchemeRepository {
   final result = await client.mutate(MutationOptions(
     document: gql(mutation),
     variables: {
-      "data": scheme.toUpdateJson(), // scheme_id excluded
+      "data": scheme.toUpdateJson(
+        
+      ), // scheme_id excluded
       "schemeId": scheme.schemeId,   // path variable
     },
   ));
@@ -182,11 +185,6 @@ class SchemeRepository {
 }
 
 }
-
-
-
-
-
 
 
 // Gold Dashboard Repository barchart

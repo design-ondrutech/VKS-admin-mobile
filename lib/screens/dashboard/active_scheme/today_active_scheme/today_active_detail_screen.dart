@@ -48,7 +48,7 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
           // ---------------- SCHEME DETAILS ----------------
           _sectionTitle("Scheme Details"),
           _infoCard([
-            _infoRow("Saving ID", scheme.savingId),
+            // _infoRow("Saving ID", scheme.savingId),
             _infoRow("Scheme Name", scheme.schemeName),
             _infoRow("Scheme Type", scheme.schemeType),
             _infoRow("Status", scheme.status),

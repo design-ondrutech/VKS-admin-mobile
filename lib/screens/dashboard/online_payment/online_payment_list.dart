@@ -235,8 +235,8 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _infoRow(Icons.receipt,
-                                    "Txn ID: ${payment.transactionId}"),
+                                // _infoRow(Icons.receipt,
+                                //     "Txn ID: ${payment.transactionId}"),
                                 _infoRow(Icons.calendar_today,
                                     _formatDate(payment.transactionDate)),
                                 const Divider(height: 24),

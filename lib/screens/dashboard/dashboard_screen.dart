@@ -94,84 +94,125 @@ class DashboardHeader extends StatelessWidget {
     }
   }
 
-  Widget _overviewContent() {
-    return BlocBuilder<CardBloc, CardState>(
-      builder: (context, state) {
-        if (state is CardLoading) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (state is CardLoaded) {
-          final summary = state.summary;
+ Widget _overviewContent() {
+  return BlocBuilder<CardBloc, CardState>(
+    builder: (context, state) {
+      if (state is CardLoading) {
+        return const Center(child: CircularProgressIndicator());
+      } else if (state is CardLoaded) {
+        final summary = state.summary;
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                height: 120,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 5),
-                  children: [
-                    _iconCard("Customers", "${summary.totalCustomers}", Icons.group, Colors.blue,
-                        onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomersScreen()));
-                    }),
-                    _iconCard("Today Active", "${summary.todayActiveSchemes}", Icons.layers, Colors.orange,
-                        onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const TotalActiveSchemesScreen()));
-                    }),
-                    _iconCard("Total Active", "${summary.totalActiveSchemes}", Icons.layers,
-                        const Color.fromARGB(255, 86, 136, 211), onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const TodayActiveSchemesScreen()));
-                    }),
-                    _iconCard("Online Payment", "₹${summary.totalOnlinePayment}", Icons.account_balance_wallet,
-                        Colors.teal, onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const OnlinePaymentScreen()));
-                    }),
-                    _iconCard("Cash Payment", "₹${summary.totalCashPayment}", Icons.monetization_on, Colors.purple,
-                        onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const CashPaymentScreen()));
-                    }),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Padding(
-              //   padding: const EdgeInsets.symmetric(horizontal: 5),
-              //   child: SizedBox(height: 500, child: PerformanceChartScreen()),
-              // ),
-            ],
-          );
-        } else if (state is CardError) {
-          return Center(child: Text(state.message));
-        }
-        return const SizedBox();
-      },
-    );
-  }
-
-  Widget _iconCard(String title, String value, IconData icon, Color color, {VoidCallback? onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 130,
-        margin: const EdgeInsets.only(right: 12),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Icon(icon, color: Colors.white, size: 28),
-            const SizedBox(height: 8),
-            Text(title, style: const TextStyle(color: Colors.white70, fontSize: 14)),
-            Text(value,
-                style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+            _iconCard("Customers", "${summary.totalCustomers}", Icons.group, Colors.blue,
+                onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomersScreen()));
+            }),
+            const SizedBox(height: 16),
+            _iconCard("Today Active", "${summary.todayActiveSchemes}", Icons.layers, Colors.orange,
+                onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const TotalActiveSchemesScreen()));
+            }),
+            const SizedBox(height: 16),
+            _iconCard("Total Active", "${summary.totalActiveSchemes}", Icons.layers,
+                const Color.fromARGB(255, 86, 136, 211), onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const TodayActiveSchemesScreen()));
+            }),
+            const SizedBox(height: 16),
+            _iconCard("Online Payment", "₹${summary.totalOnlinePayment}", Icons.account_balance_wallet,
+                Colors.teal, onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const OnlinePaymentScreen()));
+            }),
+            const SizedBox(height: 16),
+            _iconCard("Cash Payment", "₹${summary.totalCashPayment}", Icons.monetization_on, Colors.purple,
+                onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const CashPaymentScreen()));
+            }),
           ],
-        ),
+        );
+      } else if (state is CardError) {
+        return Center(child: Text(state.message));
+      }
+      return const SizedBox();
+    },
+  );
+}
+
+Widget _iconCard(String title, String value, IconData icon, Color color, {VoidCallback? onTap}) {
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-    );
-  }
+      child: Row(
+        children: [
+          // Icon with gradient background
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [color.withOpacity(0.7), color],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.4),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Icon(icon, color: Colors.white, size: 28),
+          ),
+          const SizedBox(width: 16),
+          // Title and value stacked vertically
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  value,
+                  style: TextStyle(
+                    color: Colors.black87,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Small arrow icon at the end for navigation hint
+          Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
+        ],
+      ),
+    ),
+  );
+}
+
+
+
 }

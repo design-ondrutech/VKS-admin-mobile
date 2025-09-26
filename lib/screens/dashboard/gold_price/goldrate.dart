@@ -102,142 +102,187 @@ class _GoldPriceScreenState extends State<GoldPriceScreen> {
     );
   }
 
-  Widget _buildPriceCard(BuildContext context, GoldPrice price) {
-    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    final isToday = price.date == today;
-
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 3,
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+Widget _buildPriceCard(BuildContext context, GoldPrice price) {
+  return Container(
+    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black12,
+          blurRadius: 8,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Top row: date + edit/delete
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  price.date,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF4A235A),
-                  ),
-                ),
-                if (isToday)
-                  Row(
-                    children: [
-                      IconButton(
-                        onPressed: () async {
-                          await showDialog(
-                            context: context,
-                            builder: (context) => AddGoldRateDialog(
-                              existingPrice: GoldPriceInput(
-                                date: price.date,
-                                metal: price.metal,
-                                value: price.value,
-                                unit: price.unit, 
-                                price: price.price,
-                              ),
-                            ),
-                          );
-                          context
-                              .read<GoldPriceBloc>()
-                              .add(const FetchGoldPriceEvent());
-                        },
-                        icon: const Icon(Icons.edit, color: Color(0xFF4A235A)),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text("Confirm Deletion"),
-                              content: const Text(
-                                "Are you sure you want to delete this rate?",
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text("Cancel"),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    if (price.id == null) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            "Cannot delete: ID not found",
-                                          ),
-                                        ),
-                                      );
-                                      Navigator.pop(context);
-                                      return;
-                                    }
-
-                                    context.read<GoldPriceBloc>().add(
-                                          DeleteGoldPriceEvent(price.id!),
-                                        );
-                                    Navigator.pop(context);
-                                  },
-                                  child: const Text(
-                                    "Delete",
-                                    style: TextStyle(color: Colors.red),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.delete,
-                            color: Colors.redAccent),
-                      ),
-                    ],
-                  ),
-              ],
+            Text(
+              price.date,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF4A235A),
+              ),
             ),
-            const SizedBox(height: 10),
             Row(
               children: [
-                Expanded(
-                  child: Text(
-                    price.metal,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
+                IconButton(
+                  onPressed: () async {
+                    await showDialog(
+                      context: context,
+                      builder: (context) => AddGoldRateDialog(
+                        existingPrice: GoldPriceInput(
+                          date: price.date,
+                          metal: price.metal,
+                          value: price.value,
+                          unit: price.unit,
+                          price: price.price,
+                        ),
+                      ),
+                    );
+                    context.read<GoldPriceBloc>().add(const FetchGoldPriceEvent());
+                  },
+                  icon: const Icon(Icons.edit, color: Colors.blueAccent),
                 ),
-                Expanded(
-                  child: Text(
-                    price.value,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    price.unit,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    "₹${price.price}",
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF4A235A),
-                    ),
-                  ),
+                IconButton(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text("Confirm Deletion"),
+                        content: const Text("Are you sure you want to delete this rate?"),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text("Cancel"),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              if (price.id != null) {
+                                context.read<GoldPriceBloc>().add(DeleteGoldPriceEvent(price.id!));
+                              }
+                              Navigator.pop(context);
+                            },
+                            child: const Text("Delete", style: TextStyle(color: Colors.red)),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.delete, color: Colors.redAccent),
                 ),
               ],
             ),
           ],
         ),
+        const SizedBox(height: 12),
+
+        // Values in 2 columns, 2 rows
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _labelValue("Metal", price.metal),
+                  const SizedBox(height: 8),
+                  _labelValue("Value", price.value),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _labelValue("Unit", price.unit),
+                  const SizedBox(height: 8),
+                  _labelValue("Price", "₹${price.price}", isBold: true, color: const Color(0xFF4A235A)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _labelValue(String label, String value, {bool isBold = false, Color color = Colors.black87}) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: TextStyle(fontSize: 12, color: Colors.grey[700]),
       ),
-    );
-  }
+      const SizedBox(height: 2),
+      Text(
+        value,
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
+          color: color,
+        ),
+      ),
+    ],
+  );
+}
+
+
+
+
+Widget _priceRow(String label, String value, {bool isBold = false, Color color = Colors.black87}) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 2),
+    child: Row(
+      children: [
+        SizedBox(
+          width: 60,
+          child: Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          value,
+          style: TextStyle(
+            fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
+            color: color,
+            fontSize: 14,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+
+
+// Helper widget for detail items
+Widget _priceDetailItem(String label, String value, {bool isBold = false, Color color = Colors.black87}) {
+  return Expanded(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          label,
+          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 14, fontWeight: isBold ? FontWeight.bold : FontWeight.w600, color: color),
+        ),
+      ],
+    ),
+  );
+}
+
 }

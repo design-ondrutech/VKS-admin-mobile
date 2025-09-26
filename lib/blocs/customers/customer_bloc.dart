@@ -11,6 +11,7 @@ class CustomerBloc extends Bloc<CustomerEvent, CustomerState> {
       try {
         final response = await repository.getAllCustomers(event.page, event.limit);
         emit(CustomerLoaded(
+          
           customers: response.data,
           currentPage: response.currentPage,
           totalPages: response.totalPages,

@@ -20,27 +20,22 @@ class _NotificationsTabState extends State<NotificationsTab>
   final TextEditingController headerCtrl = TextEditingController();
   final TextEditingController contentCtrl = TextEditingController();
 
-  //  store today's notifications locally
-  final List<Map<String, String>> todayNotifications = [
-    {
-      "title": "Gold Eleven",
-      "subtitle": "John Doe Completed this Scheme",
-      "time": "12 minutes ago",
-    },
-    {
-      "title": "Feel good Friday",
-      "subtitle": "Feels better with gold in your Wallet",
-      "time": "50 minutes ago",
-    },
-  ];
+  int contentLength = 0;
+  final List<Map<String, String>> todayNotifications = []; // Track content characters
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-  }
 
-  @override
+    // Listen to changes in content field
+    contentCtrl.addListener(() {
+      setState(() {
+        contentLength = contentCtrl.text.length;
+      });
+    });
+  }
+   @override
   void dispose() {
     _tabController.dispose();
     headerCtrl.dispose();
@@ -91,33 +86,36 @@ class _NotificationsTabState extends State<NotificationsTab>
 
           //  Dynamically render today's notifications
           Column(
-            children: todayNotifications
-                .map((n) => notificationItem(
-                      title: n["title"]!,
-                      subtitle: n["subtitle"]!,
-                      time: n["time"]!,
-                    ))
-                .toList(),
+            children:
+                todayNotifications
+                    .map(
+                      (n) => notificationItem(
+                        title: n["title"]!,
+                        subtitle: n["subtitle"]!,
+                        time: n["time"]!,
+                      ),
+                    )
+                    .toList(),
           ),
 
           const SizedBox(height: 16),
-          Center(
-            child: ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Appcolors.buttoncolor,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 10,
-                ),
-              ),
-              child: const Text("More"),
-            ),
-          ),
+          // Center(
+          //   child: ElevatedButton(
+          //     onPressed: () {},
+          //     style: ElevatedButton.styleFrom(
+          //       backgroundColor: Appcolors.buttoncolor,
+          //       foregroundColor: Colors.white,
+          //       shape: RoundedRectangleBorder(
+          //         borderRadius: BorderRadius.circular(6),
+          //       ),
+          //       padding: const EdgeInsets.symmetric(
+          //         horizontal: 20,
+          //         vertical: 10,
+          //       ),
+          //     ),
+          //     child: const Text("More"),
+          //   ),
+          // ),
         ],
       ),
     );
@@ -143,7 +141,7 @@ class _NotificationsTabState extends State<NotificationsTab>
   }
 
   /// -------------------- MESSAGE INPUT CARD --------------------
-  Widget _messageCard() {
+   Widget _messageCard() {
     return BlocConsumer<NotificationBloc, NotificationState>(
       listener: (context, state) {
         if (state is NotificationSuccess) {
@@ -151,21 +149,20 @@ class _NotificationsTabState extends State<NotificationsTab>
             const SnackBar(content: Text("Notification Sent Successfully!")),
           );
 
-          //  ADD to today's notification list dynamically
           setState(() {
             todayNotifications.insert(0, {
               "title": headerCtrl.text,
               "subtitle": contentCtrl.text,
-              "time": "Just now"
+              "time": "Just now",
             });
+            contentLength = 0; // Reset counter
           });
 
           headerCtrl.clear();
           contentCtrl.clear();
         } else if (state is NotificationFailure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(" ${state.error}")),
-          );
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(" ${state.error}")));
         }
       },
       builder: (context, state) {
@@ -207,6 +204,7 @@ class _NotificationsTabState extends State<NotificationsTab>
               TextField(
                 controller: contentCtrl,
                 maxLines: 3,
+                maxLength: 200, // optional max length
                 decoration: InputDecoration(
                   hintText: "Content",
                   contentPadding: const EdgeInsets.symmetric(
@@ -217,16 +215,14 @@ class _NotificationsTabState extends State<NotificationsTab>
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(color: Colors.grey.shade300),
                   ),
+                  counterText: "$contentLength/200", // dynamic counter
                 ),
               ),
               const SizedBox(height: 8),
+              
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    "0/120",
-                    style: TextStyle(color: Colors.grey, fontSize: 12),
-                  ),
                   ElevatedButton.icon(
                     onPressed: state is NotificationLoading
                         ? null
@@ -242,7 +238,9 @@ class _NotificationsTabState extends State<NotificationsTab>
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text("Please enter title & content"),
+                                  content: Text(
+                                    "Please enter title & content",
+                                  ),
                                 ),
                               );
                             }
@@ -256,7 +254,7 @@ class _NotificationsTabState extends State<NotificationsTab>
                               color: Colors.white,
                             ),
                           )
-                        : const Icon(Icons.send, size: 16),
+                        : const Icon(Icons.send, size: 16 ,color: Colors.white),
                     label: state is NotificationLoading
                         ? const SizedBox.shrink()
                         : const Text("Send"),
@@ -280,6 +278,7 @@ class _NotificationsTabState extends State<NotificationsTab>
       },
     );
   }
+ }
 
   /// -------------------- NOTIFICATION ITEM --------------------
   Widget notificationItem({
@@ -334,4 +333,4 @@ class _NotificationsTabState extends State<NotificationsTab>
       ),
     );
   }
-}
+

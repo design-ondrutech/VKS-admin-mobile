@@ -150,13 +150,13 @@ class _CustomersScreenState extends State<CustomersScreen> {
                                               color: Colors.blue.shade900,
                                             ),
                                           ),
-                                          Text(
-                                            "ID: ${customer.id}",
-                                            style: const TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.grey,
-                                            ),
-                                          ),
+                                          // Text(
+                                          //   "ID: ${customer.id}",
+                                          //   style: const TextStyle(
+                                          //     fontSize: 12,
+                                          //     color: Colors.grey,
+                                          //   ),
+                                          // ),
                                         ],
                                       ),
                                     ),

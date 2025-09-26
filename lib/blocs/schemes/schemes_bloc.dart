@@ -25,19 +25,28 @@ class SchemesBloc extends Bloc<SchemesEvent, SchemesState> {
     emit(SchemeOperationSuccess(event.scheme)); // optional success message
   }
 });
-
 on<UpdateScheme>((event, emit) async {
   if (state is SchemeLoaded) {
-    final currentList = (state as SchemeLoaded).schemes;
-    final updatedList = currentList.map((s) {
-      if (s.schemeId == event.scheme.schemeId) return event.scheme;
-      return s;
-    }).toList();
-    
-    emit(SchemeLoaded(updatedList));  // <- update the list
-    emit(SchemeOperationSuccess(event.scheme)); // callback / success message
+    try {
+      //  Call API (Repository)
+      final updatedScheme = await repository.updateScheme(event.scheme);
+
+      //  Update state list
+      final currentList = (state as SchemeLoaded).schemes;
+      final updatedList = currentList.map((s) {
+        if (s.schemeId == updatedScheme.schemeId) return updatedScheme;
+        return s;
+      }).toList();
+
+      //  Emit updated list and success state
+      emit(SchemeLoaded(updatedList));
+      emit(SchemeOperationSuccess(updatedScheme));
+    } catch (e) {
+      emit(SchemeError("Failed to update scheme: $e"));
+    }
   }
 });
+
 
 
   }

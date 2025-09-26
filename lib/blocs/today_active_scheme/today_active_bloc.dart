@@ -1,7 +1,8 @@
-import 'package:admin/blocs/today_active_scheme/today_active_event.dart';
-import 'package:admin/blocs/today_active_scheme/today_active_state.dart';
+import 'dart:developer';
 import 'package:admin/data/repo/auth_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'today_active_event.dart';
+import 'today_active_state.dart';
 
 class TodayActiveSchemeBloc extends Bloc<TodayActiveSchemeEvent, TodayActiveSchemeState> {
   final TodayActiveSchemeRepository repository;
@@ -10,14 +11,21 @@ class TodayActiveSchemeBloc extends Bloc<TodayActiveSchemeEvent, TodayActiveSche
     on<FetchTodayActiveSchemes>((event, emit) async {
       emit(TodayActiveSchemeLoading());
       try {
-        //  Pass both startDate and savingId to repository
         final response = await repository.fetchTodayActiveSchemes(
           startDate: event.startDate,
           savingId: event.savingId,
         );
-        emit(TodayActiveSchemeLoaded(response));
+
+        if (response.data.isEmpty) {
+          emit(TodayActiveSchemeError("No active schemes found."));
+        } else {
+          emit(TodayActiveSchemeLoaded(response));
+        }
       } catch (e) {
-        emit(TodayActiveSchemeError(e.toString()));
+        log("Bloc Error: $e", name: "TodayActiveSchemeBloc");
+        emit(TodayActiveSchemeError(
+          e.toString().contains("No active") ? "No active schemes found." : "Unable to load today's active schemes. Please try again.",
+        ));
       }
     });
   }

@@ -93,59 +93,113 @@ class SchemesTab extends StatelessWidget {
     }
   }
 
-  Widget _buildSchemeCard(BuildContext context, Scheme scheme) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      elevation: 3,
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(scheme.schemeName,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF4A235A))),
-                ),
-                Row(
-                  children: [
-                    IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.blue),
-                        onPressed: () => _showAddEditDialog(context, scheme)),
-                    IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => _showDeleteDialog(context, scheme)),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text("Type: ${scheme.schemeType}", style: const TextStyle(fontSize: 13, color: Colors.grey)),
-            const Divider(),
-            Text("Duration: ${scheme.duration} ${scheme.durationType}"),
-            Text("Min: ₹${scheme.minAmount}"),
-            if (scheme.maxAmount != null) Text("Max: ₹${scheme.maxAmount}"),
-            if (scheme.incrementAmount != null) Text("Increment: ₹${scheme.incrementAmount}"),
-            if (scheme.threshold != null || scheme.bonus != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text("Benefits", style: TextStyle(fontWeight: FontWeight.bold)),
-                    if (scheme.threshold != null) Text("Threshold: ₹${scheme.threshold}"),
-                    if (scheme.bonus != null) Text("Bonus: ₹${scheme.bonus}"),
-                  ],
+ Widget _buildSchemeCard(BuildContext context, Scheme scheme) {
+  return Container(
+    margin: const EdgeInsets.symmetric(vertical: 8),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(16),
+      color: Colors.white,
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.05),
+          blurRadius: 12,
+          offset: const Offset(0, 6),
+        ),
+      ],
+    ),
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Top row: scheme name + action icons
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  scheme.schemeName,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF4A235A),
+                  ),
                 ),
               ),
-          ],
-        ),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit, color: Colors.blue),
+                    onPressed: () => _showAddEditDialog(context, scheme),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => _showDeleteDialog(context, scheme),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+
+          // Type chip
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+            decoration: BoxDecoration(
+              color: Colors.purple.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              scheme.schemeType,
+              style: const TextStyle(fontSize: 12, color: Color(0xFF4A235A), fontWeight: FontWeight.w600),
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Details row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _detailItem("Duration", "${scheme.duration} ${scheme.durationType}"),
+              _detailItem("Min", "₹${scheme.minAmount}"),
+              if (scheme.maxAmount != null) _detailItem("Max", "₹${scheme.maxAmount}"),
+            ],
+          ),
+          if (scheme.incrementAmount != null || scheme.threshold != null || scheme.bonus != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Benefits",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF4A235A)),
+                  ),
+                  const SizedBox(height: 4),
+                  if (scheme.incrementAmount != null) Text("Increment: ₹${scheme.incrementAmount}"),
+                  if (scheme.threshold != null) Text("Threshold: ₹${scheme.threshold}"),
+                  if (scheme.bonus != null) Text("Bonus: ₹${scheme.bonus}"),
+                ],
+              ),
+            ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
+
+// Helper widget for small detail item
+Widget _detailItem(String title, String value) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+      const SizedBox(height: 2),
+      Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87)),
+    ],
+  );
+}
+
 
   void _showDeleteDialog(BuildContext context, Scheme scheme) {
     showDialog(
