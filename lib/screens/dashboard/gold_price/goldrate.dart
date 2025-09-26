@@ -239,50 +239,9 @@ Widget _labelValue(String label, String value, {bool isBold = false, Color color
 
 
 
-Widget _priceRow(String label, String value, {bool isBold = false, Color color = Colors.black87}) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 2),
-    child: Row(
-      children: [
-        SizedBox(
-          width: 60,
-          child: Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          value,
-          style: TextStyle(
-            fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
-            color: color,
-            fontSize: 14,
-          ),
-        ),
-      ],
-    ),
-  );
-}
 
 
 
 // Helper widget for detail items
-Widget _priceDetailItem(String label, String value, {bool isBold = false, Color color = Colors.black87}) {
-  return Expanded(
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Text(
-          label,
-          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 14, fontWeight: isBold ? FontWeight.bold : FontWeight.w600, color: color),
-        ),
-      ],
-    ),
-  );
-}
 
 }
