@@ -52,15 +52,34 @@ class CashPayment {
   });
 
   factory CashPayment.fromJson(Map<String, dynamic> json) {
+    double gold = (json['transactionGoldGram'] ?? 0).toDouble();
+    if (gold.isNaN) gold = 0.0; // NaN-safe
+
     return CashPayment(
-      transactionId: json['transactionId']?.toString() ?? '', //  Safe conversion
-      transactionAmount:
-          (json['transactionAmount'] ?? 0).toDouble(), //  Safe conversion
-      transactionGoldGram:
-          (json['transactionGoldGram'] ?? 0).toDouble(), //  Safe conversion
+      transactionId: json['transactionId']?.toString() ?? '',
+      transactionAmount: (json['transactionAmount'] ?? 0).toDouble(),
+      transactionGoldGram: gold,
       transactionDate: json['transactionDate']?.toString() ?? '',
       customerName: json['customer']?['cName']?.toString() ?? '',
       transactionStatus: json['transactionStatus']?.toString() ?? '',
+    );
+  }
+
+  CashPayment copyWith({
+    String? transactionId,
+    double? transactionAmount,
+    double? transactionGoldGram,
+    String? transactionDate,
+    String? customerName,
+    String? transactionStatus,
+  }) {
+    return CashPayment(
+      transactionId: transactionId ?? this.transactionId,
+      transactionAmount: transactionAmount ?? this.transactionAmount,
+      transactionGoldGram: transactionGoldGram ?? this.transactionGoldGram,
+      transactionDate: transactionDate ?? this.transactionDate,
+      customerName: customerName ?? this.customerName,
+      transactionStatus: transactionStatus ?? this.transactionStatus,
     );
   }
 }

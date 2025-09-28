@@ -57,6 +57,18 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
     super.dispose();
   }
 
+  // ---------- Safe Parsing ----------
+  String _safeNumber(dynamic value) {
+    if (value == null) return "0.00";
+    try {
+      final num? parsed = value is num ? value : num.tryParse(value.toString());
+      if (parsed == null || parsed.isNaN) return "0.00";
+      return parsed.toStringAsFixed(2);
+    } catch (_) {
+      return "0.00";
+    }
+  }
+
   // ---------- Status & Helper Methods ----------
   Color _statusColor(String status) {
     switch (status.toLowerCase()) {
@@ -124,7 +136,8 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(text,
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                style:
+                    const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
           ),
         ],
       ),
@@ -151,8 +164,21 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
               return const Center(child: CircularProgressIndicator());
             } else if (state is OnlinePaymentError) {
               return Center(
-                  child: Text("Error: ${state.message}",
-                      style: const TextStyle(color: Colors.red)));
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text("Error: ${state.message}",
+                        style: const TextStyle(color: Colors.red)),
+                    const SizedBox(height: 12),
+                    // ElevatedButton(
+                    //   onPressed: () {
+                    //     bloc.add(FetchOnlinePayments(page: 1, limit: 10));
+                    //   },
+                    //   child: const Text("Retry"),
+                    // ),
+                  ],
+                ),
+              );
             } else if (state is OnlinePaymentLoaded ||
                 state is OnlinePaymentLoading) {
               final payments = bloc.allPayments;
@@ -235,15 +261,13 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // _infoRow(Icons.receipt,
-                                //     "Txn ID: ${payment.transactionId}"),
                                 _infoRow(Icons.calendar_today,
                                     _formatDate(payment.transactionDate)),
                                 const Divider(height: 24),
                                 _infoRow(Icons.workspace_premium,
-                                    "${payment.transactionGoldGram.toStringAsFixed(2)} gm"),
+                                    "${_safeNumber(payment.transactionGoldGram)} gm"),
                                 _infoRow(Icons.currency_rupee,
-                                    "₹${payment.transactionAmount.toStringAsFixed(2)}"),
+                                    "₹${_safeNumber(payment.transactionAmount)}"),
                               ],
                             ),
                           ),

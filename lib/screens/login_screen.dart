@@ -46,6 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   size: 70,
                   color: Color(0xFFB38B00),
                 ),
+               //  Image.asset('assets/images/admin_icon.png', height: 50),
                 const SizedBox(height: 12),
                 const Text(
                   "Welcome to Admin",

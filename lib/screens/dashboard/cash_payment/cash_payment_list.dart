@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 class CashPaymentScreen extends StatelessWidget {
   const CashPaymentScreen({super.key});
 
+  // ===== Helper Functions =====
   Color _statusColor(String status) {
     switch (status.toLowerCase()) {
       case "paid":
@@ -19,7 +20,7 @@ class CashPaymentScreen extends StatelessWidget {
       case "failed":
         return Colors.red.shade100;
       default:
-        return Colors.grey.shade300;
+        return Colors.grey.shade200;
     }
   }
 
@@ -45,7 +46,7 @@ class CashPaymentScreen extends StatelessWidget {
       case "failed":
         return Icons.cancel;
       default:
-        return Icons.help;
+        return Icons.help_outline;
     }
   }
 
@@ -79,12 +80,12 @@ class CashPaymentScreen extends StatelessWidget {
       body: BlocBuilder<CashPaymentBloc, CashPaymentState>(
         builder: (context, state) {
           if (state is CashPaymentInitial) {
-            context.read<CashPaymentBloc>().add(FetchCashPayments(page: 1, limit: 10));
+            context.read<CashPaymentBloc>().add(FetchCashPayments());
             return const Center(child: CircularProgressIndicator());
           } else if (state is CashPaymentLoading) {
             return const Center(child: CircularProgressIndicator());
           } else if (state is CashPaymentLoaded) {
-            final payments = state.response.data;
+            final payments = state.payments;
             if (payments.isEmpty) {
               return const Center(
                 child: Text(
@@ -94,14 +95,14 @@ class CashPaymentScreen extends StatelessWidget {
               );
             }
 
-            return ListView.builder(
+            return ListView.separated(
               padding: const EdgeInsets.all(16),
               itemCount: payments.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final CashPayment payment = payments[index];
 
                 return Container(
-                  margin: const EdgeInsets.only(bottom: 12),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
@@ -116,7 +117,7 @@ class CashPaymentScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header (Customer + Status)
+                      // Header: Customer + Status
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
@@ -168,19 +169,28 @@ class CashPaymentScreen extends StatelessWidget {
                         ),
                       ),
 
-                      // Body
+                      // Body: Transaction info
                       Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // _infoRow(Icons.receipt, "Txn ID: ${payment.transactionId}"),
+                        //    _infoRow(Icons.receipt_long, "Txn ID: ${payment.transactionId}"),
+                            const SizedBox(height: 8),
                             _infoRow(Icons.calendar_today, _formatDate(payment.transactionDate)),
                             const Divider(height: 24),
-                            _infoRow(Icons.workspace_premium,
-                                "${payment.transactionGoldGram.toStringAsFixed(2)} gm"),
-                            _infoRow(Icons.currency_rupee,
-                                "₹${payment.transactionAmount.toStringAsFixed(2)}"),
+                            _infoRow(
+                              Icons.workspace_premium,
+                              payment.transactionGoldGram > 0
+                                  ? "${payment.transactionGoldGram.toStringAsFixed(2)} gm"
+                                  : "Data not available",
+                            ),
+                            _infoRow(
+                              Icons.currency_rupee,
+                              payment.transactionAmount > 0
+                                  ? "₹${payment.transactionAmount.toStringAsFixed(2)}"
+                                  : "Data not available",
+                            ),
                           ],
                         ),
                       ),
@@ -192,7 +202,7 @@ class CashPaymentScreen extends StatelessWidget {
           } else if (state is CashPaymentError) {
             return Center(
               child: Text(
-                "Error: ${state.message}",
+                state.message,
                 style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
               ),
             );
@@ -203,21 +213,19 @@ class CashPaymentScreen extends StatelessWidget {
     );
   }
 
+  // ===== Helper Row Widget =====
   Widget _infoRow(IconData icon, String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: Colors.grey.shade700),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-            ),
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: Colors.grey.shade700),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

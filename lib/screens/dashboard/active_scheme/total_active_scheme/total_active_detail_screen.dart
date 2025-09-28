@@ -1,18 +1,19 @@
 import 'package:admin/data/models/total_active_scheme.dart';
-import 'package:admin/utils/colors.dart';
+import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
+import 'package:admin/utils/colors.dart';
 
-class TotalActiveSchemeDetailScreen extends StatelessWidget {
-  final TotalActiveScheme scheme;
+class TodayActiveSchemeDetailScreen extends StatelessWidget {
+  final TodayActiveScheme scheme;
 
-  const TotalActiveSchemeDetailScreen({super.key, required this.scheme});
+  const TodayActiveSchemeDetailScreen({super.key, required this.scheme});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          scheme.schemeName,
+          scheme.schemeName.isNotEmpty ? scheme.schemeName : '-', // safe
           style: const TextStyle(color: Appcolors.white),
         ),
         centerTitle: true,
@@ -27,7 +28,7 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
               Expanded(
                 child: _summaryCard(
                   title: "Total Amount",
-                  value: "₹${scheme.totalAmount.toStringAsFixed(2)}",
+                  value: "₹${scheme.totalAmount?.toStringAsFixed(2) ?? '0.00'}",
                   color: Colors.green[400]!,
                   icon: Icons.account_balance_wallet,
                 ),
@@ -36,7 +37,8 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
               Expanded(
                 child: _summaryCard(
                   title: "Total Gold Weight",
-                  value: "${scheme.totalGoldWeight} g",
+                  value:
+                      "${scheme.totalGoldWeight?.toStringAsFixed(2) ?? '0.0'} g",
                   color: Colors.amber[700]!,
                   icon: Icons.scale,
                 ),
@@ -52,34 +54,55 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
             _infoRow("Scheme Name", scheme.schemeName),
             _infoRow("Scheme Type", scheme.schemeType),
             _infoRow("Status", scheme.status),
-            _infoRow("Gold Delivered", scheme.goldDelivered.toString()),
+            _infoRow("Gold Delivered", scheme.goldDelivered ? "Yes" : "No"),
+             _infoRow("Delivered Gold Weight", "${scheme.deliveredGoldWeight?.toStringAsFixed(2)} gm"),
+            _infoRow("Balance Gold Weight", "${scheme.pendingGoldWeight?.toStringAsFixed(2)} gm"),
             _infoRow("Purpose", scheme.schemePurpose),
             _infoRow("KYC Completed", scheme.isKyc ? "Yes" : "No"),
-            _infoRow("Completed", scheme.isCompleted ? "Yes" : "No"),
-            _infoRow("Start Date", scheme.startDate),
-            _infoRow("End Date", scheme.endDate),
-            _infoRow("Last Updated", scheme.lastUpdated),
+            //   _infoRow("Completed", scheme.isCompleted ? "Yes" : "No"),
+            _infoRow("Start Date", formatDate(scheme.startDate)),
+            _infoRow("End Date", formatDate(scheme.endDate)),
+            _infoRow("Last Updated", formatDate(scheme.lastUpdated)),
           ]),
           const SizedBox(height: 16),
 
           // ---------------- CUSTOMER INFO ----------------
           _sectionTitle("Customer Info"),
           _infoCard([
-            _infoRow("Name", scheme.customer.name),
-            _infoRow("Email", scheme.customer.email),
-            _infoRow("Phone", scheme.customer.phoneNumber),
+            _infoRow("Name", scheme.customer.cName),
+            _infoRow("Email", scheme.customer.cEmail),
+            _infoRow("Phone", scheme.customer.cPhoneNumber),
           ]),
           const SizedBox(height: 16),
 
           // ---------------- PAYMENT DETAILS ----------------
           _sectionTitle("Payment Details"),
           _infoCard([
-            _infoRow("Total Amount", "₹${scheme.totalAmount.toStringAsFixed(2)}"),
-            _infoRow("Paid Amount", "₹${scheme.paidAmount.toStringAsFixed(2)}"),
-            if (scheme.history.isNotEmpty)
-              _infoRow("Next Due On", scheme.history.first.dueDate),
-            if (scheme.history.isNotEmpty)
-              _infoRow("Gold Gram", "${scheme.history.first.goldWeight} g"),
+            _infoRow(
+              "Total Amount",
+              "₹${scheme.totalAmount?.toStringAsFixed(2) ?? '0.00'}",
+            ),
+            _infoRow(
+              "Paid Amount",
+              "₹${scheme.paidAmount?.toStringAsFixed(2) ?? '0.00'}",
+            ),
+          //   _infoRow("Start Date", formatDate(scheme.startDate)),
+          //   _infoRow("End Date", formatDate(scheme.endDate)),
+          // //  _infoRow("Last Updated", formatDate(scheme.lastUpdated)),
+
+            _infoRow(
+              "Next Due On",
+              scheme.history.isNotEmpty
+                  ? formatDate(scheme.history.first.dueDate)
+                  : "-",
+            ),
+
+            _infoRow(
+              "Gold Gram",
+              (scheme.history.isNotEmpty
+                  ? "${scheme.history.first.amount?.toStringAsFixed(2) ?? '0.0'} g"
+                  : '0.0 g'),
+            ),
           ]),
           const SizedBox(height: 16),
 
@@ -87,47 +110,56 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
           _sectionTitle("Payment History"),
           if (scheme.history.isNotEmpty)
             Column(
-              children: scheme.history.map<Widget>((tx) {
-                return Card(
-                  elevation: 3,
-                  margin: const EdgeInsets.symmetric(vertical: 6),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("₹${tx.amount.toStringAsFixed(2)}",
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16)),
-                        const SizedBox(height: 4),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children:
+                  scheme.history.map<Widget>((tx) {
+                    return Card(
+                      elevation: 3,
+                      margin: const EdgeInsets.symmetric(vertical: 6),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text("Due: ${tx.dueDate}"),
-                            Text("Paid: ${tx.paidDate.isNotEmpty ? tx.paidDate : '-'}"),
-                          ],
-                        ),
-                        Row(
+                            Text(
+                              "₹${tx.amount?.toStringAsFixed(2) ?? '0.00'}",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text("Due: ${formatDate(tx.dueDate)}"),
+                                Text(
+                                  "Paid: ${tx.paidDate.isNotEmpty ? formatDate(tx.paidDate) : '-'}",
+                                ),
+                              ],
+                            ),
+                              Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text("Mode: ${tx.paymentMode}"),
                             Text("Status: ${tx.status}"),
                           ],
                         ),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
             )
           else
             const Center(
-                child: Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text("No Payment History Found"),
-            )),
+              child: Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text("No Payment History Found"),
+              ),
+            ),
         ],
       ),
     );
@@ -140,7 +172,10 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
       child: Text(
         title,
         style: const TextStyle(
-            fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey),
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Colors.blueGrey,
+        ),
       ),
     );
   }
@@ -157,7 +192,7 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _infoRow(String key, String value) {
+  Widget _infoRow(String key, String? value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -166,7 +201,7 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
           Text(key, style: const TextStyle(fontWeight: FontWeight.w600)),
           Flexible(
             child: Text(
-              value,
+              value ?? '-', // safe null handling
               textAlign: TextAlign.right,
             ),
           ),
@@ -175,11 +210,12 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _summaryCard(
-      {required String title,
-      required String value,
-      required Color color,
-      required IconData icon}) {
+  Widget _summaryCard({
+    required String title,
+    required String value,
+    required Color color,
+    required IconData icon,
+  }) {
     return Card(
       color: color,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -190,13 +226,22 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
           children: [
             Icon(icon, color: Colors.white, size: 28),
             const SizedBox(height: 8),
-            Text(title,
-                style: const TextStyle(
-                    color: Colors.white70, fontWeight: FontWeight.w600)),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white70,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
             const SizedBox(height: 4),
-            Text(value,
-                style: const TextStyle(
-                    color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
       ),

@@ -179,6 +179,7 @@ class Saving {
   final String savingId;
   final double totalAmount;
   final double totalGoldWeight;
+  final double totalBenefitGram;
   final String startDate;
   final String endDate;
   final String schemeName;
@@ -188,6 +189,7 @@ class Saving {
     required this.savingId,
     required this.totalAmount,
     required this.totalGoldWeight,
+    required this.totalBenefitGram,
     required this.startDate,
     required this.endDate,
     required this.schemeName,
@@ -199,6 +201,7 @@ class Saving {
       savingId: json['saving_id'] ?? '',
       totalAmount: (json['total_amount'] ?? 0).toDouble(),
       totalGoldWeight: (json['total_gold_weight'] ?? 0).toDouble(),
+      totalBenefitGram: (json['total_benefit_gram'] ?? 0).toDouble(),
       startDate: json['start_date'] ?? '',
       endDate: json['end_date'] ?? '',
       schemeName: json['schemeName'] ?? '',

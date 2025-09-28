@@ -8,11 +8,11 @@ import 'package:admin/data/models/gold_rate.dart';
 import 'package:admin/data/models/notification_model.dart';
 import 'package:admin/data/models/online_payment.dart';
 import 'package:admin/data/models/scheme.dart';
-import 'package:admin/data/models/today_active_scheme.dart';
 import 'package:admin/data/models/total_active_scheme.dart';
+import 'package:admin/data/models/today_active_scheme.dart';
 import 'package:admin/screens/dashboard/customer/customer_detail/model/customer_details_model.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-
+import 'dart:developer';
 
 //login
 class AuthRepository {
@@ -655,6 +655,8 @@ class TodayActiveSchemeRepository {
 
 // Online Payment Repository
 
+
+
 class OnlinePaymentRepository {
   final GraphQLClient client;
   OnlinePaymentRepository(this.client);
@@ -682,21 +684,36 @@ class OnlinePaymentRepository {
       }
     ''';
 
-    final result = await client.query(
-      QueryOptions(
-        document: gql(query),
-        variables: {"transactionType": "online"},
-      ),
-    );
+    try {
+      final result = await client.query(
+        QueryOptions(
+          document: gql(query),
+          variables: {"transactionType": "online"},
+          fetchPolicy: FetchPolicy.networkOnly,
+        ),
+      );
 
-    if (result.hasException) throw Exception(result.exception.toString());
+      if (result.hasException) {
+        log("OnlinePaymentRepo Error: ${result.exception}", name: "OnlinePaymentRepo");
+        throw Exception("Unable to fetch online payments. Please try again.");
+      }
 
-    final responseData = result.data?['GetOnlinCashTransaction'];
-    if (responseData == null) throw Exception("No online payments found");
+      final responseData = result.data?['GetOnlinCashTransaction'];
+      if (responseData == null) throw Exception("No online payments found");
 
-    return OnlinePaymentResponse.fromJson(responseData);
+      //  Ensure type-safe Map<String, dynamic>
+      final Map<String, dynamic> safeResponse = Map<String, dynamic>.from(responseData);
+
+      //  Parse using your model which already handles NaN & null safely
+      return OnlinePaymentResponse.fromJson(safeResponse);
+    } catch (e) {
+      log("Repository Exception: $e", name: "OnlinePaymentRepo");
+      rethrow;
+    }
   }
 }
+
+
 
 
 // Cash Payment Repository
@@ -945,6 +962,7 @@ Future<CustomerDetails> fetchCustomerDetails(String customerId) async {
           saving_id
           total_amount
           total_gold_weight
+          total_benefit_gram
           start_date
           end_date
           schemeName
@@ -1033,3 +1051,39 @@ Future<CustomerDetails> fetchCustomerDetails(String customerId) async {
 //     return UpdateSchemeModel.fromJson(json);
 //   }
 // }
+
+class TodayActiveRepository {
+  final GraphQLClient client;
+  TodayActiveRepository(this.client);
+
+  Future<void> payNow({
+    required String savingId,
+  }) async {
+    const String mutation = r'''
+      mutation AddCashCustomerSavings($data: AddAmountToSavingInput!) {
+        addCashCustomerSavings(data: $data) {
+          saving_id
+          scheme_id
+          total_amount
+          status
+          last_updated
+        }
+      }
+    ''';
+
+    final variables = {
+      "data": {
+        "saving_id": savingId,
+      }
+    };
+
+    final result = await client.mutate(MutationOptions(
+      document: gql(mutation),
+      variables: variables,
+    ));
+
+    if (result.hasException) {
+      throw Exception(result.exception.toString());
+    }
+  }
+}

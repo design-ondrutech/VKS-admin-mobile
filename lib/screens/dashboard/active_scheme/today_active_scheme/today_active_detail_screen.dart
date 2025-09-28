@@ -1,18 +1,22 @@
 import 'package:admin/data/models/today_active_scheme.dart';
-import 'package:flutter/material.dart';
 import 'package:admin/utils/colors.dart';
+import 'package:admin/utils/style.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
-class TodayActiveSchemeDetailScreen extends StatelessWidget {
-  final TodayActiveScheme scheme;
+class TotalActiveSchemeDetailScreen extends StatelessWidget {
+  final TotalActiveScheme scheme;
 
-  const TodayActiveSchemeDetailScreen({super.key, required this.scheme});
+  const TotalActiveSchemeDetailScreen({super.key, required this.scheme});
+
+  // helper function
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          scheme.schemeName.isNotEmpty ? scheme.schemeName : '-', // safe
+          scheme.schemeName,
           style: const TextStyle(color: Appcolors.white),
         ),
         centerTitle: true,
@@ -27,7 +31,7 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
               Expanded(
                 child: _summaryCard(
                   title: "Total Amount",
-                  value: "₹${scheme.totalAmount?.toStringAsFixed(2) ?? '0.00'}",
+                  value: "₹${scheme.totalAmount.toStringAsFixed(2)}",
                   color: Colors.green[400]!,
                   icon: Icons.account_balance_wallet,
                 ),
@@ -36,7 +40,7 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
               Expanded(
                 child: _summaryCard(
                   title: "Total Gold Weight",
-                  value: "${scheme.totalGoldWeight?.toStringAsFixed(2) ?? '0.0'} g",
+                  value: "${scheme.totalGoldWeight} g",
                   color: Colors.amber[700]!,
                   icon: Icons.scale,
                 ),
@@ -52,40 +56,48 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
             _infoRow("Scheme Name", scheme.schemeName),
             _infoRow("Scheme Type", scheme.schemeType),
             _infoRow("Status", scheme.status),
-            _infoRow("Gold Delivered", scheme.goldDelivered ? "Yes" : "No"),
+            _infoRow("Gold Delivered", scheme.goldDelivered > 0 ? "Yes" : "No"),
+            _infoRow(
+              "Delivered Gold Weight",
+              "${scheme.deliveredGoldWeight.toStringAsFixed(2)} gm",
+            ),
+            _infoRow(
+              "Balance Gold Weight",
+              "${scheme.pendingGoldWeight.toStringAsFixed(2)} gm",
+            ),
             _infoRow("Purpose", scheme.schemePurpose),
             _infoRow("KYC Completed", scheme.isKyc ? "Yes" : "No"),
-            _infoRow("Completed", scheme.isCompleted ? "Yes" : "No"),
-            _infoRow("Start Date", scheme.startDate),
-            _infoRow("End Date", scheme.endDate),
-            _infoRow("Last Updated", scheme.lastUpdated),
+            //  _infoRow("Completed", scheme.isCompleted ? "Yes" : "No"),
+            _infoRow("Start Date", formatDate(scheme.startDate)),
+            _infoRow("End Date", formatDate(scheme.endDate)),
+            _infoRow("Last Updated", formatDate(scheme.lastUpdated)),
           ]),
           const SizedBox(height: 16),
 
           // ---------------- CUSTOMER INFO ----------------
           _sectionTitle("Customer Info"),
           _infoCard([
-            _infoRow("Name", scheme.customer.cName),
-            _infoRow("Email", scheme.customer.cEmail),
-            _infoRow("Phone", scheme.customer.cPhoneNumber),
+            _infoRow("Name", scheme.customer.name),
+            _infoRow("Email", scheme.customer.email),
+            _infoRow("Phone", scheme.customer.phoneNumber),
           ]),
           const SizedBox(height: 16),
 
           // ---------------- PAYMENT DETAILS ----------------
           _sectionTitle("Payment Details"),
           _infoCard([
-            _infoRow("Total Amount", "₹${scheme.totalAmount?.toStringAsFixed(2) ?? '0.00'}"),
-            _infoRow("Paid Amount", "₹${scheme.paidAmount?.toStringAsFixed(2) ?? '0.00'}"),
             _infoRow(
-              "Next Due On",
-              (scheme.history.isNotEmpty ? scheme.history.first.dueDate : '-') ?? '-',
+              "Total Amount",
+              "₹${scheme.totalAmount.toStringAsFixed(2)}",
             ),
-            _infoRow(
-              "Gold Gram",
-              (scheme.history.isNotEmpty
-                      ? "${scheme.history.first.amount?.toStringAsFixed(2) ?? '0.0'} g"
-                      : '0.0 g'),
-            ),
+            _infoRow("Paid Amount", "₹${scheme.paidAmount.toStringAsFixed(2)}"),
+            if (scheme.history.isNotEmpty)
+              _infoRow("Next Due On", formatDate(scheme.history.first.dueDate)),
+            if (scheme.history.isNotEmpty)
+              _infoRow(
+                "Gold Gram",
+                formatDate("${scheme.history.first.goldWeight} g"),
+              ),
           ]),
           const SizedBox(height: 16),
 
@@ -93,42 +105,108 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
           _sectionTitle("Payment History"),
           if (scheme.history.isNotEmpty)
             Column(
-              children: scheme.history.map<Widget>((tx) {
-                return Card(
-                  elevation: 3,
-                  margin: const EdgeInsets.symmetric(vertical: 6),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "₹${tx.amount?.toStringAsFixed(2) ?? '0.00'}",
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 16),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children:
+                  scheme.history.asMap().entries.map<Widget>((entry) {
+                    final index = entry.key;
+                    final tx = entry.value;
+
+                    // status check
+                    final bool isPaid = tx.status.toLowerCase() == "paid";
+
+                    // find first unpaid card
+                    final int firstUnpaidIndex = scheme.history.indexWhere(
+                      (h) => h.status.toLowerCase() != "paid",
+                    );
+
+                    final bool isCurrentPayable =
+                        !isPaid && index == firstUnpaidIndex;
+
+                    return Card(
+                      elevation: 3,
+                      margin: const EdgeInsets.symmetric(vertical: 6),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text("Due: ${tx.dueDate ?? '-'}"),
-                            Text("Paid: ${tx.isPaid == true ? 'Yes' : 'No'}"),
+                            // ---------- Amount + Button ----------
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "₹${tx.amount.toStringAsFixed(2)}",
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                isPaid
+                                    ? const Text(
+                                      "Paid",
+                                      style: TextStyle(
+                                        color: Colors.green,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    )
+                                    : ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            isCurrentPayable
+                                                ? Appcolors.buttoncolor
+                                                : Colors.grey,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                      ),
+                                      onPressed:
+                                          isCurrentPayable
+                                              ? () {
+                                                //  Pay now logic here
+                                              }
+                                              : null, // disabled if not current
+                                      child: const Text("Pay Now",style: TextStyle(color: Colors.white),)
+                                    ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+
+                            // ---------- Due & Paid ----------
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text("Due: ${formatDate(tx.dueDate)}"),
+                                Text(
+                                  "Paid: ${tx.paidDate.isNotEmpty ? formatDate(tx.paidDate) : '-'}",
+                                ),
+                              ],
+                            ),
+
+                            // ---------- Mode & Status ----------
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text("Mode: ${tx.paymentMode}"),
+                                Text("Status: ${tx.status}"),
+                              ],
+                            ),
                           ],
                         ),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
+                      ),
+                    );
+                  }).toList(),
             )
           else
             const Center(
-                child: Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text("No Payment History Found"),
-            )),
+              child: Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text("No Payment History Found"),
+              ),
+            ),
         ],
       ),
     );
@@ -141,7 +219,10 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
       child: Text(
         title,
         style: const TextStyle(
-            fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey),
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: Colors.blueGrey,
+        ),
       ),
     );
   }
@@ -158,19 +239,14 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _infoRow(String key, String? value) {
+  Widget _infoRow(String key, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(key, style: const TextStyle(fontWeight: FontWeight.w600)),
-          Flexible(
-            child: Text(
-              value ?? '-', // safe null handling
-              textAlign: TextAlign.right,
-            ),
-          ),
+          Flexible(child: Text(value, textAlign: TextAlign.right)),
         ],
       ),
     );
@@ -194,13 +270,19 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               title,
-              style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                color: Colors.white70,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
               value,
               style: const TextStyle(
-                  color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),

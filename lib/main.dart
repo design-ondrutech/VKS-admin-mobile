@@ -1,4 +1,3 @@
-// main.dart
 import 'package:admin/blocs/schemes/schemes_event.dart';
 import 'package:admin/blocs/today_active_scheme/today_active_bloc.dart';
 import 'package:admin/blocs/today_active_scheme/today_active_event.dart';
@@ -30,7 +29,11 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final HttpLink httpLink = HttpLink('http://api-vkskumaran-0env-env.eba-jpagnpin.ap-south-1.elasticbeanstalk.com/graphql/admin');
+  //final HttpLink httpLink = HttpLink('http://api-vkskumaran-0env-env.eba-jpagnpin.ap-south-1.elasticbeanstalk.com/graphql/admin');
+   final HttpLink httpLink = HttpLink('http://10.0.2.2:4000/graphql/admin');
+  //final HttpLink httpLink = HttpLink('https://api.vkskumaran.in/graphql/admin');
+  
+
 
 
   // Create the GraphQL client
@@ -124,7 +127,7 @@ class MyApp extends StatelessWidget {
           create:
               (_) =>
                   CashPaymentBloc(cashPaymentRepository)
-                    ..add(FetchCashPayments(page: 1, limit: 10)),
+                    ..add(FetchCashPayments()),
         ),
         //    BlocProvider(create: (_) => CreateSchemeBloc(repository: createSchemeRepository)),
         BlocProvider(create: (_) => NotificationBloc(notificationRepository)),
@@ -138,3 +141,18 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+
+
+
+
+
+// import 'package:admin/Test%20_Screen%20_Code.dart';
+// import 'package:flutter/material.dart';
+// import 'package:graphql_flutter/graphql_flutter.dart';
+
+// void main() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+//   await initHiveForFlutter();
+//   runApp(const MaterialApp(home: CustomerTestScreen()));
+// }

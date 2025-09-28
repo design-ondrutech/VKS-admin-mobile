@@ -82,7 +82,7 @@ class Scheme {
   return {
     "scheme_name": schemeName,
     "scheme_type": schemeType,
-       "duration_type": durationType.toUpperCase(), //  make sure matches DB
+    "duration_type": durationType,//  make sure matches DB
     "duration": duration,
     "min_amount": minAmount,
     "max_amount": maxAmount,

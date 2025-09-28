@@ -236,12 +236,4 @@ Widget _labelValue(String label, String value, {bool isBold = false, Color color
   );
 }
 
-
-
-
-
-
-
-// Helper widget for detail items
-
 }

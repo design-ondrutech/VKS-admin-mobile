@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:admin/data/repo/auth_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:admin/blocs/online_payment/online_payment_event.dart';
@@ -21,19 +22,30 @@ class OnlinePaymentBloc extends Bloc<FetchOnlinePayments, OnlinePaymentState> {
           allPayments.clear();
         }
 
-        final response = await repository.fetchOnlinePayments(); // update repository to accept page/limit if needed
+        final response = await repository.fetchOnlinePayments();
+
         currentPage = response.currentPage;
         allPayments.addAll(response.data);
 
         emit(OnlinePaymentLoaded(
-            response: OnlinePaymentResponse(
-                data: allPayments,
-                limit: response.limit,
-                totalCount: response.totalCount,
-                totalPages: response.totalPages,
-                currentPage: response.currentPage)));
+          response: OnlinePaymentResponse(
+            data: allPayments,
+            limit: response.limit,
+            totalCount: response.totalCount,
+            totalPages: response.totalPages,
+            currentPage: response.currentPage,
+          ),
+        ));
       } catch (e) {
-        emit(OnlinePaymentError(message: e.toString()));
+        // Developer log
+        log("OnlinePaymentBloc Error: $e", name: "OnlinePaymentBloc");
+
+        // User-friendly message
+        final errorMessage = e.toString().contains("NaN")
+            ? "Invalid gold gram value found in transactions. Please contact support."
+            : "Unable to load online payments. Please try again.";
+
+        emit(OnlinePaymentError(message: errorMessage));
       } finally {
         isFetching = false;
       }

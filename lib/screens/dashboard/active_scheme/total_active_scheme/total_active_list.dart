@@ -1,38 +1,47 @@
-import 'package:admin/blocs/total_active_scheme/active_scheme_bloc.dart';
-import 'package:admin/blocs/total_active_scheme/active_scheme_event.dart';
-import 'package:admin/blocs/total_active_scheme/active_scheme_state.dart';
+import 'package:admin/blocs/today_active_scheme/today_active_bloc.dart';
+import 'package:admin/blocs/today_active_scheme/today_active_event.dart';
+import 'package:admin/blocs/today_active_scheme/today_active_state.dart';
+import 'package:admin/data/models/total_active_scheme.dart';
 import 'package:admin/screens/dashboard/active_scheme/total_active_scheme/total_active_detail_screen.dart';
 import 'package:admin/utils/colors.dart';
+import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
-class TotalActiveSchemesScreen extends StatelessWidget {
-  const TotalActiveSchemesScreen({super.key});
+class TodayActiveSchemesScreen extends StatelessWidget {
+  const TodayActiveSchemesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        title: const Text("Today Active Schemes",
-            style: TextStyle(color: Appcolors.white,)),
+        title: const Text(
+          "Total's Active Schemes",
+          style: TextStyle(color: Appcolors.white),
+        ),
         centerTitle: true,
         backgroundColor: Appcolors.headerbackground,
         elevation: 0,
       ),
-      body: BlocBuilder<TotalActiveBloc, TotalActiveState>(
+      body: BlocBuilder<TodayActiveSchemeBloc, TodayActiveSchemeState>(
         builder: (context, state) {
-          if (state is TotalActiveInitial) {
-            context.read<TotalActiveBloc>().add(FetchTotalActiveSchemes());
+          if (state is TodayActiveSchemeInitial) {
+            context.read<TodayActiveSchemeBloc>().add(
+              FetchTodayActiveSchemes(startDate: today),
+            );
             return const Center(child: CircularProgressIndicator());
-          } else if (state is TotalActiveLoading) {
+          } else if (state is TodayActiveSchemeLoading) {
             return const Center(child: CircularProgressIndicator());
-          } else if (state is TotalActiveLoaded) {
+          } else if (state is TodayActiveSchemeLoaded) {
             final schemes = state.response.data;
             if (schemes.isEmpty) {
               return const Center(
                 child: Text(
-                  "No active schemes found for today",
+                  "No Active Schemes Found",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
               );
@@ -41,7 +50,7 @@ class TotalActiveSchemesScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               itemCount: schemes.length,
               itemBuilder: (context, index) {
-                final scheme = schemes[index];
+                final TodayActiveScheme scheme = schemes[index];
 
                 return InkWell(
                   borderRadius: BorderRadius.circular(16),
@@ -49,7 +58,7 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => TotalActiveSchemeDetailScreen(scheme: scheme),
+                        builder: (_) => TodayActiveSchemeDetailScreen(scheme: scheme),
                       ),
                     );
                   },
@@ -60,7 +69,7 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color:Appcolors.white,
+                          color: Colors.black.withOpacity(0.05),
                           blurRadius: 6,
                           offset: const Offset(0, 4),
                         )
@@ -69,7 +78,7 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Header with Scheme Name + Status
+                        // Header: Scheme Name + Status
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                           decoration: BoxDecoration(
@@ -79,12 +88,15 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                scheme.schemeName,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue.shade900,
+                              Flexible(
+                                child: Text(
+                                  scheme.schemeName,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue.shade900,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                               Container(
@@ -109,20 +121,26 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                           ),
                         ),
 
-                        // Body Content
+                        // Body: Customer & Scheme details
                         Padding(
                           padding: const EdgeInsets.all(16),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _infoRow(Icons.person, scheme.customer.name),
-                              _infoRow(Icons.phone, scheme.customer.phoneNumber),
-                              _infoRow(Icons.email, scheme.customer.email),
+                              _infoRow(Icons.person, scheme.customer.cName),
+                              _infoRow(Icons.phone, scheme.customer.cPhoneNumber),
+                              _infoRow(Icons.email, scheme.customer.cEmail),
                               const Divider(height: 24),
                               _infoRow(Icons.category, "Type: ${scheme.schemeType}"),
-                              _infoRow(Icons.scale, "Gold: ${scheme.totalGoldWeight} gm"),
-                              _infoRow(Icons.currency_rupee, "Amount: ₹${scheme.totalAmount}"),
-                              _infoRow(Icons.calendar_today, "Start Date: ${scheme.startDate}"),
+                              _infoRow(Icons.work_outline, "Purpose: ${scheme.schemePurpose}"),
+                              _infoRow(Icons.scale, "Total Gold: ${scheme.totalGoldWeight} gm"),
+                              _infoRow(Icons.currency_rupee, "Total Amount: ₹${scheme.totalAmount}"),
+                              if (scheme.paidAmount != null)
+                                _infoRow(Icons.check_circle, "Paid: ₹${scheme.paidAmount}"),
+                              if (scheme.pendingAmount != null)
+                            //    _infoRow(Icons.hourglass_bottom, "Pending: ₹${scheme.pendingAmount}"),
+                              _infoRow(Icons.calendar_today, "Start: ${formatDate(scheme.startDate)}"),
+                          //    _infoRow(Icons.calendar_month, "End: ${scheme.endDate ?? '-'}"),
                             ],
                           ),
                         ),
@@ -132,7 +150,7 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                 );
               },
             );
-          } else if (state is TotalActiveError) {
+          } else if (state is TodayActiveSchemeError) {
             return Center(
               child: Text(
                 "Error: ${state.message}",
@@ -146,21 +164,21 @@ class TotalActiveSchemesScreen extends StatelessWidget {
     );
   }
 
-Widget _infoRow(IconData icon, String? text) {
-  return Padding(
-    padding: const EdgeInsets.only(bottom: 6),
-    child: Row(
-      children: [
-        Icon(icon, size: 18, color: Colors.grey.shade700),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text ?? "N/A", // Null-safe
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+  Widget _infoRow(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: Colors.grey.shade700),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            ),
           ),
-        ),
-      ],
-    ),
-  );
-}
+        ],
+      ),
+    );
+  }
 }

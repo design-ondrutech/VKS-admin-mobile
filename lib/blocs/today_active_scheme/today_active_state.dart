@@ -1,4 +1,4 @@
-import 'package:admin/data/models/today_active_scheme.dart';
+import 'package:admin/data/models/total_active_scheme.dart';
 
 abstract class TodayActiveSchemeState {}
 
