@@ -12,6 +12,8 @@ abstract class GoldPriceEvent extends Equatable {
 class FetchGoldPriceEvent extends GoldPriceEvent {
   final String? date; // optional
   const FetchGoldPriceEvent({this.date});
+  
+  
 
   @override
   List<Object?> get props => [date];

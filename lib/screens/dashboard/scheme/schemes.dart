@@ -55,22 +55,15 @@ class SchemesTab extends StatelessWidget {
     );
   }
 
-  void _showAddEditDialog(BuildContext context, [Scheme? scheme]) {
-    showDialog(
-      context: context,
-      builder: (_) => AddUpdateSchemeDialog(
-        initialScheme: scheme,
-        onSchemeSaved: (savedScheme) {
-          final bloc = context.read<SchemesBloc>();
-          if (scheme == null) {
-            bloc.add(AddScheme(savedScheme));
-          } else {
-            bloc.add(UpdateScheme(savedScheme));
-          }
-        },
-      ),
-    );
-  }
+void _showAddEditDialog(BuildContext context, [Scheme? scheme]) {
+  showDialog(
+    context: context,
+    builder: (_) => AddUpdateSchemeDialog(
+      initialScheme: scheme, // only pass this
+    ),
+  );
+}
+
 
   Widget _buildStateUI(BuildContext context, SchemesState state) {
     if (state is SchemeLoading) {
@@ -170,16 +163,16 @@ class SchemesTab extends StatelessWidget {
               padding: const EdgeInsets.only(top: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Benefits",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF4A235A)),
-                  ),
-                  const SizedBox(height: 4),
-                  if (scheme.incrementAmount != null) Text("Increment: ₹${scheme.incrementAmount}"),
-                  if (scheme.threshold != null) Text("Threshold: ₹${scheme.threshold}"),
-                  if (scheme.bonus != null) Text("Bonus: ₹${scheme.bonus}"),
-                ],
+                // children: [
+                //   const Text(
+                //     "Benefits",
+                //     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF4A235A)),
+                //   ),
+                //   const SizedBox(height: 4),
+                //   if (scheme.incrementAmount != null) Text("Increment: ₹${scheme.incrementAmount}"),
+                //   if (scheme.threshold != null) Text("Threshold: ₹${scheme.threshold}"),
+                //   if (scheme.bonus != null) Text("Bonus: ₹${scheme.bonus}"),
+                // ],
               ),
             ),
         ],
@@ -201,23 +194,61 @@ Widget _detailItem(String title, String value) {
 }
 
 
-  void _showDeleteDialog(BuildContext context, Scheme scheme) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text("Delete Scheme"),
-        content: Text("Are you sure you want to delete '${scheme.schemeName}'?"),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancel")),
-          ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              onPressed: () {
-                // TODO: call delete API
-                Navigator.pop(ctx);
-              },
-              child: const Text("Delete", style: TextStyle(color: Colors.white))),
-        ],
-      ),
-    );
-  }
+ void _showDeleteDialog(BuildContext context, Scheme scheme) {
+  showDialog(
+    context: context,
+    builder: (ctx) {
+      return BlocConsumer<SchemesBloc, SchemesState>(
+        listener: (context, state) {
+          if (state is SchemeActionSuccess) {
+            Navigator.pop(ctx); // close dialog
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.green,
+              ),
+            );
+          } else if (state is SchemeError) {
+            Navigator.pop(ctx); // close dialog
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("❌ ${state.message}"),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          final isLoading = state is SchemeLoading;
+          return AlertDialog(
+            title: const Text("Delete Scheme"),
+            content: Text("Are you sure you want to delete '${scheme.schemeName}'?"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text("Cancel"),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                onPressed: isLoading
+                    ? null
+                    : () {
+                        context.read<SchemesBloc>().add(DeleteScheme(scheme.schemeId));
+                      },
+                child: isLoading
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Text("Delete", style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
 }

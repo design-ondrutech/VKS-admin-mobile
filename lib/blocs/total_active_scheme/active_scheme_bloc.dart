@@ -44,9 +44,9 @@ class TotalActiveBloc extends Bloc<TotalActiveEvent, TotalActiveState> {
 
         // User-friendly error message
         emit(TotalActiveError(
-          message: e.toString().contains("No active")
+          message: e.toString().contains("No active") 
               ? "No active schemes found."
-              : "Unable to load total active schemes. Please try again.",
+              : "Unable to load today active schemes. Please try again.",
         ));
       }
     });

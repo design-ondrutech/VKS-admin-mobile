@@ -7,45 +7,63 @@ class SchemesBloc extends Bloc<SchemesEvent, SchemesState> {
   final SchemeRepository repository;
 
   SchemesBloc(this.repository) : super(SchemeInitial()) {
+    // Fetch schemes
     on<FetchSchemes>((event, emit) async {
       emit(SchemeLoading());
       try {
-        final schemes = await repository.getAllSchemes();
+        final schemes = await repository.fetchSchemes();
         emit(SchemeLoaded(schemes));
       } catch (e) {
         emit(SchemeError(e.toString()));
       }
     });
 
-   on<AddScheme>((event, emit) {
-  if (state is SchemeLoaded) {
-    final current = (state as SchemeLoaded).schemes;
-    final newList = [...current, event.scheme];
-    emit(SchemeLoaded(newList)); // UI refresh
-    emit(SchemeOperationSuccess(event.scheme)); // optional success message
+    // Create scheme
+   on<AddScheme>((event, emit) async {
+  emit(SchemeLoading());
+  try {
+    await repository.createScheme(event.scheme.toCreateInput());
+    emit(SchemeActionSuccess("Scheme created successfully")); 
+    final schemes = await repository.fetchSchemes();
+    emit(SchemeLoaded(schemes));
+  } catch (e) {
+    emit(SchemeError(e.toString()));
   }
 });
+
 on<UpdateScheme>((event, emit) async {
-  if (state is SchemeLoaded) {
-    try {
-      //  Call API (Repository)
-      final updatedScheme = await repository.updateScheme(event.scheme);
-
-      //  Update state list
-      final currentList = (state as SchemeLoaded).schemes;
-      final updatedList = currentList.map((s) {
-        if (s.schemeId == updatedScheme.schemeId) return updatedScheme;
-        return s;
-      }).toList();
-
-      //  Emit updated list and success state
-      emit(SchemeLoaded(updatedList));
-      emit(SchemeOperationSuccess(updatedScheme));
-    } catch (e) {
-      emit(SchemeError("Failed to update scheme: $e"));
-    }
+  emit(SchemeLoading());
+  try {
+    await repository.updateScheme(
+      event.scheme.schemeId,
+      event.scheme.toUpdateInput(),
+    );
+    emit(SchemeActionSuccess("Scheme updated successfully")); //  new
+    final schemes = await repository.fetchSchemes();
+    emit(SchemeLoaded(schemes));
+  } catch (e) {
+    emit(SchemeError(e.toString()));
   }
 });
+
+
+    // Delete scheme
+on<DeleteScheme>((event, emit) async {
+  emit(SchemeLoading());
+  try {
+    final success = await repository.deleteScheme(event.schemeId);
+    if (success) {
+      emit(SchemeActionSuccess("Scheme deleted successfully"));
+      final schemes = await repository.fetchSchemes();
+      emit(SchemeLoaded(schemes));
+    } else {
+      emit(SchemeError("Failed to delete scheme"));
+    }
+  } catch (e) {
+    emit(SchemeError(e.toString()));
+  }
+});
+
 
 
 

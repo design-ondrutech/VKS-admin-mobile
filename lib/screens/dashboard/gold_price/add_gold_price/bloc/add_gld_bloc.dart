@@ -9,6 +9,9 @@ class AddGoldPriceBloc extends Bloc<AddGoldPriceEvent, AddGoldPriceState> {
   AddGoldPriceBloc(this.repository) : super(AddGoldPriceInitial()) {
     on<SubmitGoldPrice>(_onSubmitGoldPrice);
     on<UpdateGoldPrice>(_onUpdateGoldPrice);
+on<DeleteGoldPrice>(_onDeleteGoldPrice);
+
+
   }
 
   Future<void> _onSubmitGoldPrice(
@@ -26,10 +29,25 @@ class AddGoldPriceBloc extends Bloc<AddGoldPriceEvent, AddGoldPriceState> {
       UpdateGoldPrice event, Emitter<AddGoldPriceState> emit) async {
     emit(AddGoldPriceLoading());
     try {
-      final goldPrice = await repository.updateGoldPrice(event.id, event.input);
-      emit(AddGoldPriceSuccess(goldPrice)); // reuse same success state
+      final goldPrice =
+          await repository.updateGoldPrice(event.id, event.input);
+      emit(AddGoldPriceSuccess(goldPrice));
     } catch (e) {
       emit(AddGoldPriceFailure(e.toString()));
     }
   }
+
+
+Future<void> _onDeleteGoldPrice(
+    DeleteGoldPrice event, Emitter<AddGoldPriceState> emit) async {
+  emit(AddGoldPriceLoading());
+  try {
+    await repository.deleteGoldPrice(event.priceId);
+    emit(AddGoldPriceDeleted("Gold price deleted successfully"));
+  } catch (e) {
+    emit(AddGoldPriceFailure(e.toString()));
+  }
+}
+
+
 }

@@ -73,29 +73,35 @@ class _CustomersScreenState extends State<CustomersScreen> {
                           showDialog(
                             context: context,
                             barrierDismissible: false,
-                            builder: (_) => const Center(
-                              child: CircularProgressIndicator(),
-                            ),
+                            builder:
+                                (_) => const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
                           );
 
                           try {
                             final client = GraphQLProvider.of(context).value;
-                            final details = await CustomerDetailsRepository(client)
-                                .fetchCustomerDetails(customer.id);
+                            final details = await CustomerDetailsRepository(
+                              client,
+                            ).fetchCustomerDetails(customer.id);
 
                             if (!mounted) return;
                             Navigator.pop(context);
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => CustomerDetailScreen(details: details),
+                                builder:
+                                    (_) =>
+                                        CustomerDetailScreen(details: details),
                               ),
                             );
                           } catch (e) {
                             if (!mounted) return;
                             Navigator.pop(context);
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Failed to load details: $e')),
+                              SnackBar(
+                                content: Text('Failed to load details: $e'),
+                              ),
                             );
                           }
                         },
@@ -109,18 +115,24 @@ class _CustomersScreenState extends State<CustomersScreen> {
                                 color: Colors.black.withOpacity(0.05),
                                 blurRadius: 6,
                                 offset: const Offset(0, 4),
-                              )
+                              ),
                             ],
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               // Card Header with name + ID
+                              // Card Header with name + ID
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.blue.shade50,
-                                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                                  borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(16),
+                                  ),
                                 ),
                                 child: Row(
                                   children: [
@@ -140,7 +152,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             customer.name,
@@ -150,15 +163,15 @@ class _CustomersScreenState extends State<CustomersScreen> {
                                               color: Colors.blue.shade900,
                                             ),
                                           ),
-                                          // Text(
-                                          //   "ID: ${customer.id}",
-                                          //   style: const TextStyle(
-                                          //     fontSize: 12,
-                                          //     color: Colors.grey,
-                                          //   ),
-                                          // ),
                                         ],
                                       ),
+                                    ),
+
+                                    //  Right side navigation icon
+                                    const Icon(
+                                      Icons.arrow_forward_ios,
+                                      size: 16,
+                                      color: Colors.grey,
                                     ),
                                   ],
                                 ),
@@ -185,10 +198,15 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
                 // Pagination footer
                 Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 16,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(16),
+                    ),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.05),
@@ -206,11 +224,17 @@ class _CustomersScreenState extends State<CustomersScreen> {
                       ),
                       Row(
                         children: [
-                          _pageButton("Previous", state.currentPage > 1,
-                              () => _loadPage(state.currentPage - 1)),
+                          _pageButton(
+                            "Previous",
+                            state.currentPage > 1,
+                            () => _loadPage(state.currentPage - 1),
+                          ),
                           const SizedBox(width: 8),
-                          _pageButton("Next", state.currentPage < state.totalPages,
-                              () => _loadPage(state.currentPage + 1)),
+                          _pageButton(
+                            "Next",
+                            state.currentPage < state.totalPages,
+                            () => _loadPage(state.currentPage + 1),
+                          ),
                         ],
                       ),
                     ],
@@ -222,7 +246,10 @@ class _CustomersScreenState extends State<CustomersScreen> {
             return Center(
               child: Text(
                 state.message,
-                style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             );
           }

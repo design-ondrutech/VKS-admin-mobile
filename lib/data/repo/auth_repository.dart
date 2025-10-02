@@ -86,14 +86,15 @@ class CardRepository {
 }
 
 // Scheme Repository
+
 class SchemeRepository {
   final GraphQLClient client;
   SchemeRepository(this.client);
 
-  // GET ALL
-  Future<List<Scheme>> getAllSchemes() async {
+  //  Get all schemes
+  Future<List<Scheme>> fetchSchemes() async {
     const String query = r'''
-      query GetScheme {
+      query {
         getAllSchemes {
           data {
             scheme_id
@@ -101,13 +102,11 @@ class SchemeRepository {
             scheme_type
             duration_type
             duration
-            amount_benefits
             min_amount
             max_amount
             increment_amount
             is_active
-            isDeleted
-            scheme_icon
+            amount_benefits
           }
         }
       }
@@ -115,46 +114,16 @@ class SchemeRepository {
 
     final result = await client.query(QueryOptions(document: gql(query)));
 
-    if (result.hasException) throw Exception(result.exception.toString());
-
-    final List<dynamic> data = result.data?['getAllSchemes']['data'] ?? [];
-    return data.map((json) => Scheme.fromJson(json)).toList();
+    if (result.hasException) throw result.exception!;
+    final List data = result.data!['getAllSchemes']['data'];
+    return data.map((e) => Scheme.fromJson(e)).toList();
   }
 
-  // CREATE
-  Future<Scheme> createScheme(Scheme scheme) async {
-    const String mutation = r'''
-      mutation CreateScheme($data: ProductSchemesInput!) {
-        createScheme(data: $data) {
-          scheme_id
-          scheme_name
-          scheme_type
-          duration_type
-          duration
-          min_amount
-          max_amount
-          increment_amount
-          is_active
-          isDeleted
-        }
-      }
-    ''';
-
-    final result = await client.mutate(MutationOptions(
-      document: gql(mutation),
-      variables: {"data": scheme.toCreateJson()},
-    ));
-
-    if (result.hasException) throw Exception(result.exception.toString());
-
-    return Scheme.fromJson(result.data?['createScheme']);
-  }
-
-  // UPDATE
-  Future<Scheme> updateScheme(Scheme scheme) async {
+  //  Create scheme
+  Future<Scheme> createScheme(Map<String, dynamic> data) async {
   const String mutation = r'''
-    mutation UpdateScheme($data: UpdateProductSchemesInput!, $schemeId: String!) {
-      updateScheme(data: $data, scheme_id: $schemeId) {
+    mutation CreateScheme($data: ProductSchemesInput!) {
+      createScheme(data: $data) {
         scheme_id
         scheme_name
         scheme_type
@@ -163,29 +132,77 @@ class SchemeRepository {
         min_amount
         max_amount
         increment_amount
-        is_active
-        isDeleted
       }
     }
   ''';
 
   final result = await client.mutate(MutationOptions(
     document: gql(mutation),
-    variables: {
-      "data": scheme.toUpdateJson(
-        
-      ), // scheme_id excluded
-      "schemeId": scheme.schemeId,   // path variable
-    },
+    variables: {"data": data},
   ));
 
-  if (result.hasException) throw Exception(result.exception.toString());
-
-  return Scheme.fromJson(result.data!['updateScheme']);
+  if (result.hasException) throw result.exception!;
+  return Scheme.fromJson(result.data!['createScheme']);
 }
 
+
+  //  Update scheme
+  Future<Scheme> updateScheme(String schemeId, Map<String, dynamic> data) async {
+    const String mutation = r'''
+      mutation UpdateScheme($data: UpdateProductSchemesInput!, $schemeId: String!) {
+        updateScheme(data: $data, scheme_id: $schemeId) {
+          scheme_id
+          scheme_name
+          scheme_type
+          duration_type
+          duration
+          min_amount
+          max_amount
+          increment_amount
+        }
+      }
+    ''';
+
+    final result = await client.mutate(MutationOptions(
+      document: gql(mutation),
+      variables: {
+        "schemeId": schemeId,
+        "data": data,
+      },
+    ));
+
+    if (result.hasException) throw result.exception!;
+    return Scheme.fromJson(result.data!['updateScheme']);
+  }
+
+  //  Delete scheme
+Future<bool> deleteScheme(String schemeId) async {
+  const String mutation = r'''
+    mutation DeleteScheme($schemeId: String!) {
+      softDeleteScheme(scheme_id: $schemeId)
+    }
+  ''';
+
+  final result = await client.mutate(MutationOptions(
+    document: gql(mutation),
+    variables: {"schemeId": schemeId}, // schemeId always string here
+  ));
+
+  if (result.hasException) throw result.exception!;
+
+  final data = result.data?['softDeleteScheme'];
+
+  if (data is bool) {
+    return data;
+  } else if (data is int) {
+    return data == 1; // if backend returns 1/0 instead of true/false
+  } else {
+    return false;
+  }
 }
 
+
+}
 
 // Gold Dashboard Repository barchart
 
@@ -228,41 +245,43 @@ class GoldPriceRepository {
 
 
   Future<List<GoldPrice>> fetchAllPrices({String? date}) async {
-    const query = r'''
-      query GetAllGoldPrice($date: String) {
-        getAllGoldPrice(date: $date) {
-          price_id
-          date
-          value
-          metal
-          unit
-          price
-          created_date
-          isdeleted
-          percentage_diff
-          is_price_up
-        }
+  const query = r'''
+    query GetAllGoldPrice($date: String) {
+      getAllGoldPrice(date: $date) {
+        price_id
+        date
+        value
+        metal
+        unit
+        price
+        created_date
+        isdeleted
+        percentage_diff
+        is_price_up
       }
-    ''';
-
-    final result = await client.query(
-      QueryOptions(
-        document: gql(query),
-        variables: {"date": date},
-      ),
-    );
-
-    if (result.hasException) {
-      throw Exception(result.exception.toString());
     }
+  ''';
 
-    print("API RESPONSE: ${result.data}"); //  Debug
+  final result = await client.query(
+    QueryOptions(
+      document: gql(query),
+      variables: {"date": date},
+      //fetchPolicy: FetchPolicy.networkOnly, //  avoid stale cache
+    ),
+  );
 
-    final List data = result.data?['getAllGoldPrice'] ?? [];
-    return data.map((e) => GoldPrice.fromJson(e)).toList();
+  if (result.hasException) {
+    throw Exception(result.exception.toString());
   }
 
-  deleteGoldPrice(String id) {}
+  final List data = result.data?['getAllGoldPrice'] ?? [];
+
+  //  Filter out deleted records
+  final filtered = data.where((e) => e["isdeleted"] == false).toList();
+
+  return filtered.map((e) => GoldPrice.fromJson(e)).toList();
+}
+
 }
 
 // Add Gold Price Repository
@@ -395,6 +414,29 @@ class AddGoldPriceRepository {
     final data = result.data?["silverRates"] as List<dynamic>? ?? []; 
     return data.map((e) => GoldPrice.fromJson(e)).toList();
   }
+
+///  Delete Gold Price
+Future<void> deleteGoldPrice(String priceId) async {
+  const mutation = r'''
+    mutation Mutation($priceId: String!) {
+      softDeleteGold(price_id: $priceId)
+    }
+  ''';
+
+  final result = await client.mutate(
+    MutationOptions(
+      document: gql(mutation),
+      variables: {"priceId": priceId},
+    ),
+  );
+
+  if (result.hasException) {
+    throw Exception(result.exception.toString());
+  }
+}
+
+
+
 }
 
 
@@ -761,10 +803,6 @@ class CashPaymentRepository {
 }
 
 // Create Scheme Repository
-
-
-
-
 // class CreateSchemeRepository {
 //   final GraphQLClient client;
 
