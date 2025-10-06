@@ -34,14 +34,11 @@ class _CustomersScreenState extends State<CustomersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: const Text(
-          "Total Customers",
-          style: TextStyle(color: Appcolors.white),
-        ),
+        title: const Text("Customers", style: TextStyle(color: Colors.white)),
         centerTitle: true,
-        backgroundColor: Appcolors.headerbackground,
+        backgroundColor: Colors.teal,
         elevation: 0,
       ),
       body: BlocBuilder<CustomerBloc, CustomerState>(
@@ -61,159 +58,110 @@ class _CustomersScreenState extends State<CustomersScreen> {
             return Column(
               children: [
                 Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
+                  child: ListView.separated(
                     itemCount: state.customers.length,
+                    separatorBuilder: (context, index) =>
+                        const Divider(height: 1, thickness: 0.6),
                     itemBuilder: (context, index) {
                       final Customer customer = state.customers[index];
 
-                      return InkWell(
-                        borderRadius: BorderRadius.circular(16),
+                      return ListTile(
                         onTap: () async {
                           showDialog(
                             context: context,
                             barrierDismissible: false,
-                            builder:
-                                (_) => const Center(
-                                  child: CircularProgressIndicator(),
-                                ),
+                            builder: (_) =>
+                                const Center(child: CircularProgressIndicator()),
                           );
 
                           try {
                             final client = GraphQLProvider.of(context).value;
-                            final details = await CustomerDetailsRepository(
-                              client,
-                            ).fetchCustomerDetails(customer.id);
+                            final details = await CustomerDetailsRepository(client)
+                                .fetchCustomerDetails(customer.id);
 
                             if (!mounted) return;
                             Navigator.pop(context);
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder:
-                                    (_) =>
-                                        CustomerDetailScreen(details: details),
+                                builder: (_) => CustomerDetailScreen(
+                                  details: details,
+                                ),
                               ),
                             );
                           } catch (e) {
                             if (!mounted) return;
                             Navigator.pop(context);
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Failed to load details: $e'),
-                              ),
+                              SnackBar(content: Text('Failed to load details: $e')),
                             );
                           }
                         },
-                        child: Container(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 6,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Card Header with name + ID
-                              // Card Header with name + ID
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.shade50,
-                                  borderRadius: const BorderRadius.vertical(
-                                    top: Radius.circular(16),
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    CircleAvatar(
-                                      backgroundColor: Colors.blue.shade100,
-                                      child: Text(
-                                        customer.name.isNotEmpty
-                                            ? customer.name[0].toUpperCase()
-                                            : "?",
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                          color: Colors.blue,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            customer.name,
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.blue.shade900,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-
-                                    //  Right side navigation icon
-                                    const Icon(
-                                      Icons.arrow_forward_ios,
-                                      size: 16,
-                                      color: Colors.grey,
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              // Card Body with info rows
-                              Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    _infoRow(Icons.phone, customer.phoneNumber),
-                                    _infoRow(Icons.email, customer.email),
-                                  ],
-                                ),
-                              ),
-                            ],
+                        contentPadding: const EdgeInsets.symmetric(
+                            vertical: 12, horizontal: 16),
+                        leading: CircleAvatar(
+                          backgroundColor: Colors.teal.shade100,
+                          radius: 26,
+                          child: Text(
+                            customer.name.isNotEmpty
+                                ? customer.name[0].toUpperCase()
+                                : "?",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: Colors.teal.shade900,
+                            ),
                           ),
                         ),
+                        title: Text(
+                          customer.name,
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Icon(Icons.phone,
+                                    size: 16, color: Colors.grey.shade600),
+                                const SizedBox(width: 4),
+                                Text(customer.phoneNumber,
+                                    style: const TextStyle(fontSize: 13)),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                Icon(Icons.email,
+                                    size: 16, color: Colors.grey.shade600),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    customer.email,
+                                    style: const TextStyle(fontSize: 13),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        trailing: const Icon(Icons.chevron_right,
+                            color: Colors.grey, size: 24),
                       );
                     },
                   ),
                 ),
 
-                // Pagination footer
+                // 🔹 Pagination Footer
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 12,
-                    horizontal: 16,
-                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(16),
+                    border: const Border(
+                      top: BorderSide(color: Colors.black12, width: 0.6),
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 6,
-                        offset: const Offset(0, -2),
-                      ),
-                    ],
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -224,17 +172,11 @@ class _CustomersScreenState extends State<CustomersScreen> {
                       ),
                       Row(
                         children: [
-                          _pageButton(
-                            "Previous",
-                            state.currentPage > 1,
-                            () => _loadPage(state.currentPage - 1),
-                          ),
+                          _pageButton("Previous", state.currentPage > 1,
+                              () => _loadPage(state.currentPage - 1)),
                           const SizedBox(width: 8),
-                          _pageButton(
-                            "Next",
-                            state.currentPage < state.totalPages,
-                            () => _loadPage(state.currentPage + 1),
-                          ),
+                          _pageButton("Next", state.currentPage < state.totalPages,
+                              () => _loadPage(state.currentPage + 1)),
                         ],
                       ),
                     ],
@@ -247,9 +189,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
               child: Text(
                 state.message,
                 style: const TextStyle(
-                  color: Colors.red,
-                  fontWeight: FontWeight.bold,
-                ),
+                    color: Colors.red, fontWeight: FontWeight.bold),
               ),
             );
           }
@@ -259,32 +199,20 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
   }
 
-  Widget _infoRow(IconData icon, String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: Colors.grey.shade700),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _pageButton(String label, bool enabled, VoidCallback onTap) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: enabled ? Appcolors.buttoncolor : Colors.grey.shade300,
+    return OutlinedButton(
+      style: OutlinedButton.styleFrom(
+        side: BorderSide(
+            color: enabled ? Appcolors.buttoncolor : Colors.grey.shade300),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       onPressed: enabled ? onTap : null,
-      child: Text(label, style: const TextStyle(color: Appcolors.black)),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: enabled ? Appcolors.buttoncolor : Colors.grey,
+        ),
+      ),
     );
   }
 }

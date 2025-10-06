@@ -1,4 +1,6 @@
 import 'package:admin/data/models/total_active_scheme.dart';
+import 'package:admin/screens/dashboard/widgets/fixed_payment.dart';
+import 'package:admin/screens/dashboard/widgets/flexible_payment.dart';
 import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
 import 'package:admin/utils/colors.dart';
@@ -10,10 +12,12 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool isFlexible = scheme.schemeType.toLowerCase() == "flexible";
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          scheme.schemeName.isNotEmpty ? scheme.schemeName : '-', // safe
+          scheme.schemeName.isNotEmpty ? scheme.schemeName : '-',
           style: const TextStyle(color: Appcolors.white),
         ),
         centerTitle: true,
@@ -50,16 +54,20 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
           // ---------------- SCHEME DETAILS ----------------
           _sectionTitle("Scheme Details"),
           _infoCard([
-            // _infoRow("Saving ID", scheme.savingId),
             _infoRow("Scheme Name", scheme.schemeName),
             _infoRow("Scheme Type", scheme.schemeType),
             _infoRow("Status", scheme.status),
             _infoRow("Gold Delivered", scheme.goldDelivered ? "Yes" : "No"),
-             _infoRow("Delivered Gold Weight", "${scheme.deliveredGoldWeight?.toStringAsFixed(2)} gm"),
-            _infoRow("Balance Gold Weight", "${scheme.pendingGoldWeight?.toStringAsFixed(2)} gm"),
+            _infoRow(
+              "Delivered Gold Weight",
+              "${scheme.deliveredGoldWeight?.toStringAsFixed(2)} gm",
+            ),
+            _infoRow(
+              "Balance Gold Weight",
+              "${scheme.pendingGoldWeight?.toStringAsFixed(2)} gm",
+            ),
             _infoRow("Purpose", scheme.schemePurpose),
             _infoRow("KYC Completed", scheme.isKyc ? "Yes" : "No"),
-            //   _infoRow("Completed", scheme.isCompleted ? "Yes" : "No"),
             _infoRow("Start Date", formatDate(scheme.startDate)),
             _infoRow("End Date", formatDate(scheme.endDate)),
             _infoRow("Last Updated", formatDate(scheme.lastUpdated)),
@@ -86,17 +94,12 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
               "Paid Amount",
               "₹${scheme.paidAmount?.toStringAsFixed(2) ?? '0.00'}",
             ),
-          //   _infoRow("Start Date", formatDate(scheme.startDate)),
-          //   _infoRow("End Date", formatDate(scheme.endDate)),
-          // //  _infoRow("Last Updated", formatDate(scheme.lastUpdated)),
-
             _infoRow(
               "Next Due On",
               scheme.history.isNotEmpty
                   ? formatDate(scheme.history.first.dueDate)
                   : "-",
             ),
-
             _infoRow(
               "Gold Gram",
               (scheme.history.isNotEmpty
@@ -108,64 +111,20 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
 
           // ---------------- PAYMENT HISTORY ----------------
           _sectionTitle("Payment History"),
-          if (scheme.history.isNotEmpty)
-            Column(
-              children:
-                  scheme.history.map<Widget>((tx) {
-                    return Card(
-                      elevation: 3,
-                      margin: const EdgeInsets.symmetric(vertical: 6),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "₹${tx.amount?.toStringAsFixed(2) ?? '0.00'}",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text("Due: ${formatDate(tx.dueDate)}"),
-                                Text(
-                                  "Paid: ${tx.paidDate.isNotEmpty ? formatDate(tx.paidDate) : '-'}",
-                                ),
-                              ],
-                            ),
-                              Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text("Mode: ${tx.paymentMode}"),
-                            Text("Status: ${tx.status}"),
-                          ],
-                        ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }).toList(),
-            )
-          else
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Text("No Payment History Found"),
+          (scheme.schemeType.toLowerCase()) == "flexible"
+              ? FlexiblePaymentHistoryWidget(
+                history: scheme.history,
+                savingId: scheme.savingId, //  REQUIRED param
+              )
+              : FixedPaymentHistoryWidget(
+                history: scheme.history,
+                savingId: scheme.savingId, //  added this
               ),
-            ),
         ],
       ),
     );
   }
 
-  // ---------------- HELPERS ----------------
   Widget _sectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -199,12 +158,7 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(key, style: const TextStyle(fontWeight: FontWeight.w600)),
-          Flexible(
-            child: Text(
-              value ?? '-', // safe null handling
-              textAlign: TextAlign.right,
-            ),
-          ),
+          Flexible(child: Text(value ?? '-', textAlign: TextAlign.right)),
         ],
       ),
     );

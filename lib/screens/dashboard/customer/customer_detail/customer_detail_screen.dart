@@ -1,18 +1,16 @@
 import 'package:admin/screens/dashboard/customer/customer_detail/model/customer_details_model.dart';
-import 'package:admin/utils/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // For date formatting
+import 'package:intl/intl.dart';
 
 class CustomerDetailScreen extends StatelessWidget {
   final CustomerDetails details;
   const CustomerDetailScreen({super.key, required this.details});
 
-  String formatDateTime(String apiDateTime) {
+  String formatDate(String apiDate) {
     try {
-      final date = DateTime.parse(apiDateTime);
-      return DateFormat('dd-MM-yyyy HH:mm').format(date);
+      return DateFormat('dd-MM-yyyy').format(DateTime.parse(apiDate));
     } catch (e) {
-      return apiDateTime; // fallback if parsing fails
+      return apiDate;
     }
   }
 
@@ -29,341 +27,242 @@ class CustomerDetailScreen extends StatelessWidget {
 
     final hasSavings = details.savings.isNotEmpty;
 
-    // Summed values for summary cards
-    final totalAmount = details.savings.fold<double>(
-      0,
-      (sum, saving) => sum + (saving.totalAmount ?? 0),
-    );
-
-    final totalGoldWeight = details.savings.fold<double>(
-      0,
-      (sum, saving) => sum + (saving.totalGoldWeight ?? 0),
-    );
-
-    final totalBenefitGram = details.savings.fold<double>(
-      0,
-      (sum, saving) => sum + (saving.totalBenefitGram ?? 0),
-    );
-
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: Text(
-          details.cName.isNotEmpty ? details.cName : "Customer Details",
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: Appcolors.headerbackground,
-        elevation: 2,
+        title: Text(details.cName.isNotEmpty ? details.cName : "Customer Details",
+            style: const TextStyle(color: Colors.white)),
+        backgroundColor: Colors.teal,
+        elevation: 0,
+        centerTitle: true,
       ),
-      body: ListView(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        children: [
-          const SizedBox(height: 16),
-          // Summary cards
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _summaryCard(
-                title: "Total Amount",
-                value: "₹${totalAmount.toStringAsFixed(2)}",
-                color: Colors.green[400]!,
-                icon: Icons.account_balance_wallet,
-              ),
-              _summaryCard(
-                title: "Total Gold Weight",
-                value: "${totalGoldWeight.toStringAsFixed(2)} g",
-                color: Colors.amber[700]!,
-                icon: Icons.scale,
-              ),
-              _summaryCard(
-                title: "Total Benefit Gram",
-                value: "${totalBenefitGram.toStringAsFixed(2)} g",
-                color: Colors.purple[400]!,
-                icon: Icons.star,
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-
-          // Basic Info
-          _buildCard(
-            title: "Basic Info",
-            color: Colors.indigo[50]!,
-            children: [
-              _iconRow(
-                Icons.person,
-                "Name",
-                details.cName.isNotEmpty ? details.cName : 'N/A',
-              ),
-              _iconRow(
-                Icons.email,
-                "Email",
-                details.cEmail.isNotEmpty ? details.cEmail : 'N/A',
-              ),
-              _iconRow(
-                Icons.phone,
-                "Phone",
-                details.cPhoneNumber.isNotEmpty ? details.cPhoneNumber : 'N/A',
-              ),
-            ],
-          ),
-
-          // Address
-          _buildCard(
-            title: "Address",
-            color: Colors.teal[50]!,
-            children:
-                hasAddress
-                    ? [
-                      _iconRow(Icons.home, "Address", address!.cDoorNo),
-                      _iconRow(Icons.location_city, "City", address.cCity),
-                      _iconRow(Icons.pin_drop, "Pin Code", address.cPinCode),
-
-                      //     _iconRow(Icons.location_on, "Line 1", address.cAddressLine1),
-                      //   if (address.cAddressLine2.isNotEmpty)
-                      //      _iconRow(Icons.location_on, "Line 2", address.cAddressLine2),
-                      //  _iconRow(Icons.map, "State", address.cState),
-                      //  _iconRow(Icons.check_circle, "Primary", address.cIsPrimary ? 'Yes' : 'No'),
-                    ]
-                    : [const Text("No Address Found")],
-          ),
-
-          // Documents
-          _buildCard(
-            title: "Documents",
-            color: Colors.orange[50]!,
-            children:
-                hasDocument
-                    ? [
-                      _iconRow(
-                        Icons.credit_card,
-                        "Aadhar",
-                        document!.cAadharNo.isNotEmpty
-                            ? document.cAadharNo
-                            : 'N/A',
-                      ),
-                      _iconRow(
-                        Icons.card_membership,
-                        "PAN",
-                        document.cPanNo.isNotEmpty ? document.cPanNo : 'N/A',
-                      ),
-                    ]
-                    : [const Text("No Documents Found")],
-          ),
-
-          // Nominee
-          _buildCard(
-            title: "Nominee",
-            color: Colors.purple[50]!,
-            children:
-                hasNominee
-                    ? [
-                      _iconRow(Icons.person, "Name", nominee!.cNomineeName),
-                      _iconRow(
-                        Icons.email,
-                        "Email",
-                        nominee.cNomineeEmail.isNotEmpty
-                            ? nominee.cNomineeEmail
-                            : 'N/A',
-                      ),
-                      _iconRow(
-                        Icons.phone,
-                        "Phone",
-                        nominee.cNomineePhoneNo.isNotEmpty
-                            ? nominee.cNomineePhoneNo
-                            : 'N/A',
-                      ),
-                      // _iconRow(
-                      //   Icons.pin_drop,
-                      //   "Pin Code",
-                      //   nominee.pinCode.isNotEmpty ? nominee.pinCode : 'N/A',
-                      // ),
-                    ]
-                    : [const Text("No Nominee Added")],
-          ),
-
-          // Savings & Transactions
-          _buildCard(
-            title: "Savings & Transactions",
-            color: Colors.green[50]!,
-            children:
-                hasSavings
-                    ? details.savings.map((saving) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Scheme Name
-                          Text(
-                            saving.schemeName,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-
-                          _iconRow(
-                            Icons.account_balance_wallet,
-                            "Total Amount",
-                            "₹${saving.totalAmount.toStringAsFixed(2)}",
-                          ),
-                          _iconRow(
-                            Icons.scale,
-                            "Total Gold Weight",
-                            "${saving.totalGoldWeight} g",
-                          ),
-                          _iconRow(
-                            Icons.date_range,
-                            "Start Date",
-                            formatDateTime(saving.startDate),
-                          ),
-                          _iconRow(
-                            Icons.date_range,
-                            "End Date",
-                            formatDateTime(saving.endDate),
-                          ),
-
-                          const SizedBox(height: 8),
-
-                          if (saving.transactions.isNotEmpty) ...[
-                            const Text(
-                              "Transactions:",
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 4),
-                            ...saving.transactions.map(
-                              (tx) => Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 2,
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.arrow_right,
-                                      size: 18,
-                                      color: Colors.grey,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Expanded(
-                                      child: Text(
-                                        "${formatDateTime(tx.transactionDate)} - ₹${tx.transactionAmount} (${tx.transactionType})",
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ] else
-                            const Text("No Transactions Found"),
-
-                          const Divider(thickness: 1),
-                          const SizedBox(height: 8),
-                        ],
-                      );
-                    }).toList()
-                    : [const Text("No Savings Data")],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Card builder
-  Widget _buildCard({
-    required String title,
-    required List<Widget> children,
-    required Color color,
-  }) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: color,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
+            ///  Summary Section (Flat Style)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6)],
+              ),
+              child: GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                children: [
+                  _summaryItem("Total Paid",
+                      "₹${(details.summary?.totalPaidAmount ?? 0).toStringAsFixed(0)}",
+                      Icons.account_balance_wallet, Colors.green),
+                  _summaryItem("Gold Weight",
+                      "${(details.summary?.totalPaidGoldWeight ?? 0)} g",
+                      Icons.scale, Colors.orange),
+                  _summaryItem("Benefit Gold",
+                      "${details.summary?.totalBenefitGram ?? 0} g",
+                      Icons.trending_up, Colors.blue),
+                  _summaryItem("Bonus Gold",
+                      "${details.summary?.totalBonusGoldWeight ?? 0} g",
+                      Icons.card_giftcard, Colors.purple),
+                ],
               ),
             ),
-            const Divider(),
-            ...children,
+
+            const SizedBox(height: 24),
+
+            ///  Sections
+            _section("Basic Info", [
+              _infoRow(Icons.person, "Name", details.cName),
+              _infoRow(Icons.email, "Email", details.cEmail),
+              _infoRow(Icons.phone, "Phone", details.cPhoneNumber),
+            ]),
+
+            _section("Address", hasAddress ? [
+              _infoRow(Icons.home, "Address", address!.cAddressLine1),
+              _infoRow(Icons.location_city, "City", address.cCity),
+              _infoRow(Icons.pin_drop, "Pin Code", address.cPinCode),
+            ] : [const Text("No Address Found")]),
+
+            _section("Documents", hasDocument ? [
+              _infoRow(Icons.credit_card, "Aadhar", document!.cAadharNo),
+              _infoRow(Icons.card_membership, "PAN", document.cPanNo),
+            ] : [const Text("No Documents Found")]),
+
+            _section("Nominee", hasNominee ? [
+              _infoRow(Icons.person, "Name", nominee!.cNomineeName),
+              _infoRow(Icons.email, "Email", nominee.cNomineeEmail),
+              _infoRow(Icons.phone, "Phone", nominee.cNomineePhoneNo),
+            ] : [const Text("No Nominee Added")]),
+
+            _section("Savings & Transactions", hasSavings ? details.savings.map((saving) {
+              return Column(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          saving.schemeName,
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        // Container(
+        //   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        //   decoration: BoxDecoration(
+        //     color: DateTime.parse(saving.endDate).isBefore(DateTime.now())
+        //         ? Colors.red[100]
+        //         : Colors.green[100],
+        //     borderRadius: BorderRadius.circular(12),
+        //   ),
+        //   child: Text(
+        //     DateTime.parse(saving.endDate).isBefore(DateTime.now())
+        //         ? "Complete"
+        //         : "Active",
+        //     style: TextStyle(
+        //       fontSize: 12,
+        //       fontWeight: FontWeight.bold,
+        //       color: DateTime.parse(saving.endDate).isBefore(DateTime.now())
+        //           ? Colors.red[800]
+        //           : Colors.green[800],
+        //     ),
+        //   ),
+        // ),
+      ],
+    ),
+
+    const SizedBox(height: 8),
+    _infoRow(Icons.wallet, "Total Amount",
+        "₹${saving.totalAmount.toStringAsFixed(0)}"),
+    _infoRow(Icons.scale, "Gold Weight", "${saving.totalGoldWeight} g"),
+    _infoRow(Icons.date_range, "Start Date", formatDate(saving.startDate)),
+    _infoRow(Icons.date_range, "End Date", formatDate(saving.endDate)),
+
+    const SizedBox(height: 12),
+    if (saving.transactions.isNotEmpty)
+      _stripedTable(saving.transactions)
+    else
+      const Text("No Transactions Found"),
+
+    const Divider(),
+  ],
+);
+
+            }).toList() : [const Text("No Savings Data")]),
           ],
         ),
       ),
     );
   }
 
-  // Icon row
-  Widget _iconRow(IconData icon, String key, String value) {
+  ///  Flat Section
+  Widget _section(String title, List<Widget> children) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 20, color: Colors.indigo),
-          const SizedBox(width: 8),
-          Expanded(
-            flex: 3,
-            child: Text(
-              "$key:",
-              style: const TextStyle(fontWeight: FontWeight.w600),
+          Text(title,
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: Colors.black87)),
+          const SizedBox(height: 8),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
             ),
-          ),
-          Expanded(flex: 5, child: Text(value)),
+            padding: const EdgeInsets.all(16),
+            child: Column(children: children),
+          )
         ],
       ),
     );
   }
-}
 
-// Summary card
-Widget _summaryCard({
-  required String title,
-  required String value,
-  required Color color,
-  required IconData icon,
-}) {
-  return Expanded(
-    child: Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: color,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Icon(icon, color: Colors.white, size: 28),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white70,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+  ///  Info Row
+  Widget _infoRow(IconData icon, String key, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: Colors.teal),
+          const SizedBox(width: 10),
+          Text("$key:",
+              style:
+                  const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+          const SizedBox(width: 8),
+          Expanded(child: Text(value.isNotEmpty ? value : "N/A")),
+        ],
+      ),
+    );
+  }
+
+  ///  Summary Item (flat style inside grid)
+  Widget _summaryItem(String title, String value, IconData icon, Color color) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 28, color: color),
+          const SizedBox(height: 8),
+          Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 4),
+          Text(value,
+              style: TextStyle(
+                  fontSize: 18, fontWeight: FontWeight.bold, color: color)),
+        ],
+      ),
+    );
+  }
+
+  ///  Striped Table for Transactions
+  Widget _stripedTable(List<Transaction> transactions) {
+    return Table(
+      columnWidths: const {
+        0: FlexColumnWidth(1.2),
+        1: FlexColumnWidth(1.3),
+        2: FlexColumnWidth(1),
+        3: FlexColumnWidth(1),
+
+      },
+      border: TableBorder.all(color: Colors.grey.shade300, width: 1),
+      children: [
+        TableRow(
+          decoration: BoxDecoration(color: Colors.grey.shade200),
+          children: const [
+            Padding(padding: EdgeInsets.all(8), child: Text("Date", style: TextStyle(fontWeight: FontWeight.bold))),
+            Padding(padding: EdgeInsets.all(8), child: Text("Gold(g)", style: TextStyle(fontWeight: FontWeight.bold))),
+            Padding(padding: EdgeInsets.all(8), child: Text("Amount", style: TextStyle(fontWeight: FontWeight.bold))),
+            Padding(padding: EdgeInsets.all(8), child: Text("Type", style: TextStyle(fontWeight: FontWeight.bold))),
+            
           ],
         ),
-      ),
-    ),
-  );
+        ...transactions.asMap().entries.map((entry) {
+          final i = entry.key;
+          final tx = entry.value;
+          return TableRow(
+            decoration: BoxDecoration(
+                color: i % 2 == 0 ? Colors.grey.shade50 : Colors.white),
+            children: [
+              Padding(padding: const EdgeInsets.all(8), child: Text(formatDate(tx.transactionDate))),
+              Padding(padding: const EdgeInsets.all(8), child: Text("${tx.transactionGoldGram} g")),
+              Padding(padding: const EdgeInsets.all(8), child: Text("₹${tx.transactionAmount.toStringAsFixed(0)}")),
+              Padding(padding: const EdgeInsets.all(8), child: Text(tx.transactionType)),
+            ],
+          );
+        }),
+      ],
+    );
+  }
 }

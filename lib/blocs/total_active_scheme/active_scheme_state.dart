@@ -28,3 +28,29 @@ class TotalActiveError extends TotalActiveState {
   @override
   List<Object?> get props => [message];
 }
+
+//  Add these below
+class CashPaymentLoading extends TotalActiveState {}
+
+class CashPaymentSuccess extends TotalActiveState {
+  final String savingId;
+  final String totalAmount;
+
+  CashPaymentSuccess({
+    required this.savingId,
+    required this.totalAmount,
+  });
+
+  @override
+  List<Object?> get props => [savingId, totalAmount];
+}
+
+class CashPaymentFailure extends TotalActiveState {
+  final String message;
+
+  CashPaymentFailure({required this.message});
+
+  @override
+  List<Object?> get props => [message];
+}
+

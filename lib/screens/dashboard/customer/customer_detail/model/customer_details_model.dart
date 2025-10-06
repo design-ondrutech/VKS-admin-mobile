@@ -8,7 +8,8 @@ class CustomerDetails {
   final List<Nominee> nominees;
   final List<Address> addresses;
   final List<Document> documents;
-  final List<Saving> savings; //Added savings list
+  final List<Saving> savings;
+  final Summary? summary; //  single object
 
   final String? cProfileImage;
   final String? resetPassword;
@@ -29,7 +30,8 @@ class CustomerDetails {
     required this.nominees,
     required this.addresses,
     required this.documents,
-    required this.savings, // Added
+    required this.savings,
+    this.summary, // 
     this.cProfileImage,
     this.resetPassword,
     this.fcmToken,
@@ -40,38 +42,65 @@ class CustomerDetails {
     this.lastRegisteredAt,
   });
 
- factory CustomerDetails.fromJson(Map<String, dynamic> json) {
-  return CustomerDetails(
-    id: json['id']?.toString() ?? '',
-    cName: json['cName']?.toString() ?? '',
-    cEmail: json['cEmail']?.toString() ?? '',
-    cDob: json['cDob']?.toString() ?? '',
-    cPasswordHash: json['cPasswordHash']?.toString() ?? '',
-    cPhoneNumber: json['cPhoneNumber']?.toString() ?? '',
-    nominees: (json['nominees'] as List<dynamic>? ?? [])
-        .map((n) => Nominee.fromJson(n))
-        .toList(),
-    addresses: (json['addresses'] as List<dynamic>? ?? [])
-        .map((a) => Address.fromJson(a))
-        .toList(),
-    documents: (json['documents'] as List<dynamic>? ?? [])
-        .map((d) => Document.fromJson(d))
-        .toList(),
-    savings: (json['savings'] as List<dynamic>? ?? [])
-        .map((s) => Saving.fromJson(s))
-        .toList(),
-    cProfileImage: json['c_profile_image']?.toString(),
-    resetPassword: json['reset_password']?.toString(),
-    fcmToken: json['fcmToken']?.toString(),
-    firebaseUid: json['firebaseUid']?.toString(),
-    isPhoneVerified: json['isPhoneVerified'] as bool?,
-    lastOtpVerifiedAt: json['lastOtpVerifiedAt']?.toString(),
-    lastRegisteredId: json['lastRegisteredId']?.toString(),
-    lastRegisteredAt: json['lastRegisteredAt']?.toString(),
-  );
+  factory CustomerDetails.fromJson(Map<String, dynamic> json) {
+    return CustomerDetails(
+      id: json['id']?.toString() ?? '',
+      cName: json['cName']?.toString() ?? '',
+      cEmail: json['cEmail']?.toString() ?? '',
+      cDob: json['cDob']?.toString() ?? '',
+      cPasswordHash: json['cPasswordHash']?.toString() ?? '',
+      cPhoneNumber: json['cPhoneNumber']?.toString() ?? '',
+      nominees: (json['nominees'] as List<dynamic>? ?? [])
+          .map((n) => Nominee.fromJson(n))
+          .toList(),
+      addresses: (json['addresses'] as List<dynamic>? ?? [])
+          .map((a) => Address.fromJson(a))
+          .toList(),
+      documents: (json['documents'] as List<dynamic>? ?? [])
+          .map((d) => Document.fromJson(d))
+          .toList(),
+      savings: (json['savings'] as List<dynamic>? ?? [])
+          .map((s) => Saving.fromJson(s))
+          .toList(),
+      summary: json['summary'] != null
+          ? Summary.fromJson(json['summary'])
+          : null, //  single object parse
+      cProfileImage: json['c_profile_image']?.toString(),
+      resetPassword: json['reset_password']?.toString(),
+      fcmToken: json['fcmToken']?.toString(),
+      firebaseUid: json['firebaseUid']?.toString(),
+      isPhoneVerified: json['isPhoneVerified'] as bool?,
+      lastOtpVerifiedAt: json['lastOtpVerifiedAt']?.toString(),
+      lastRegisteredId: json['lastRegisteredId']?.toString(),
+      lastRegisteredAt: json['lastRegisteredAt']?.toString(),
+    );
+  }
 }
 
+class Summary {
+  final double totalPaidAmount;
+  final double totalPaidGoldWeight;
+  final double totalBenefitGram;
+  final double totalBonusGoldWeight;
+
+  Summary({
+    required this.totalPaidAmount,
+    required this.totalPaidGoldWeight,
+    required this.totalBenefitGram,
+    required this.totalBonusGoldWeight,
+  });
+
+  factory Summary.fromJson(Map<String, dynamic> json) {
+    return Summary(
+      totalPaidAmount: (json['total_paid_amount'] ?? 0).toDouble(),
+      totalPaidGoldWeight: (json['total_paid_gold_weight'] ?? 0).toDouble(),
+      totalBenefitGram: (json['total_benefit_gram'] ?? 0).toDouble(),
+      totalBonusGoldWeight: (json['total_bonus_gold_weight'] ?? 0).toDouble(),
+    );
+  }
 }
+
+
 
 class Nominee {
   final String cNomineeId;
@@ -184,6 +213,7 @@ class Saving {
   final String endDate;
   final String schemeName;
   final List<Transaction> transactions;
+   final String status;
 
   Saving({
     required this.savingId,
@@ -194,6 +224,8 @@ class Saving {
     required this.endDate,
     required this.schemeName,
     required this.transactions,
+    required this.status,
+
   });
 
   factory Saving.fromJson(Map<String, dynamic> json) {
@@ -208,6 +240,8 @@ class Saving {
       transactions: (json['transactions'] as List<dynamic>? ?? [])
           .map((t) => Transaction.fromJson(t))
           .toList(),
+       status: json['status'] ?? 'Unknown',
+
     );
   }
 }
@@ -237,3 +271,4 @@ class Transaction {
     );
   }
 }
+

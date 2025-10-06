@@ -9,6 +9,7 @@ class TotalActiveBloc extends Bloc<TotalActiveEvent, TotalActiveState> {
   final TotalActiveSchemesRepository repository;
 
   TotalActiveBloc({required this.repository}) : super(TotalActiveInitial()) {
+    //  Fetch all active schemes
     on<FetchTotalActiveSchemes>((event, emit) async {
       emit(TotalActiveLoading());
       try {
@@ -19,7 +20,6 @@ class TotalActiveBloc extends Bloc<TotalActiveEvent, TotalActiveState> {
         }
 
         final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-
         final todayData = response.data.where((scheme) {
           final startDate = DateFormat('yyyy-MM-dd')
               .format(DateTime.tryParse(scheme.startDate) ?? DateTime(1900));
@@ -27,7 +27,8 @@ class TotalActiveBloc extends Bloc<TotalActiveEvent, TotalActiveState> {
         }).toList();
 
         if (todayData.isEmpty) {
-          emit(TotalActiveError(message: "No active schemes found for today."));
+          emit(TotalActiveError(
+              message: "No active schemes found for today."));
         } else {
           emit(
             TotalActiveLoaded(
@@ -39,15 +40,35 @@ class TotalActiveBloc extends Bloc<TotalActiveEvent, TotalActiveState> {
           );
         }
       } catch (e) {
-        // Developer log (console-only)
         log("TotalActiveBloc Error: $e", name: "TotalActiveBloc");
-
-        // User-friendly error message
         emit(TotalActiveError(
-          message: e.toString().contains("No active") 
+          message: e.toString().contains("No active")
               ? "No active schemes found."
               : "Unable to load today active schemes. Please try again.",
         ));
+      }
+    });
+
+    //  Add cash payment mutation
+    on<AddCashPayment>((event, emit) async {
+      emit(CashPaymentLoading());
+      try {
+        final response = await repository.addCashCustomerSavings(
+          savingId: event.savingId,
+          amount: event.amount,
+        );
+
+        emit(CashPaymentSuccess(
+          savingId: response['saving_id'],
+          totalAmount: response['total_amount']?.toString() ?? "0",
+        ));
+
+        // Optional: auto-refresh active schemes after success
+        final updated = await repository.getTotalActiveSchemes();
+        emit(TotalActiveLoaded(response: updated));
+      } catch (e) {
+        log("AddCashPayment Error: $e", name: "TotalActiveBloc");
+        emit(CashPaymentFailure(message: e.toString()));
       }
     });
   }

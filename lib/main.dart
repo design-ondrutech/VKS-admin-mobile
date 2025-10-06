@@ -1,3 +1,4 @@
+import 'package:admin/blocs/notification/notification_event.dart';
 import 'package:admin/blocs/schemes/schemes_event.dart';
 import 'package:admin/blocs/today_active_scheme/today_active_bloc.dart';
 import 'package:admin/blocs/today_active_scheme/today_active_event.dart';
@@ -22,6 +23,7 @@ import 'package:admin/data/graphql_config.dart';
 import 'package:admin/screens/dashboard/gold_price/add_gold_price/bloc/add_gld_bloc.dart';
 import 'package:admin/screens/login_screen.dart';
 import 'package:admin/data/repo/auth_repository.dart';
+import 'package:admin/widgets/global_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -29,12 +31,12 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final HttpLink httpLink = HttpLink('http://api-vkskumaran-0env-env.eba-jpagnpin.ap-south-1.elasticbeanstalk.com/graphql/admin');
-  // final HttpLink httpLink = HttpLink('http://10.0.2.2:4000/graphql/admin');
+  // final HttpLink httpLink = HttpLink(
+  // //  'http://api-vkskumaran-0env-env.eba-jpagnpin.ap-south-1.elasticbeanstalk.com/graphql/admin',
+  // );
+   final HttpLink httpLink = HttpLink('http://10.0.2.2:4000/graphql/admin');
+   
   //final HttpLink httpLink = HttpLink('https://api.vkskumaran.in/graphql/admin');
-  
-
-
 
   // Create the GraphQL client
   final GraphQLClient graphQLClient = GraphQLClient(
@@ -50,27 +52,68 @@ void main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   final GraphQLClient client;
-  MyApp({required this.client});
+  const MyApp({super.key, required this.client});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      //  App minimize pannitu open aana udane refresh pannalaam
+      // Gold price refresh
+      context.read<GoldPriceBloc>().add(const FetchGoldPriceEvent());
+
+      // Other Blocs refresh (optional)
+      context.read<SchemesBloc>().add(FetchSchemes());
+      context.read<CardBloc>().add(FetchCardSummary());
+      context.read<CustomerBloc>().add(FetchCustomers(page: 1, limit: 10));
+      context.read<TotalActiveBloc>().add(FetchTotalActiveSchemes());
+      context.read<TodayActiveSchemeBloc>().add(FetchTodayActiveSchemes());
+      context.read<OnlinePaymentBloc>().add(
+        FetchOnlinePayments(page: 1, limit: 10),
+      );
+      context.read<CashPaymentBloc>().add(FetchCashPayments());
+      context.read<NotificationBloc>().add(
+        FetchNotificationEvent(),
+      ); // if exists
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Initialize all repositories with the GraphQLClient
-    final authRepository = AuthRepository(client);
-    final dashboardRepository = CardRepository(client);
-    final goldRepository = GoldPriceRepository(client);
-    final addGoldPriceRepository = AddGoldPriceRepository(client);
-    final customerRepository = CustomerRepository(client);
-    final goldDashboardRepository = GoldDashboardRepository(client);
+    // Initialize repositories using widget.client
+    final authRepository = AuthRepository(widget.client);
+    final dashboardRepository = CardRepository(widget.client);
+    final goldRepository = GoldPriceRepository(widget.client);
+    final addGoldPriceRepository = AddGoldPriceRepository(widget.client);
+    final customerRepository = CustomerRepository(widget.client);
+    final goldDashboardRepository = GoldDashboardRepository(widget.client);
     final totalActiveSchemesRepository = TotalActiveSchemesRepository(
-      client: client,
+      client: widget.client,
     );
-    final todayActiveSchemeRepository = TodayActiveSchemeRepository(client);
-    final onlinePaymentRepository = OnlinePaymentRepository(client);
-    final cashPaymentRepository = CashPaymentRepository(client);
-    // final createSchemeRepository = CreateSchemeRepository(client);
-    final notificationRepository = NotificationRepository(client);
+    final todayActiveSchemeRepository = TodayActiveSchemeRepository(
+      widget.client,
+    );
+    final onlinePaymentRepository = OnlinePaymentRepository(widget.client);
+    final cashPaymentRepository = CashPaymentRepository(widget.client);
+    final notificationRepository = NotificationRepository(widget.client);
 
     return MultiBlocProvider(
       providers: [
@@ -82,7 +125,6 @@ class MyApp extends StatelessWidget {
                   SchemesBloc(SchemeRepository(getGraphQLClient()))
                     ..add(FetchSchemes()),
         ),
-
         BlocProvider(
           create: (_) => CardBloc(dashboardRepository)..add(FetchCardSummary()),
         ),
@@ -100,23 +142,18 @@ class MyApp extends StatelessWidget {
                     ..add(FetchCustomers(page: 1, limit: 10)),
         ),
         BlocProvider(create: (_) => GoldDashboardBloc(goldDashboardRepository)),
-
-        //  TotalActiveBloc
         BlocProvider(
           create:
               (_) =>
                   TotalActiveBloc(repository: totalActiveSchemesRepository)
                     ..add(FetchTotalActiveSchemes()),
         ),
-
-        //  TodayActiveSchemeBloc
         BlocProvider(
           create:
               (_) =>
                   TodayActiveSchemeBloc(repository: todayActiveSchemeRepository)
                     ..add(FetchTodayActiveSchemes()),
         ),
-
         BlocProvider(
           create:
               (_) =>
@@ -129,23 +166,20 @@ class MyApp extends StatelessWidget {
                   CashPaymentBloc(cashPaymentRepository)
                     ..add(FetchCashPayments()),
         ),
-        //    BlocProvider(create: (_) => CreateSchemeBloc(repository: createSchemeRepository)),
         BlocProvider(create: (_) => NotificationBloc(notificationRepository)),
       ],
+
       child: MaterialApp(
         title: 'VKS Admin',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(primarySwatch: Colors.deepPurple),
-        home: LoginScreen(),
+        home: GlobalRefreshWrapper(
+          child: const LoginScreen(), // or DashboardScreen after login
+        ),
       ),
     );
   }
 }
-
-
-
-
-
 
 // import 'package:admin/Test%20_Screen%20_Code.dart';
 // import 'package:flutter/material.dart';

@@ -24,14 +24,8 @@ class _GoldPriceScreenState extends State<GoldPriceScreen> {
   @override
   void initState() {
     super.initState();
-    //  Initial fetch only once
+    // Initial fetch only once
     context.read<GoldPriceBloc>().add(const FetchGoldPriceEvent());
-  }
-
-  Future<void> _onRefresh() async {
-    // Swipe down refresh
-    context.read<GoldPriceBloc>().add(const FetchGoldPriceEvent());
-    await Future.delayed(const Duration(milliseconds: 500)); // smooth animation
   }
 
   @override
@@ -48,10 +42,7 @@ class _GoldPriceScreenState extends State<GoldPriceScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               ),
               label: const Text(
                 "Add Gold",
@@ -73,64 +64,58 @@ class _GoldPriceScreenState extends State<GoldPriceScreen> {
         ],
       ),
 
-      body: RefreshIndicator(
-        onRefresh: _onRefresh,
-        child: BlocListener<AddGoldPriceBloc, AddGoldPriceState>(
-          listener: (context, state) {
-            if (state is AddGoldPriceDeleted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: Colors.green,
-                  duration: const Duration(seconds: 2),
-                ),
+      // ❌ Removed RefreshIndicator (global refresh handles it now)
+      body: BlocListener<AddGoldPriceBloc, AddGoldPriceState>(
+        listener: (context, state) {
+          if (state is AddGoldPriceDeleted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.green,
+                duration: const Duration(seconds: 2),
+              ),
+            );
+            context.read<GoldPriceBloc>().add(const FetchGoldPriceEvent());
+          } else if (state is AddGoldPriceFailure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.error), backgroundColor: Colors.red),
+            );
+          }
+        },
+        child: BlocBuilder<GoldPriceBloc, GoldPriceState>(
+          builder: (context, state) {
+            if (state is GoldPriceLoading) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (state is GoldPriceLoaded) {
+              final allRates = [...state.goldRates, ...state.silverRates];
+              final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+              // sort latest first
+              allRates.sort((a, b) {
+                final dateA = DateTime.tryParse(a.date) ?? DateTime(1900);
+                final dateB = DateTime.tryParse(b.date) ?? DateTime(1900);
+                return dateB.compareTo(dateA);
+              });
+
+              if (allRates.isEmpty) {
+                return const Center(child: Text("No Gold & Silver Data"));
+              }
+
+              return ListView.builder(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(12),
+                itemCount: allRates.length,
+                itemBuilder: (context, index) {
+                  final price = allRates[index];
+                  return _buildPriceCard(context, price, today);
+                },
               );
-              //  Refresh after delete
-              context.read<GoldPriceBloc>().add(const FetchGoldPriceEvent());
-            } else if (state is AddGoldPriceFailure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.error),
-                  backgroundColor: Colors.red,
-                ),
-              );
+            } else if (state is GoldPriceError) {
+              return Center(child: Text("Error: ${state.message}"));
+            } else {
+              return const Center(child: Text("No data"));
             }
           },
-          child: BlocBuilder<GoldPriceBloc, GoldPriceState>(
-            builder: (context, state) {
-              if (state is GoldPriceLoading) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (state is GoldPriceLoaded) {
-                final allRates = [...state.goldRates, ...state.silverRates];
-                final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-
-                // sort latest first
-                allRates.sort((a, b) {
-                  final dateA = DateTime.tryParse(a.date) ?? DateTime(1900);
-                  final dateB = DateTime.tryParse(b.date) ?? DateTime(1900);
-                  return dateB.compareTo(dateA);
-                });
-
-                if (allRates.isEmpty) {
-                  return const Center(child: Text("No Gold & Silver Data"));
-                }
-
-                return ListView.builder(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(12),
-                  itemCount: allRates.length,
-                  itemBuilder: (context, index) {
-                    final price = allRates[index];
-                    return _buildPriceCard(context, price, today);
-                  },
-                );
-              } else if (state is GoldPriceError) {
-                return Center(child: Text("Error: ${state.message}"));
-              } else {
-                return const Center(child: Text("No data"));
-              }
-            },
-          ),
         ),
       ),
     );
@@ -162,34 +147,32 @@ class _GoldPriceScreenState extends State<GoldPriceScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                displayDate, //  Show dd-MM-yyyy
+                displayDate,
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF4A235A),
                 ),
               ),
-              if (price.date == today) //  Compare with yyyy-MM-dd
+              if (price.date == today)
                 Row(
                   children: [
                     IconButton(
                       onPressed: () async {
                         await showDialog(
                           context: context,
-                          builder:
-                              (context) => AddGoldRateDialog(
-                                existingPrice: GoldPriceInput(
-                                  date: price.date,
-                                  metal: price.metal,
-                                  value: price.value,
-                                  unit: price.unit,
-                                  price: price.price,
-                                ),
-                              ),
+                          builder: (context) => AddGoldRateDialog(
+                            existingPrice: GoldPriceInput(
+                              id: price.id, // ✅ important for update
+                              date: price.date,
+                              metal: price.metal,
+                              value: price.value,
+                              unit: price.unit,
+                              price: price.price,
+                            ),
+                          ),
                         );
-                        context.read<GoldPriceBloc>().add(
-                          const FetchGoldPriceEvent(),
-                        );
+                        context.read<GoldPriceBloc>().add(const FetchGoldPriceEvent());
                       },
                       icon: const Icon(Icons.edit, color: Colors.blueAccent),
                     ),
@@ -197,35 +180,24 @@ class _GoldPriceScreenState extends State<GoldPriceScreen> {
                       onPressed: () {
                         showDialog(
                           context: context,
-                          builder:
-                              (ctx) => AlertDialog(
-                                title: const Text("Confirm Deletion"),
-                                content: const Text(
-                                  "Are you sure you want to delete this rate?",
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(ctx),
-                                    child: const Text("Cancel"),
-                                  ),
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red,
-                                    ),
-                                    onPressed: () {
-                                      context.read<AddGoldPriceBloc>().add(
-                                        DeleteGoldPrice(price.id!),
-                                      );
-                                      Navigator.pop(ctx);
-                                    },
-
-                                    child: const Text(
-                                      "Delete",
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                  ),
-                                ],
+                          builder: (ctx) => AlertDialog(
+                            title: const Text("Confirm Deletion"),
+                            content: const Text("Are you sure you want to delete this rate?"),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx),
+                                child: const Text("Cancel"),
                               ),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                onPressed: () {
+                                  context.read<AddGoldPriceBloc>().add(DeleteGoldPrice(price.id!));
+                                  Navigator.pop(ctx);
+                                },
+                                child: const Text("Delete", style: TextStyle(color: Colors.white)),
+                              ),
+                            ],
+                          ),
                         );
                       },
                       icon: const Icon(Icons.delete, color: Colors.red),
@@ -236,7 +208,7 @@ class _GoldPriceScreenState extends State<GoldPriceScreen> {
           ),
           const SizedBox(height: 12),
 
-          // Values in 2 columns
+          // Values
           Row(
             children: [
               Expanded(
@@ -255,12 +227,8 @@ class _GoldPriceScreenState extends State<GoldPriceScreen> {
                   children: [
                     _labelValue("Unit", price.unit),
                     const SizedBox(height: 8),
-                    _labelValue(
-                      "Price",
-                      "₹${price.price}",
-                      isBold: true,
-                      color: const Color(0xFF4A235A),
-                    ),
+                    _labelValue("Price", "₹${price.price}",
+                        isBold: true, color: const Color(0xFF4A235A)),
                   ],
                 ),
               ),
@@ -271,12 +239,8 @@ class _GoldPriceScreenState extends State<GoldPriceScreen> {
     );
   }
 
-  Widget _labelValue(
-    String label,
-    String value, {
-    bool isBold = false,
-    Color color = Colors.black87,
-  }) {
+  Widget _labelValue(String label, String value,
+      {bool isBold = false, Color color = Colors.black87}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

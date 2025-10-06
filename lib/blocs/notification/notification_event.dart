@@ -19,3 +19,9 @@ class SendNotificationEvent extends NotificationEvent {
   @override
   List<Object?> get props => [cHeader, cDescription];
 }
+class FetchNotificationEvent extends NotificationEvent {
+  const FetchNotificationEvent();
+
+  @override
+  List<Object?> get props => [];
+}

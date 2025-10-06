@@ -490,11 +490,14 @@ class CustomerRepository {
 // Total Active Scheme Repository
 // total_active_scheme_repository.dart
 
+
+
 class TotalActiveSchemesRepository {
   final GraphQLClient client;
 
   TotalActiveSchemesRepository({required this.client});
 
+  ///  QUERY: Fetch all active schemes
   Future<TotalActiveSchemeResponse> getTotalActiveSchemes() async {
     const query = r'''
       query GetTotalActiveSchemes {
@@ -575,6 +578,53 @@ class TotalActiveSchemesRepository {
 
     return TotalActiveSchemeResponse.fromJson(
         result.data!['getTotalActiveSchemes']);
+  }
+
+  ///  MUTATION: Add cash payment (fixed)
+  Future<Map<String, dynamic>> addCashCustomerSavings({
+    required String savingId,
+    required double amount,
+  }) async {
+    const mutation = r'''
+      mutation Mutation($data: AddAmountToSavingInput!) {
+        addCashCustomerSavings(data: $data) {
+          saving_id
+          customer {
+            id
+          }
+          scheme_id
+          total_amount
+          start_date
+          end_date
+          status
+          total_gold_weight
+          last_updated
+          bonusAmount
+          current_rate
+        }
+      }
+    ''';
+
+    //  FIXED: removed "payment_mode" because backend doesn't accept it
+    final variables = {
+      "data": {
+        "saving_id": savingId,
+        "amount": amount,
+      },
+    };
+
+    final result = await client.mutate(
+      MutationOptions(
+        document: gql(mutation),
+        variables: variables,
+      ),
+    );
+
+    if (result.hasException) {
+      throw Exception(result.exception.toString());
+    }
+
+    return result.data!['addCashCustomerSavings'];
   }
 }
 
@@ -949,72 +999,79 @@ class CustomerDetailsRepository {
   CustomerDetailsRepository(this.client);
 Future<CustomerDetails> fetchCustomerDetails(String customerId) async {
   const String query = r'''
-    query GetAllSchemes($customerId: String!) {
-      getCustomerDetails(customerId: $customerId) {
-        customer {
-          id
-          cName
-          cEmail
-          cDob
-          cPasswordHash
-          cPhoneNumber
-          nominees {
-            c_nominee_id
-            c_id
-            c_nominee_name
-            c_nominee_email
-            c_nominee_phone_no
-            c_created_at
-            pin_code
-          }
-          addresses {
-            c_address_id
-            id
-            c_door_no
-            c_address_line1
-            c_address_line2
-            c_city
-            c_state
-            c_pin_code
-            c_is_primary
-            c_created_at
-            tenant_id
-          }
-          documents {
-            c_document_id
-            c_id
-            c_aadhar_no
-            c_pan_no
-            c_created_at
-          }
-          c_profile_image
-          reset_password
-          fcmToken
-          firebaseUid
-          isPhoneVerified
-          lastOtpVerifiedAt
-          lastRegisteredId
-          lastRegisteredAt
+  query GetAllSchemes($customerId: String!) {
+    getCustomerDetails(customerId: $customerId) {
+      customer {
+        id
+        cName
+        cEmail
+        cDob
+        cPasswordHash
+        cPhoneNumber
+        nominees {
+          c_nominee_id
+          c_id
+          c_nominee_name
+          c_nominee_email
+          c_nominee_phone_no
+          c_created_at
+          pin_code
         }
-        savings {
-          saving_id
-          total_amount
-          total_gold_weight
-          total_benefit_gram
-          start_date
-          end_date
-          schemeName
-          transactions {
-            transactionId
-            transactionDate
-            transactionAmount
-            transactionGoldGram
-            transactionType
-          }
+        addresses {
+          c_address_id
+          id
+          c_door_no
+          c_address_line1
+          c_address_line2
+          c_city
+          c_state
+          c_pin_code
+          c_is_primary
+          c_created_at
+          tenant_id
+        }
+        documents {
+          c_document_id
+          c_id
+          c_aadhar_no
+          c_pan_no
+          c_created_at
+        }
+        c_profile_image
+        reset_password
+        fcmToken
+        firebaseUid
+        isPhoneVerified
+        lastOtpVerifiedAt
+        lastRegisteredId
+        lastRegisteredAt
+      }
+      savings {
+        saving_id
+        total_amount
+        total_gold_weight
+        total_benefit_gram
+        start_date
+        end_date
+        schemeName
+        transactions {
+          transactionId
+          transactionDate
+          transactionAmount
+          transactionGoldGram
+          transactionType
         }
       }
+      summary {
+        total_paid_amount
+        total_paid_gold_weight
+        total_benefit_gram
+        total_bonus_gold_weight
+      }
     }
-  ''';
+  }
+''';
+
 
   final result = await client.query(QueryOptions(
     document: gql(query),
@@ -1026,14 +1083,17 @@ Future<CustomerDetails> fetchCustomerDetails(String customerId) async {
     throw Exception(result.exception.toString());
   }
 
-  final data = result.data!['getCustomerDetails'];
-  final customerJson = data['customer'] as Map<String, dynamic>? ?? {};
-  final savingsJson = data['savings'] as List<dynamic>? ?? [];
+ final data = result.data!['getCustomerDetails'];
+final customerJson = data['customer'] as Map<String, dynamic>? ?? {};
+final savingsJson = data['savings'] as List<dynamic>? ?? [];
+final summaryJson = data['summary'] as Map<String, dynamic>? ?? {};
 
-  return CustomerDetails.fromJson({
-    ...customerJson,
-    'savings': savingsJson,
-  });
+return CustomerDetails.fromJson({
+  ...customerJson,
+  'savings': savingsJson,
+  'summary': summaryJson, //  FIXED
+});
+
 }
 
 }
