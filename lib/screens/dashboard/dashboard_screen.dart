@@ -106,12 +106,12 @@ class DashboardHeader extends StatelessWidget {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomersScreen()));
               }),
               const SizedBox(height: 16),
-              _iconCard("Today Active", "${summary.todayActiveSchemes}", Icons.layers, Colors.orange,
+              _iconCard("Total Active", "${summary.totalActiveSchemes}", Icons.layers, Colors.orange,
                   onTap: () {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const TotalActiveSchemesScreen()));
               }),
               const SizedBox(height: 16),
-              _iconCard("Total Active", "${summary.totalActiveSchemes}", Icons.layers,
+              _iconCard("Today Active", "${summary.todayActiveSchemes}", Icons.layers,
                   const Color.fromARGB(255, 86, 136, 211), onTap: () {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const TodayActiveSchemesScreen()));
               }),

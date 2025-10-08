@@ -1,14 +1,14 @@
-import 'package:admin/blocs/total_active_scheme/active_scheme_bloc.dart';
-import 'package:admin/blocs/total_active_scheme/active_scheme_event.dart';
-import 'package:admin/blocs/total_active_scheme/active_scheme_state.dart';
-import 'package:admin/data/models/total_active_scheme.dart';
+import 'package:admin/blocs/total_active_scheme/total_active_bloc.dart';
+import 'package:admin/blocs/total_active_scheme/total_active_event.dart';
+import 'package:admin/blocs/total_active_scheme/total_active_state.dart';
+import 'package:admin/data/models/TotalActiveScheme.dart'; //  Important
 import 'package:admin/utils/colors.dart';
-import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:admin/utils/style.dart';
 
 class FixedPaymentHistoryWidget extends StatelessWidget {
-  final List<PaymentHistory> history;
+  final List<History> history; //  Correct type
   final String savingId; // required for mutation call
 
   const FixedPaymentHistoryWidget({
@@ -28,11 +28,13 @@ class FixedPaymentHistoryWidget extends StatelessWidget {
       );
     }
 
-    //  Find the fixed installment amount (first non-zero)
-    double fixedAmount = history.firstWhere(
-      (tx) => (tx.amount ?? 0) > 0,
-      orElse: () => history.first,
-    ).amount ?? 0;
+    //  FIXED: Find the fixed installment amount (first non-zero)
+    double fixedAmount = history.isNotEmpty
+        ? history.firstWhere(
+            (tx) => (tx.amount) > 0,
+            orElse: () => history.first,
+          ).amount
+        : 0;
 
     //  Find the first unpaid card
     int firstUnpaidIndex = history.indexWhere(
@@ -41,21 +43,20 @@ class FixedPaymentHistoryWidget extends StatelessWidget {
 
     return BlocConsumer<TotalActiveBloc, TotalActiveState>(
       listener: (context, state) {
-     if (state is CashPaymentSuccess) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      backgroundColor: Colors.green[700],
-      content: Text(
-        "Payment Successful (Total: ₹${state.totalAmount})",
-        style: const TextStyle(color: Colors.white),
-      ),
-    ),
-  );
+        if (state is CashPaymentSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.green[700],
+              content: Text(
+                "Payment Successful (Total: ₹${state.totalAmount})",
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
+          );
 
-  //  Refresh data immediately after payment
-  context.read<TotalActiveBloc>().add(FetchTotalActiveSchemes());
-}
- else if (state is CashPaymentFailure) {
+          //  Refresh data immediately after payment
+          context.read<TotalActiveBloc>().add(FetchTotalActiveSchemes());
+        } else if (state is CashPaymentFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               backgroundColor: Colors.red[700],
@@ -108,7 +109,6 @@ class FixedPaymentHistoryWidget extends StatelessWidget {
                         InkWell(
                           onTap: isNextDue && !isLoading
                               ? () async {
-                                  //  Show confirmation dialog
                                   final confirm = await showDialog<bool>(
                                     context: context,
                                     builder: (context) {
@@ -152,8 +152,8 @@ class FixedPaymentHistoryWidget extends StatelessWidget {
                                         ),
                                         actions: [
                                           TextButton(
-                                            onPressed: () => Navigator.pop(
-                                                context, false),
+                                            onPressed: () =>
+                                                Navigator.pop(context, false),
                                             child: const Text(
                                               "Cancel",
                                               style:
@@ -171,7 +171,11 @@ class FixedPaymentHistoryWidget extends StatelessWidget {
                                             ),
                                             onPressed: () =>
                                                 Navigator.pop(context, true),
-                                            child: const Text("Confirm",style: TextStyle(color: Colors.white),)
+                                            child: const Text(
+                                              "Confirm",
+                                              style: TextStyle(
+                                                  color: Colors.white),
+                                            ),
                                           ),
                                         ],
                                       );
@@ -179,7 +183,6 @@ class FixedPaymentHistoryWidget extends StatelessWidget {
                                   );
 
                                   if (confirm == true) {
-                                    // 🪄 Trigger the same mutation
                                     context.read<TotalActiveBloc>().add(
                                           AddCashPayment(
                                             savingId: savingId,
@@ -199,7 +202,9 @@ class FixedPaymentHistoryWidget extends StatelessWidget {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             padding: const EdgeInsets.symmetric(
-                                vertical: 6, horizontal: 12),
+                              vertical: 6,
+                              horizontal: 12,
+                            ),
                             child: isLoading && isNextDue
                                 ? const SizedBox(
                                     height: 16,
@@ -229,7 +234,7 @@ class FixedPaymentHistoryWidget extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
 
-                    //  Dates & Mode
+                    // 📅 Dates & Mode
                     Text("Due: ${formatDate(tx.dueDate)}"),
                     Text(
                       "Paid: ${tx.paidDate.isNotEmpty ? formatDate(tx.paidDate) : '-'}",

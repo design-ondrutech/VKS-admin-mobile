@@ -1,6 +1,7 @@
-import 'package:admin/blocs/total_active_scheme/active_scheme_bloc.dart';
-import 'package:admin/blocs/total_active_scheme/active_scheme_event.dart';
-import 'package:admin/blocs/total_active_scheme/active_scheme_state.dart';
+import 'package:admin/blocs/total_active_scheme/total_active_bloc.dart';
+import 'package:admin/blocs/total_active_scheme/total_active_event.dart';
+import 'package:admin/blocs/total_active_scheme/total_active_state.dart';
+import 'package:admin/data/models/TotalActiveScheme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,7 +9,7 @@ import 'package:admin/utils/colors.dart';
 import 'package:admin/utils/style.dart';
 
 class FlexiblePaymentHistoryWidget extends StatefulWidget {
-  final List<dynamic> history;
+  final List<History> history; //  Correct type
   final String savingId;
 
   const FlexiblePaymentHistoryWidget({
@@ -28,8 +29,9 @@ class _FlexiblePaymentHistoryWidgetState
 
   @override
   Widget build(BuildContext context) {
+    // Filter valid payments (where amount > 0)
     final validPayments = widget.history.where((tx) {
-      final amount = tx.amount ?? 0;
+      final amount = tx.amount;
       return amount > 0;
     }).toList();
 
@@ -64,6 +66,7 @@ class _FlexiblePaymentHistoryWidgetState
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            //  Payment Entry Card
             Card(
               elevation: 2,
               shape: RoundedRectangleBorder(
@@ -99,129 +102,27 @@ class _FlexiblePaymentHistoryWidgetState
                           : () async {
                               final entered = _amountController.text.trim();
 
-                              //  Check for empty value
                               if (entered.isEmpty) {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: const Text(
-                                      "Invalid Amount",
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.redAccent),
-                                    ),
-                                    content: const Text(
-                                      "Please enter a valid amount before proceeding.",
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () =>
-                                            Navigator.of(context).pop(),
-                                        child: const Text("OK"),
-                                      )
-                                    ],
-                                  ),
+                                _showAlert(
+                                  context,
+                                  "Invalid Amount",
+                                  "Please enter a valid amount before proceeding.",
                                 );
                                 return;
                               }
 
                               final amount = double.tryParse(entered);
 
-                              //  Validate entered value
                               if (amount == null || amount <= 0) {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: const Text(
-                                      "Invalid Amount",
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.redAccent),
-                                    ),
-                                    content: const Text(
-                                      "Please enter a valid numeric amount greater than zero.",
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () =>
-                                            Navigator.of(context).pop(),
-                                        child: const Text("OK"),
-                                      )
-                                    ],
-                                  ),
+                                _showAlert(
+                                  context,
+                                  "Invalid Amount",
+                                  "Please enter a valid numeric amount greater than zero.",
                                 );
                                 return;
                               }
 
-                              // Show confirmation dialog before proceeding
-                              final confirm = await showDialog<bool>(
-                                context: context,
-                                builder: (context) {
-                                  return AlertDialog(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    title: const Text(
-                                      "Confirm Payment",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.blue,
-                                      ),
-                                    ),
-                                    content: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Text(
-                                          "You are about to pay:",
-                                          style: TextStyle(fontSize: 16),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          "₹${amount.toStringAsFixed(0)}",
-                                          style: const TextStyle(
-                                            fontSize: 22,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        const Text(
-                                          "Do you want to proceed?",
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.black54,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () =>
-                                            Navigator.of(context).pop(false),
-                                        child: const Text(
-                                          "Cancel",
-                                          style: TextStyle(color: Colors.grey),
-                                        ),
-                                      ),
-                                      ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor:
-                                              Appcolors.buttoncolor,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                          ),
-                                        ),
-                                        onPressed: () =>
-                                            Navigator.of(context).pop(true),
-                                        child: const Text("Confirm",style: TextStyle(color: Colors.white),),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-
-                              //  Dispatch payment event only if confirmed
+                              final confirm = await _showConfirmDialog(context, amount);
                               if (confirm == true) {
                                 context.read<TotalActiveBloc>().add(
                                       AddCashPayment(
@@ -255,14 +156,16 @@ class _FlexiblePaymentHistoryWidgetState
                 ),
               ),
             ),
+
             const SizedBox(height: 12),
 
+            //  Payment History
             if (validPayments.isNotEmpty)
               Column(
                 children: validPayments.map((tx) {
                   bool isPaid = tx.status.toLowerCase() == "paid";
                   return Card(
-                    color: Colors.green[100],
+                    color: Colors.green[50],
                     elevation: 2,
                     margin: const EdgeInsets.symmetric(vertical: 6),
                     shape: RoundedRectangleBorder(
@@ -277,7 +180,7 @@ class _FlexiblePaymentHistoryWidgetState
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "₹${tx.amount?.toStringAsFixed(0) ?? '0.00'}",
+                                "₹${tx.amount.toStringAsFixed(0)}",
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 18,
@@ -288,14 +191,14 @@ class _FlexiblePaymentHistoryWidgetState
                               Text(
                                 "Paid: ${tx.paidDate.isNotEmpty ? formatDate(tx.paidDate) : '-'}",
                               ),
-                              Text("Mode: ${tx.paymentMode ?? '-'}"),
+                              Text("Mode: ${tx.paymentMode}"),
                             ],
                           ),
                           Container(
                             decoration: BoxDecoration(
                               color: isPaid
                                   ? Colors.green[200]
-                                  : Colors.green[300],
+                                  : Colors.orange[200],
                               borderRadius: BorderRadius.circular(8),
                             ),
                             padding: const EdgeInsets.symmetric(
@@ -305,7 +208,9 @@ class _FlexiblePaymentHistoryWidgetState
                             child: Text(
                               isPaid ? "PAID" : "Pending",
                               style: TextStyle(
-                                color: Colors.green[800],
+                                color: isPaid
+                                    ? Colors.green[800]
+                                    : Colors.orange[900],
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -323,6 +228,81 @@ class _FlexiblePaymentHistoryWidgetState
                   child: Text("No Payment History Found"),
                 ),
               ),
+          ],
+        );
+      },
+    );
+  }
+
+  // 🪄 Alert Dialog Helper
+  void _showAlert(BuildContext context, String title, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          title,
+          style: const TextStyle(
+              fontWeight: FontWeight.bold, color: Colors.redAccent),
+        ),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text("OK"),
+          )
+        ],
+      ),
+    );
+  }
+
+  // 🪄 Confirmation Dialog
+  Future<bool?> _showConfirmDialog(BuildContext context, double amount) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          title: const Text(
+            "Confirm Payment",
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("You are about to pay:", style: TextStyle(fontSize: 16)),
+              const SizedBox(height: 8),
+              Text(
+                "₹${amount.toStringAsFixed(0)}",
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                "Do you want to proceed?",
+                style: TextStyle(fontSize: 14, color: Colors.black54),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Appcolors.buttoncolor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text("Confirm", style: TextStyle(color: Colors.white)),
+            ),
           ],
         );
       },

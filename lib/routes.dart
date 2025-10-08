@@ -23,6 +23,15 @@ class AppRoutes {
   static const String customerDetail = '/dashboard/customer/detail';
   static const String totalActiveSchemes = '/dashboard/active_schemes/total';
   static const String todayActiveSchemes = '/dashboard/active_schemes/today';  
+  // ignore: constant_identifier_names
+  static const String today_fixed_payment = '/dashboard/active_schemes/today/fixed_payment';
+  // ignore: constant_identifier_names
+  static const String today_flexible_payment = '/dashboard/active_schemes/today/flexible_payment';
+  // ignore: constant_identifier_names
+  static const String total_fixed_payment = '/dashboard/active_schemes/total/fixed_payment';
+  // ignore: constant_identifier_names
+  static const String total_flexible_payment = '/dashboard/active_schemes/total/flexible_payment';
+
 
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -60,6 +69,17 @@ class AppRoutes {
       case todayActiveSchemes:
         return MaterialPageRoute(builder: (_) => const TodayActiveSchemesScreen());  
       
+      case today_fixed_payment:
+        return MaterialPageRoute(builder: (_) => const TodayActiveSchemesScreen());
+
+      case today_flexible_payment:
+        return MaterialPageRoute(builder: (_) => const TodayActiveSchemesScreen());
+
+      case total_fixed_payment:
+        return MaterialPageRoute(builder: (_) => const TotalActiveSchemesScreen());
+
+      case total_flexible_payment:
+        return MaterialPageRoute(builder: (_) => const TotalActiveSchemesScreen());
 
       default:
         return MaterialPageRoute(

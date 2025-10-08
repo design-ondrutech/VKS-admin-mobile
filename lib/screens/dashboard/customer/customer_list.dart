@@ -154,7 +154,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                   ),
                 ),
 
-                // 🔹 Pagination Footer
+                //  Pagination Footer
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                   decoration: BoxDecoration(

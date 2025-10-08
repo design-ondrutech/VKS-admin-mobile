@@ -14,8 +14,8 @@ import 'package:admin/blocs/schemes/schemes_bloc.dart';
 import 'package:admin/blocs/schemes/schemes_event.dart';
 import 'package:admin/blocs/today_active_scheme/today_active_bloc.dart';
 import 'package:admin/blocs/today_active_scheme/today_active_event.dart';
-import 'package:admin/blocs/total_active_scheme/active_scheme_bloc.dart';
-import 'package:admin/blocs/total_active_scheme/active_scheme_event.dart';
+import 'package:admin/blocs/total_active_scheme/total_active_bloc.dart';
+import 'package:admin/blocs/total_active_scheme/total_active_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -43,7 +43,7 @@ class GlobalRefreshWrapper extends StatelessWidget {
 
         // Active Schemes
         context.read<TotalActiveBloc>().add(FetchTotalActiveSchemes());
-        context.read<TodayActiveSchemeBloc>().add(FetchTodayActiveSchemes());
+        context.read<TodayActiveSchemeBloc>().add(FetchTodayActiveSchemes(page: 1, limit: 10, startDate: 'today'));
 
         // Payments
         context.read<OnlinePaymentBloc>().add(FetchOnlinePayments(page: 1, limit: 10));

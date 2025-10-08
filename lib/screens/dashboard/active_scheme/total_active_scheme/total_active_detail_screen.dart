@@ -1,23 +1,23 @@
-import 'package:admin/data/models/total_active_scheme.dart';
-import 'package:admin/screens/dashboard/widgets/fixed_payment.dart';
-import 'package:admin/screens/dashboard/widgets/flexible_payment.dart';
+import 'package:admin/data/models/TotalActiveScheme.dart';
+import 'package:admin/screens/dashboard/active_scheme/total_active_scheme/total_fixed_payment.dart';
+import 'package:admin/screens/dashboard/active_scheme/total_active_scheme/total_flexible_payment.dart';
+import 'package:admin/utils/colors.dart';
 import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
-import 'package:admin/utils/colors.dart';
 
-class TodayActiveSchemeDetailScreen extends StatelessWidget {
-  final TodayActiveScheme scheme;
+class TotalActiveSchemeDetailScreen extends StatelessWidget {
+  final TotalActiveScheme scheme;
 
-  const TodayActiveSchemeDetailScreen({super.key, required this.scheme});
+  const TotalActiveSchemeDetailScreen({super.key, required this.scheme});
+
+  // helper function
 
   @override
   Widget build(BuildContext context) {
-    bool isFlexible = scheme.schemeType.toLowerCase() == "flexible";
-
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          scheme.schemeName.isNotEmpty ? scheme.schemeName : '-',
+          scheme.schemeName,
           style: const TextStyle(color: Appcolors.white),
         ),
         centerTitle: true,
@@ -32,7 +32,7 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
               Expanded(
                 child: _summaryCard(
                   title: "Total Amount",
-                  value: "₹${scheme.totalAmount?.toStringAsFixed(2) ?? '0.00'}",
+                  value: "₹${scheme.totalAmount.toStringAsFixed(2)}",
                   color: Colors.green[400]!,
                   icon: Icons.account_balance_wallet,
                 ),
@@ -41,8 +41,7 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
               Expanded(
                 child: _summaryCard(
                   title: "Total Gold Weight",
-                  value:
-                      "${scheme.totalGoldWeight?.toStringAsFixed(2) ?? '0.0'} g",
+                  value: "${scheme.totalGoldWeight} g",
                   color: Colors.amber[700]!,
                   icon: Icons.scale,
                 ),
@@ -54,20 +53,22 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
           // ---------------- SCHEME DETAILS ----------------
           _sectionTitle("Scheme Details"),
           _infoCard([
+            // _infoRow("Saving ID", scheme.savingId),
             _infoRow("Scheme Name", scheme.schemeName),
             _infoRow("Scheme Type", scheme.schemeType),
             _infoRow("Status", scheme.status),
-            _infoRow("Gold Delivered", scheme.goldDelivered ? "Yes" : "No"),
+            _infoRow("Gold Delivered", scheme.goldDelivered > 0 ? "Yes" : "No"),
             _infoRow(
               "Delivered Gold Weight",
-              "${scheme.deliveredGoldWeight?.toStringAsFixed(2)} gm",
+              "${scheme.deliveredGoldWeight.toStringAsFixed(2)} gm",
             ),
             _infoRow(
               "Balance Gold Weight",
-              "${scheme.pendingGoldWeight?.toStringAsFixed(2)} gm",
+              "${scheme.pendingGoldWeight.toStringAsFixed(2)} gm",
             ),
             _infoRow("Purpose", scheme.schemePurpose),
             _infoRow("KYC Completed", scheme.isKyc ? "Yes" : "No"),
+            //  _infoRow("Completed", scheme.isCompleted ? "Yes" : "No"),
             _infoRow("Start Date", formatDate(scheme.startDate)),
             _infoRow("End Date", formatDate(scheme.endDate)),
             _infoRow("Last Updated", formatDate(scheme.lastUpdated)),
@@ -77,9 +78,9 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
           // ---------------- CUSTOMER INFO ----------------
           _sectionTitle("Customer Info"),
           _infoCard([
-            _infoRow("Name", scheme.customer.cName),
-            _infoRow("Email", scheme.customer.cEmail),
-            _infoRow("Phone", scheme.customer.cPhoneNumber),
+            _infoRow("Name", scheme.customer.name),
+            _infoRow("Email", scheme.customer.email),
+            _infoRow("Phone", scheme.customer.phoneNumber),
           ]),
           const SizedBox(height: 16),
 
@@ -88,24 +89,16 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
           _infoCard([
             _infoRow(
               "Total Amount",
-              "₹${scheme.totalAmount?.toStringAsFixed(2) ?? '0.00'}",
+              "₹${scheme.totalAmount.toStringAsFixed(2)}",
             ),
-            _infoRow(
-              "Paid Amount",
-              "₹${scheme.paidAmount?.toStringAsFixed(2) ?? '0.00'}",
-            ),
-            _infoRow(
-              "Next Due On",
-              scheme.history.isNotEmpty
-                  ? formatDate(scheme.history.first.dueDate)
-                  : "-",
-            ),
-            _infoRow(
-              "Gold Gram",
-              (scheme.history.isNotEmpty
-                  ? "${scheme.history.first.amount?.toStringAsFixed(2) ?? '0.0'} g"
-                  : '0.0 g'),
-            ),
+            _infoRow("Paid Amount", "₹${scheme.paidAmount.toStringAsFixed(2)}"),
+            if (scheme.history.isNotEmpty)
+              _infoRow("Next Due On", formatDate(scheme.history.first.dueDate)),
+            if (scheme.history.isNotEmpty)
+              _infoRow(
+                "Gold Gram",
+                formatDate("${scheme.history.first.goldWeight} g"),
+              ),
           ]),
           const SizedBox(height: 16),
 
@@ -120,11 +113,13 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
                 history: scheme.history,
                 savingId: scheme.savingId, //  added this
               ),
+         
         ],
       ),
     );
   }
 
+  // ---------------- HELPERS ----------------
   Widget _sectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -151,14 +146,14 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _infoRow(String key, String? value) {
+  Widget _infoRow(String key, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(key, style: const TextStyle(fontWeight: FontWeight.w600)),
-          Flexible(child: Text(value ?? '-', textAlign: TextAlign.right)),
+          Flexible(child: Text(value, textAlign: TextAlign.right)),
         ],
       ),
     );

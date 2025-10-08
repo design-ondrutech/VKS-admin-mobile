@@ -31,7 +31,7 @@ class TodayActiveSchemeResponse {
       data: (json['data'] as List<dynamic>?)
               ?.map((e) => TodayActiveScheme.fromJson(e))
               .toList() ??
-          [], //  Prevents crash if null
+          [],
       limit: json['limit'] ?? 0,
       page: json['page'] ?? 0,
       totalCount: json['totalCount'] ?? 0,
@@ -40,7 +40,28 @@ class TodayActiveSchemeResponse {
           (json['total_scheme_gold_weight'] as num?)?.toDouble(),
     );
   }
+
+  ///  Add this method
+  TodayActiveSchemeResponse copyWith({
+    List<TodayActiveScheme>? data,
+    int? limit,
+    int? page,
+    int? totalCount,
+    double? totalSchemeAmount,
+    double? totalSchemeGoldWeight,
+  }) {
+    return TodayActiveSchemeResponse(
+      data: data ?? this.data,
+      limit: limit ?? this.limit,
+      page: page ?? this.page,
+      totalCount: totalCount ?? this.totalCount,
+      totalSchemeAmount: totalSchemeAmount ?? this.totalSchemeAmount,
+      totalSchemeGoldWeight:
+          totalSchemeGoldWeight ?? this.totalSchemeGoldWeight,
+    );
+  }
 }
+
 
 class TodayActiveScheme {
   final String savingId;
@@ -64,6 +85,7 @@ class TodayActiveScheme {
   final double? pendingGoldWeight;
   final double? pendingAmount;
   final List<PaymentHistory> history;
+  
 
   TodayActiveScheme({
     required this.savingId,

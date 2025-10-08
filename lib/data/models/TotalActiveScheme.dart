@@ -9,6 +9,9 @@ double parseDouble(dynamic value) {
   return 0.0;
 }
 
+// =============================
+//  TOTAL ACTIVE SCHEME RESPONSE
+// =============================
 class TotalActiveSchemeResponse {
   final List<TotalActiveScheme> data;
   final int limit;
@@ -33,7 +36,6 @@ class TotalActiveSchemeResponse {
     );
   }
 
-  ///  copyWith added
   TotalActiveSchemeResponse copyWith({
     List<TotalActiveScheme>? data,
     int? limit,
@@ -49,6 +51,9 @@ class TotalActiveSchemeResponse {
   }
 }
 
+// =============================
+//  TOTAL ACTIVE SCHEME MODEL
+// =============================
 class TotalActiveScheme {
   final String savingId;
   final double paidAmount;
@@ -70,7 +75,7 @@ class TotalActiveScheme {
   final double deliveredGoldWeight;
   final double pendingGoldWeight;
   final double pendingAmount;
-  final List<History> history;
+  final List<History> history; //  fixed: only History
 
   TotalActiveScheme({
     required this.savingId,
@@ -124,7 +129,6 @@ class TotalActiveScheme {
     );
   }
 
-  ///  copyWith added (optional but useful)
   TotalActiveScheme copyWith({
     String? savingId,
     double? paidAmount,
@@ -173,6 +177,10 @@ class TotalActiveScheme {
     );
   }
 }
+
+// =============================
+//  HISTORY MODEL
+// =============================
 class History {
   final String dueDate;
   final String status;
@@ -214,7 +222,6 @@ class History {
         'amount': amount,
       };
 
-  ///  copyWith added
   History copyWith({
     String? dueDate,
     String? status,
@@ -235,5 +242,3 @@ class History {
     );
   }
 }
-
-// --- Rest of your History, Customer, Nominee, Address, Document models remain same ---

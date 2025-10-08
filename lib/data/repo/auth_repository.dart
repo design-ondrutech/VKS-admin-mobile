@@ -8,8 +8,8 @@ import 'package:admin/data/models/gold_rate.dart';
 import 'package:admin/data/models/notification_model.dart';
 import 'package:admin/data/models/online_payment.dart';
 import 'package:admin/data/models/scheme.dart';
-import 'package:admin/data/models/total_active_scheme.dart';
-import 'package:admin/data/models/today_active_scheme.dart';
+import 'package:admin/data/models/TodayActiveScheme.dart';
+import 'package:admin/data/models/TotalActiveScheme.dart';
 import 'package:admin/screens/dashboard/customer/customer_detail/model/customer_details_model.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'dart:developer';
@@ -636,13 +636,16 @@ class TodayActiveSchemeRepository {
 
   TodayActiveSchemeRepository(this.client);
 
+  ///  Fetch all today's active schemes
   Future<TodayActiveSchemeResponse> fetchTodayActiveSchemes({
     String? startDate,
     String? savingId,
+    required int page ,required int limit,
+
   }) async {
     const String query = r'''
-      query GetTodayActiveSchemes($startDate: String, $savingId: String) {
-        getTodayActiveSchemes(startDate: $startDate, savingId: $savingId) {
+      query GetTodayActiveSchemes($startDate: String, $savingId: String, $page: Float, $limit: Float) {
+        getTodayActiveSchemes(startDate: $startDate, savingId: $savingId, page: $page, limit: $limit) {
           data {
             saving_id
             paidAmount
@@ -742,8 +745,53 @@ class TodayActiveSchemeRepository {
     final data = result.data?['getTodayActiveSchemes'];
     return TodayActiveSchemeResponse.fromJson(data);
   }
-}
 
+  ///  Add cash payment to a customer’s saving
+  Future<Map<String, dynamic>> addCashCustomerSavings({
+    required String savingId,
+    required double amount,
+  }) async {
+    const mutation = r'''
+      mutation Mutation($data: AddAmountToSavingInput!) {
+        addCashCustomerSavings(data: $data) {
+          saving_id
+          customer {
+            id
+          }
+          scheme_id
+          total_amount
+          start_date
+          end_date
+          status
+          total_gold_weight
+          last_updated
+          bonusAmount
+          current_rate
+        }
+      }
+    ''';
+
+    final variables = {
+      "data": {
+        "saving_id": savingId,
+        "amount": amount,
+      },
+    };
+
+    final result = await client.mutate(
+      MutationOptions(
+        document: gql(mutation),
+        variables: variables,
+      ),
+    );
+
+    if (result.hasException) {
+      throw Exception(result.exception.toString());
+    }
+
+    return result.data!['addCashCustomerSavings'];
+  }
+}
 
 // Online Payment Repository
 

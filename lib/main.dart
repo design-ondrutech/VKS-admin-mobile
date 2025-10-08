@@ -2,8 +2,8 @@ import 'package:admin/blocs/notification/notification_event.dart';
 import 'package:admin/blocs/schemes/schemes_event.dart';
 import 'package:admin/blocs/today_active_scheme/today_active_bloc.dart';
 import 'package:admin/blocs/today_active_scheme/today_active_event.dart';
-import 'package:admin/blocs/total_active_scheme/active_scheme_bloc.dart';
-import 'package:admin/blocs/total_active_scheme/active_scheme_event.dart';
+import 'package:admin/blocs/total_active_scheme/total_active_bloc.dart';
+import 'package:admin/blocs/total_active_scheme/total_active_event.dart';
 import 'package:admin/blocs/auth/auth_bloc.dart';
 import 'package:admin/blocs/barchart/barchart_bloc.dart';
 import 'package:admin/blocs/card/card_bloc.dart';
@@ -31,12 +31,11 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // final HttpLink httpLink = HttpLink(
-  // //  'http://api-vkskumaran-0env-env.eba-jpagnpin.ap-south-1.elasticbeanstalk.com/graphql/admin',
-  // );
-   final HttpLink httpLink = HttpLink('http://10.0.2.2:4000/graphql/admin');
+   final HttpLink httpLink = HttpLink('http://api-vkskumaran-0env-env.eba-jpagnpin.ap-south-1.elasticbeanstalk.com/graphql/admin',);
+
+   //final HttpLink httpLink = HttpLink('http://10.0.2.2:4000/graphql/admin');
    
-  //final HttpLink httpLink = HttpLink('https://api.vkskumaran.in/graphql/admin');
+ //  final HttpLink httpLink = HttpLink('https://api.vkskumaran.in/graphql/admin');
 
   // Create the GraphQL client
   final GraphQLClient graphQLClient = GraphQLClient(
@@ -85,7 +84,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       context.read<CardBloc>().add(FetchCardSummary());
       context.read<CustomerBloc>().add(FetchCustomers(page: 1, limit: 10));
       context.read<TotalActiveBloc>().add(FetchTotalActiveSchemes());
-      context.read<TodayActiveSchemeBloc>().add(FetchTodayActiveSchemes());
+      context.read<TodayActiveSchemeBloc>().add(FetchTodayActiveSchemes(page: 1, limit: 10, startDate: 'today'));
       context.read<OnlinePaymentBloc>().add(
         FetchOnlinePayments(page: 1, limit: 10),
       );
@@ -152,7 +151,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           create:
               (_) =>
                   TodayActiveSchemeBloc(repository: todayActiveSchemeRepository)
-                    ..add(FetchTodayActiveSchemes()),
+                    ..add(FetchTodayActiveSchemes(page: 1, limit: 10, startDate: 'today')),
         ),
         BlocProvider(
           create:

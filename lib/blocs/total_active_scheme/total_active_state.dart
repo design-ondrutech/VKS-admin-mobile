@@ -1,5 +1,5 @@
 // active_scheme_state.dart
-import 'package:admin/data/models/today_active_scheme.dart';
+import 'package:admin/data/models/TotalActiveScheme.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class TotalActiveState extends Equatable {
