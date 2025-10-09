@@ -15,11 +15,13 @@ class SchemeOperationSuccess extends SchemesState {
   SchemeOperationSuccess(this.scheme);
 }
 
-class SchemeError extends SchemesState {
-  final String message;
-  SchemeError(this.message);
-}
 class SchemeActionSuccess extends SchemesState {
   final String message;
   SchemeActionSuccess(this.message);
 }
+
+class SchemeError extends SchemesState {
+  final String error;
+  SchemeError(this.error);
+}
+

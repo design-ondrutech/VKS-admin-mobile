@@ -4,13 +4,14 @@ import 'package:admin/screens/dashboard/active_scheme/total_active_scheme/total_
 import 'package:admin/utils/colors.dart';
 import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:admin/blocs/total_active_scheme/total_active_bloc.dart';
+import 'package:admin/blocs/total_active_scheme/total_active_state.dart';
 
 class TotalActiveSchemeDetailScreen extends StatelessWidget {
   final TotalActiveScheme scheme;
 
   const TotalActiveSchemeDetailScreen({super.key, required this.scheme});
-
-  // helper function
 
   @override
   Widget build(BuildContext context) {
@@ -23,98 +24,114 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
         centerTitle: true,
         backgroundColor: Appcolors.headerbackground,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // ---------------- SUMMARY CARDS ----------------
-          Row(
+      body: BlocBuilder<TotalActiveBloc, TotalActiveState>(
+        builder: (context, state) {
+          TotalActiveScheme currentScheme = scheme;
+
+          //  When data refreshed after payment success
+          if (state is TotalActiveLoaded) {
+            try {
+              currentScheme = state.response.data.firstWhere(
+                (s) => s.savingId == scheme.savingId,
+                orElse: () => scheme,
+              );
+            } catch (_) {}
+          }
+
+          return ListView(
+            padding: const EdgeInsets.all(16),
             children: [
-              Expanded(
-                child: _summaryCard(
-                  title: "Total Amount",
-                  value: "₹${scheme.totalAmount.toStringAsFixed(2)}",
-                  color: Colors.green[400]!,
-                  icon: Icons.account_balance_wallet,
-                ),
+              // ---------------- SUMMARY CARDS ----------------
+              Row(
+                children: [
+                  Expanded(
+                    child: _summaryCard(
+                      title: "Total Amount",
+                      value: "₹${currentScheme.totalAmount.toStringAsFixed(2)}",
+                      color: Colors.green[400]!,
+                      icon: Icons.account_balance_wallet,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _summaryCard(
+                      title: "Total Gold Weight",
+                      value: "${currentScheme.totalGoldWeight} g",
+                      color: Colors.amber[700]!,
+                      icon: Icons.scale,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _summaryCard(
-                  title: "Total Gold Weight",
-                  value: "${scheme.totalGoldWeight} g",
-                  color: Colors.amber[700]!,
-                  icon: Icons.scale,
+              const SizedBox(height: 24),
+
+              // ---------------- SCHEME DETAILS ----------------
+              _sectionTitle("Scheme Details"),
+              _infoCard([
+                _infoRow("Scheme Name", currentScheme.schemeName),
+                _infoRow("Scheme Type", currentScheme.schemeType),
+                _infoRow("Status", currentScheme.status),
+                _infoRow(
+                    "Gold Delivered", currentScheme.goldDelivered > 0 ? "Yes" : "No"),
+                _infoRow(
+                  "Delivered Gold Weight",
+                  "${currentScheme.deliveredGoldWeight.toStringAsFixed(2)} gm",
                 ),
+                _infoRow(
+                  "Balance Gold Weight",
+                  "${currentScheme.pendingGoldWeight.toStringAsFixed(2)} gm",
+                ),
+                _infoRow("Purpose", currentScheme.schemePurpose),
+                _infoRow("KYC Completed", currentScheme.isKyc ? "Yes" : "No"),
+                _infoRow("Start Date", formatDate(currentScheme.startDate)),
+                _infoRow("End Date", formatDate(currentScheme.endDate)),
+                _infoRow("Last Updated", formatDate(currentScheme.lastUpdated)),
+              ]),
+              const SizedBox(height: 16),
+
+              // ---------------- CUSTOMER INFO ----------------
+              _sectionTitle("Customer Info"),
+              _infoCard([
+                _infoRow("Name", currentScheme.customer.name),
+                _infoRow("Email", currentScheme.customer.email),
+                _infoRow("Phone", currentScheme.customer.phoneNumber),
+              ]),
+              const SizedBox(height: 16),
+
+              // ---------------- PAYMENT DETAILS ----------------
+              _sectionTitle("Payment Details"),
+              _infoCard([
+                _infoRow("Total Amount",
+                    "₹${currentScheme.totalAmount.toStringAsFixed(2)}"),
+                _infoRow("Paid Amount",
+                    "₹${currentScheme.paidAmount.toStringAsFixed(2)}"),
+                if (currentScheme.history.isNotEmpty)
+                  _infoRow("Next Due On", formatDate(currentScheme.history.first.dueDate)),
+                if (currentScheme.history.isNotEmpty)
+                  _infoRow("Gold Gram",
+                      "${currentScheme.history.first.goldWeight.toStringAsFixed(2)} g"),
+              ]),
+              const SizedBox(height: 16),
+
+              // ---------------- PAYMENT HISTORY ----------------
+              _sectionTitle("Payment History"),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 500),
+                child: (currentScheme.schemeType.toLowerCase()) == "flexible"
+                    ? FlexiblePaymentHistoryWidget(
+                        key: ValueKey("${currentScheme.savingId}_flexible"),
+                        history: currentScheme.history,
+                        savingId: currentScheme.savingId,
+                      )
+                    : FixedPaymentHistoryWidget(
+                        key: ValueKey("${currentScheme.savingId}_fixed"),
+                        history: currentScheme.history,
+                        savingId: currentScheme.savingId,
+                      ),
               ),
             ],
-          ),
-          const SizedBox(height: 24),
-
-          // ---------------- SCHEME DETAILS ----------------
-          _sectionTitle("Scheme Details"),
-          _infoCard([
-            // _infoRow("Saving ID", scheme.savingId),
-            _infoRow("Scheme Name", scheme.schemeName),
-            _infoRow("Scheme Type", scheme.schemeType),
-            _infoRow("Status", scheme.status),
-            _infoRow("Gold Delivered", scheme.goldDelivered > 0 ? "Yes" : "No"),
-            _infoRow(
-              "Delivered Gold Weight",
-              "${scheme.deliveredGoldWeight.toStringAsFixed(2)} gm",
-            ),
-            _infoRow(
-              "Balance Gold Weight",
-              "${scheme.pendingGoldWeight.toStringAsFixed(2)} gm",
-            ),
-            _infoRow("Purpose", scheme.schemePurpose),
-            _infoRow("KYC Completed", scheme.isKyc ? "Yes" : "No"),
-            //  _infoRow("Completed", scheme.isCompleted ? "Yes" : "No"),
-            _infoRow("Start Date", formatDate(scheme.startDate)),
-            _infoRow("End Date", formatDate(scheme.endDate)),
-            _infoRow("Last Updated", formatDate(scheme.lastUpdated)),
-          ]),
-          const SizedBox(height: 16),
-
-          // ---------------- CUSTOMER INFO ----------------
-          _sectionTitle("Customer Info"),
-          _infoCard([
-            _infoRow("Name", scheme.customer.name),
-            _infoRow("Email", scheme.customer.email),
-            _infoRow("Phone", scheme.customer.phoneNumber),
-          ]),
-          const SizedBox(height: 16),
-
-          // ---------------- PAYMENT DETAILS ----------------
-          _sectionTitle("Payment Details"),
-          _infoCard([
-            _infoRow(
-              "Total Amount",
-              "₹${scheme.totalAmount.toStringAsFixed(2)}",
-            ),
-            _infoRow("Paid Amount", "₹${scheme.paidAmount.toStringAsFixed(2)}"),
-            if (scheme.history.isNotEmpty)
-              _infoRow("Next Due On", formatDate(scheme.history.first.dueDate)),
-            if (scheme.history.isNotEmpty)
-              _infoRow(
-                "Gold Gram",
-                formatDate("${scheme.history.first.goldWeight} g"),
-              ),
-          ]),
-          const SizedBox(height: 16),
-
-          // ---------------- PAYMENT HISTORY ----------------
-          _sectionTitle("Payment History"),
-          (scheme.schemeType.toLowerCase()) == "flexible"
-              ? FlexiblePaymentHistoryWidget(
-                history: scheme.history,
-                savingId: scheme.savingId, //  REQUIRED param
-              )
-              : FixedPaymentHistoryWidget(
-                history: scheme.history,
-                savingId: scheme.savingId, //  added this
-              ),
-         
-        ],
+          );
+        },
       ),
     );
   }

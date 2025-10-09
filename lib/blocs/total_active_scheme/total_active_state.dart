@@ -30,7 +30,14 @@ class TotalActiveError extends TotalActiveState {
 }
 
 //  Add these below
-class CashPaymentLoading extends TotalActiveState {}
+class CashPaymentLoading extends TotalActiveState {
+  final String savingId;
+
+  CashPaymentLoading({required this.savingId});
+
+  @override
+  List<Object?> get props => [savingId];
+}
 
 class CashPaymentSuccess extends TotalActiveState {
   final String savingId;

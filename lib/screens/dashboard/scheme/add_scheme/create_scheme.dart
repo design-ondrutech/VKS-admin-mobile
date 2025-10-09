@@ -44,133 +44,154 @@ class _AddUpdateSchemeDialogState extends State<AddUpdateSchemeDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey, // 👈 wrap with Form
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  widget.initialScheme == null ? "Create Scheme" : "Edit Scheme",
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 20),
-                _buildTextField("Name", nameCtrl,),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  value: selectedType,
-                  items: const [
-                    DropdownMenuItem(value: "fixed", child: Text("Fixed")),
-                    DropdownMenuItem(value: "flexible", child: Text("Flexible")),
-                  ],
-                  onChanged: (val) => setState(() => selectedType = val!),
-                  decoration: _dropdownDecoration("Scheme Type"),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  value: selectedDurationType,
-                  items: const [
-                    DropdownMenuItem(value: "Monthly", child: Text("Monthly")),
-                    DropdownMenuItem(value: "Daily", child: Text("Daily")),
-                  ],
-                  onChanged: (val) => setState(() => selectedDurationType = val!),
-                  decoration: _dropdownDecoration("Duration Type"),
-                ),
-                const SizedBox(height: 12),
-                _buildTextField("Duration", durationCtrl, isNumber: true,  ),
-                const SizedBox(height: 12),
-                _buildTextField("Min Amount", minCtrl, isNumber: true, ),
-                const SizedBox(height: 12),
-                _buildTextField("Max Amount", maxCtrl, isNumber: true),
-                const SizedBox(height: 12),
-                _buildTextField("Increment Amount", incrementCtrl, isNumber: true),
-                const SizedBox(height: 12),
-                _buildTextField("Threshold", thresholdCtrl, isNumber: true),
-                const SizedBox(height: 12),
-                _buildTextField("Bonus", bonusCtrl, isNumber: true),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+    return BlocConsumer<SchemesBloc, SchemesState>(
+      listener: (context, state) {
+        if (state is SchemeActionSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
+          Navigator.pop(context, true); // close the dialog
+        } else if (state is SchemeError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Error: ${state.error}")),
+          );
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state is SchemeLoading;
+
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text("Cancel", style: TextStyle(color: Colors.red)),
+                    Text(
+                      widget.initialScheme == null ? "Create Scheme" : "Edit Scheme",
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(width: 12),
-                    ElevatedButton(
-                      onPressed: _onSubmit,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Appcolors.buttoncolor,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                      child: Text(
-                        widget.initialScheme == null ? "Add Scheme" : "Update",
-                        style: const TextStyle(color: Colors.white),
-                      ),
+                    const SizedBox(height: 20),
+                    _buildTextField("Name", nameCtrl),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: selectedType,
+                      items: const [
+                        DropdownMenuItem(value: "fixed", child: Text("Fixed")),
+                        DropdownMenuItem(value: "flexible", child: Text("Flexible")),
+                      ],
+                      onChanged: (val) => setState(() => selectedType = val!),
+                      decoration: _dropdownDecoration("Scheme Type"),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: selectedDurationType,
+                      items: const [
+                        DropdownMenuItem(value: "Monthly", child: Text("Monthly")),
+                        DropdownMenuItem(value: "Daily", child: Text("Daily")),
+                      ],
+                      onChanged: (val) => setState(() => selectedDurationType = val!),
+                      decoration: _dropdownDecoration("Duration Type"),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildTextField("Duration", durationCtrl, isNumber: true),
+                    const SizedBox(height: 12),
+                    _buildTextField("Min Amount", minCtrl, isNumber: true),
+                    const SizedBox(height: 12),
+                    _buildTextField("Max Amount", maxCtrl, isNumber: true),
+                    const SizedBox(height: 12),
+                    _buildTextField("Increment Amount", incrementCtrl, isNumber: true),
+                    const SizedBox(height: 12),
+                    _buildTextField("Threshold", thresholdCtrl, isNumber: true),
+                    const SizedBox(height: 12),
+                    _buildTextField("Bonus", bonusCtrl, isNumber: true),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text("Cancel", style: TextStyle(color: Colors.red)),
+                        ),
+                        const SizedBox(width: 12),
+                        ElevatedButton(
+                          onPressed: isLoading ? null : _onSubmit,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Appcolors.buttoncolor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: isLoading
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Text(
+                                  widget.initialScheme == null ? "Add Scheme" : "Update",
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
   void _onSubmit() {
-  if (!_formKey.currentState!.validate()) {
-    return; // stop if any field invalid
+    if (!_formKey.currentState!.validate()) return;
+
+    final scheme = Scheme(
+      schemeId: widget.initialScheme?.schemeId ?? "",
+      schemeName: nameCtrl.text.trim(),
+      schemeType: selectedType,
+      durationType: selectedDurationType,
+      duration: int.tryParse(durationCtrl.text) ?? 0,
+      minAmount: double.tryParse(minCtrl.text) ?? 0,
+      maxAmount: double.tryParse(maxCtrl.text) ?? 0,
+      incrementAmount: double.tryParse(incrementCtrl.text) ?? 0,
+      isActive: true,
+      threshold: double.tryParse(thresholdCtrl.text) ?? 0,
+      bonus: double.tryParse(bonusCtrl.text) ?? 0,
+    );
+
+    final bloc = context.read<SchemesBloc>();
+    if (widget.initialScheme == null) {
+      bloc.add(AddScheme(scheme));
+    } else {
+      bloc.add(UpdateScheme(scheme));
+    }
   }
-
-  final scheme = Scheme(
-    schemeId: widget.initialScheme?.schemeId ?? "",
-    schemeName: nameCtrl.text.trim(),
-    schemeType: selectedType,
-    durationType: selectedDurationType,
-    duration: int.tryParse(durationCtrl.text) ?? 0,
-    minAmount: double.tryParse(minCtrl.text) ?? 0,
-    maxAmount: double.tryParse(maxCtrl.text) ?? 0,
-    incrementAmount: double.tryParse(incrementCtrl.text) ?? 0,
-    isActive: true,
-    threshold: double.tryParse(thresholdCtrl.text) ?? 0,
-    bonus: double.tryParse(bonusCtrl.text) ?? 0,
-  );
-
-  final bloc = context.read<SchemesBloc>();
-  if (widget.initialScheme == null) {
-    bloc.add(AddScheme(scheme));
-  } else {
-    bloc.add(UpdateScheme(scheme));
-  }
-}
-
 
   Widget _buildTextField(
-  String label,
-  TextEditingController controller, {
-  bool isNumber = false,
-}) {
-  return TextFormField(
-    controller: controller,
-    keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-    decoration: InputDecoration(
-      labelText: label,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-    ),
-    validator: (val) {
-      if (val == null || val.trim().isEmpty) {
-        return "$label is required"; //  red error inside box
-      }
-      return null;
-    },
-  );
-}
-
+    String label,
+    TextEditingController controller, {
+    bool isNumber = false,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      validator: (val) =>
+          val == null || val.trim().isEmpty ? "$label is required" : null,
+    );
+  }
 
   InputDecoration _dropdownDecoration(String label) {
     return InputDecoration(

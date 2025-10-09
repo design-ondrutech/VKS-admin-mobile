@@ -17,7 +17,6 @@ class OnlinePaymentScreen extends StatefulWidget {
 }
 
 class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
-  late ScrollController _scrollController;
   late OnlinePaymentBloc bloc;
   bool _initialized = false;
 
@@ -29,35 +28,11 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
       final client = GraphQLProvider.of(context).value;
       bloc = OnlinePaymentBloc(OnlinePaymentRepository(client));
       bloc.add(FetchOnlinePayments(page: 1, limit: 10));
-
-      _scrollController = ScrollController();
-      _scrollController.addListener(_scrollListener);
-
       _initialized = true;
     }
   }
 
-  void _scrollListener() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
-      final state = bloc.state;
-      if (state is OnlinePaymentLoaded) {
-        if (state.response!.currentPage < state.response!.totalPages) {
-          bloc.add(FetchOnlinePayments(
-              page: state.response!.currentPage + 1, limit: 10));
-        }
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    bloc.close();
-    super.dispose();
-  }
-
-  // ---------- Safe Parsing ----------
+  // ---------- Helper Functions ----------
   String _safeNumber(dynamic value) {
     if (value == null) return "0.00";
     try {
@@ -69,7 +44,6 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
     }
   }
 
-  // ---------- Status & Helper Methods ----------
   Color _statusColor(String status) {
     switch (status.toLowerCase()) {
       case "paid":
@@ -144,7 +118,33 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
     );
   }
 
-  // ---------- Build Method ----------
+  // ---------- Page Button ----------
+  Widget _pageButton(String label, bool enabled, VoidCallback onTap) {
+    return ElevatedButton(
+      onPressed: enabled ? onTap : null,
+      style: ElevatedButton.styleFrom(
+        backgroundColor:
+            enabled ? Appcolors.headerbackground : Colors.grey.shade300,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(6),
+        ),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: enabled ? Colors.white : Colors.grey.shade600,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  void _loadPage(int page) {
+    bloc.add(FetchOnlinePayments(page: page, limit: 10));
+  }
+
+  // ---------- Build ----------
   @override
   Widget build(BuildContext context) {
     return BlocProvider.value(
@@ -164,127 +164,152 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
               return const Center(child: CircularProgressIndicator());
             } else if (state is OnlinePaymentError) {
               return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text("Error: ${state.message}",
-                        style: const TextStyle(color: Colors.red)),
-                    const SizedBox(height: 12),
-                    // ElevatedButton(
-                    //   onPressed: () {
-                    //     bloc.add(FetchOnlinePayments(page: 1, limit: 10));
-                    //   },
-                    //   child: const Text("Retry"),
-                    // ),
-                  ],
-                ),
+                child: Text("Error: ${state.message}",
+                    style: const TextStyle(color: Colors.red)),
               );
-            } else if (state is OnlinePaymentLoaded ||
-                state is OnlinePaymentLoading) {
-              final payments = bloc.allPayments;
+            } else if (state is OnlinePaymentLoaded) {
+              final payments = state.response!.data ?? [];
               if (payments.isEmpty) {
                 return const Center(child: Text("No Online Payments Found"));
               }
 
-              return ListView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsets.all(16),
-                itemCount: payments.length + 1,
-                itemBuilder: (context, index) {
-                  if (index < payments.length) {
-                    final OnlinePayment payment = payments[index];
-                    final txnStatus = _statusString(payment.transactionStatus);
+              return Column(
+                children: [
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: payments.length,
+                      itemBuilder: (context, index) {
+                        final OnlinePayment payment = payments[index];
+                        final txnStatus =
+                            _statusString(payment.transactionStatus);
 
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 6,
-                              offset: const Offset(0, 4))
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 12),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
-                              borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(16)),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                    child: Text(
-                                        payment.customerName.isNotEmpty
-                                            ? payment.customerName
-                                            : "No Name",
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.blue.shade900),
-                                        overflow: TextOverflow.ellipsis)),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: _statusColor(txnStatus),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(_statusIcon(txnStatus),
-                                          size: 16,
-                                          color: _statusTextColor(txnStatus)),
-                                      const SizedBox(width: 4),
-                                      Text(txnStatus.toUpperCase(),
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 13,
-                                              color:
-                                                  _statusTextColor(txnStatus))),
-                                    ],
-                                  ),
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 4))
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.shade50,
+                                  borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(16)),
                                 ),
-                              ],
-                            ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                        child: Text(
+                                            payment.customerName.isNotEmpty
+                                                ? payment.customerName
+                                                : "No Name",
+                                            style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.blue.shade900),
+                                            overflow:
+                                                TextOverflow.ellipsis)),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: _statusColor(txnStatus),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(_statusIcon(txnStatus),
+                                              size: 16,
+                                              color:
+                                                  _statusTextColor(txnStatus)),
+                                          const SizedBox(width: 4),
+                                          Text(txnStatus.toUpperCase(),
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontSize: 13,
+                                                  color: _statusTextColor(
+                                                      txnStatus))),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _infoRow(Icons.calendar_today,
+                                        _formatDate(payment.transactionDate)),
+                                    const Divider(height: 24),
+                                    _infoRow(Icons.workspace_premium,
+                                        "${_safeNumber(payment.transactionGoldGram)} gm"),
+                                    _infoRow(Icons.currency_rupee,
+                                        "₹${_safeNumber(payment.transactionAmount)}"),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                          Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _infoRow(Icons.calendar_today,
-                                    _formatDate(payment.transactionDate)),
-                                const Divider(height: 24),
-                                _infoRow(Icons.workspace_premium,
-                                    "${_safeNumber(payment.transactionGoldGram)} gm"),
-                                _infoRow(Icons.currency_rupee,
-                                    "₹${_safeNumber(payment.transactionAmount)}"),
-                              ],
-                            ),
-                          ),
-                        ],
+                        );
+                      },
+                    ),
+                  ),
+
+                  // ---------- Pagination Footer ----------
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 12, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: const Border(
+                        top: BorderSide(color: Colors.black12, width: 0.6),
                       ),
-                    );
-                  } else {
-                    return bloc.isFetching
-                        ? const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Center(child: CircularProgressIndicator()),
-                          )
-                        : const SizedBox.shrink();
-                  }
-                },
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Page ${state.response!.currentPage} of ${state.response!.totalPages}",
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Row(
+                          children: [
+                            _pageButton(
+                              "Previous",
+                              state.response!.currentPage > 1,
+                              () => _loadPage(state.response!.currentPage - 1),
+                            ),
+                            const SizedBox(width: 8),
+                            _pageButton(
+                              "Next",
+                              state.response!.currentPage <
+                                  state.response!.totalPages,
+                              () => _loadPage(state.response!.currentPage + 1),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               );
             }
+
             return const SizedBox.shrink();
           },
         ),

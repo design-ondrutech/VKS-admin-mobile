@@ -64,7 +64,7 @@ class SchemesTab extends StatelessWidget {
       return const Center(child: CircularProgressIndicator());
     } else if (state is SchemeError) {
       return Center(
-        child: Text("Error: ${state.message}", style: const TextStyle(color: Colors.red)),
+        child: Text("Error: ${state.error}", style: const TextStyle(color: Colors.red)),
       );
     } else if (state is SchemeLoaded) {
       final schemes = state.schemes;
@@ -190,7 +190,7 @@ class SchemesTab extends StatelessWidget {
             } else if (state is SchemeError) {
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("❌ ${state.message}"), backgroundColor: Colors.red),
+                SnackBar(content: Text("❌ ${state.error}"), backgroundColor: Colors.red),
               );
             }
           },

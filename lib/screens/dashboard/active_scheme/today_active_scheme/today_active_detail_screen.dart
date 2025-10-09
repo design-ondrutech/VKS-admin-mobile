@@ -1,10 +1,12 @@
-
+import 'package:admin/blocs/today_active_scheme/today_active_bloc.dart';
+import 'package:admin/blocs/today_active_scheme/today_active_state.dart';
 import 'package:admin/data/models/TodayActiveScheme.dart';
 import 'package:admin/screens/dashboard/active_scheme/today_active_scheme/today_fixed_payment.dart';
 import 'package:admin/screens/dashboard/active_scheme/today_active_scheme/today_flexible_payment.dart';
 import 'package:admin/utils/colors.dart';
 import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class TodayActiveSchemeDetailScreen extends StatelessWidget {
   final TodayActiveScheme scheme; //  unified model
@@ -55,7 +57,7 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
             _infoRow("Scheme Name", scheme.schemeName),
             _infoRow("Scheme Type", scheme.schemeType),
             _infoRow("Status", scheme.status),
-           _infoRow("Gold Delivered", scheme.goldDelivered ? "Yes" : "No"),
+            _infoRow("Gold Delivered", scheme.goldDelivered ? "Yes" : "No"),
             _infoRow(
               "Delivered Gold Weight",
               "${scheme.deliveredGoldWeight?.toStringAsFixed(2)} gm",
@@ -84,8 +86,14 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
           // ---------------- PAYMENT DETAILS ----------------
           _sectionTitle("Payment Details"),
           _infoCard([
-            _infoRow("Total Amount", "₹${scheme.totalAmount?.toStringAsFixed(2)}"),
-            _infoRow("Paid Amount", "₹${scheme.paidAmount?.toStringAsFixed(2)}"),
+            _infoRow(
+              "Total Amount",
+              "₹${scheme.totalAmount?.toStringAsFixed(2)}",
+            ),
+            _infoRow(
+              "Paid Amount",
+              "₹${scheme.paidAmount?.toStringAsFixed(2)}",
+            ),
             _infoRow(
               "Next Due On",
               scheme.history.isNotEmpty
@@ -102,18 +110,40 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
           const SizedBox(height: 16),
 
           // ---------------- PAYMENT HISTORY ----------------
+          // ---------------- PAYMENT HISTORY ----------------
           _sectionTitle("Payment History"),
-          (scheme.schemeType.toLowerCase()) == "flexible"
-              ? FlexiblePaymentHistoryWidget(
-                history: scheme.history,
-                savingId: scheme.savingId, //  REQUIRED param
-              )
-              : FixedPaymentHistoryWidget(
-                history: scheme.history,
-                savingId: scheme.savingId, //  added this
-              ),
 
-         
+          BlocBuilder<TodayActiveSchemeBloc, TodayActiveSchemeState>(
+            builder: (context, state) {
+              TodayActiveScheme currentScheme = scheme;
+
+              //  When new data is fetched after payment success
+              if (state is TodayActiveSchemeLoaded) {
+                try {
+                  currentScheme = state.response.data.firstWhere(
+                    (s) => s.savingId == scheme.savingId,
+                    orElse: () => scheme,
+                  );
+                } catch (_) {}
+              }
+
+              return AnimatedSwitcher(
+                duration: const Duration(milliseconds: 500),
+                child:
+                    (currentScheme.schemeType.toLowerCase()) == "flexible"
+                        ? TodayFlexiblePaymentWidget(
+                          key: ValueKey("${currentScheme.savingId}_flexible"),
+                          history: currentScheme.history,
+                          savingId: currentScheme.savingId,
+                        )
+                        : TodayFixedPaymentWidget(
+                          key: ValueKey("${currentScheme.savingId}_fixed"),
+                          history: currentScheme.history,
+                          savingId: currentScheme.savingId,
+                        ),
+              );
+            },
+          ),
         ],
       ),
     );
