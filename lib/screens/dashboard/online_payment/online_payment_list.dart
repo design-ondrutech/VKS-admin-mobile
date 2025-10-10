@@ -168,7 +168,7 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
                     style: const TextStyle(color: Colors.red)),
               );
             } else if (state is OnlinePaymentLoaded) {
-              final payments = state.response!.data ?? [];
+              final payments = state.response!.data;
               if (payments.isEmpty) {
                 return const Center(child: Text("No Online Payments Found"));
               }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:admin/blocs/gold_price/gold_bloc.dart';
 import 'package:admin/blocs/gold_price/gold_event.dart';
 import 'package:admin/blocs/gold_price/gold_state.dart';
+import 'package:admin/data/models/gold_rate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:admin/utils/colors.dart';
@@ -86,29 +87,56 @@ class _DashboardTopHeaderState extends State<DashboardTopHeader> {
                             style: TextStyle(fontSize: 12, color: Colors.grey),
                           );
                         }
+
                         if (state is GoldPriceLoaded) {
-                          final todayGold = state.goldRates.isNotEmpty
-                              ? state.goldRates.first.price
-                              : "N/A";
-                          final todaySilver = state.silverRates.isNotEmpty
-                              ? state.silverRates.first.price
-                              : "N/A";
+                          final today = DateTime.now();
+                          final todayStr =
+                              "${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}";
+
+                          GoldPrice? todayGold;
+                          if (state.goldRates.any(
+                            (rate) => rate.date == todayStr,
+                          )) {
+                            todayGold = state.goldRates.firstWhere(
+                              (rate) => rate.date == todayStr,
+                            );
+                          } else {
+                            todayGold = null;
+                          }
+
+                          GoldPrice? todaySilver;
+                          if (state.silverRates.any(
+                            (rate) => rate.date == todayStr,
+                          )) {
+                            todaySilver = state.silverRates.firstWhere(
+                              (rate) => rate.date == todayStr,
+                            );
+                          } else {
+                            todaySilver = null;
+                          }
+
+                          final goldPrice = todayGold?.price ?? "N/A";
+                          final silverPrice = todaySilver?.price ?? "N/A";
 
                           return Row(
                             children: [
-                              _priceTag("Gold", todayGold, Colors.orange),
+                              _priceTag("Gold", goldPrice, Colors.orange),
                               const SizedBox(width: 12),
-                              _priceTag("Silver", todaySilver, Colors.blueGrey),
+                              _priceTag("Silver", silverPrice, Colors.blueGrey),
                             ],
                           );
                         }
+
                         if (state is GoldPriceError) {
                           return Text(
                             "Error: ${state.message}",
                             style: const TextStyle(
-                                fontSize: 12, color: Colors.red),
+                              fontSize: 12,
+                              color: Colors.red,
+                            ),
                           );
                         }
+
                         return const SizedBox();
                       },
                     ),
@@ -123,8 +151,7 @@ class _DashboardTopHeaderState extends State<DashboardTopHeader> {
                   color: Appcolors.buttoncolor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child:
-                    const Icon(Icons.menu, size: 28, color: Colors.black87),
+                child: const Icon(Icons.menu, size: 28, color: Colors.black87),
               ),
             ],
           ),

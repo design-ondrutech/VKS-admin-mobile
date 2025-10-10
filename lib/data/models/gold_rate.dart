@@ -1,4 +1,5 @@
 class GoldPrice {
+  final String? id; 
   final String priceId;
   final String date;
   final String value;
@@ -11,6 +12,7 @@ class GoldPrice {
   final bool isPriceUp;
 
   GoldPrice({
+    this.id,
     required this.priceId,
     required this.date,
     required this.value,
@@ -25,6 +27,7 @@ class GoldPrice {
 
   factory GoldPrice.fromJson(Map<String, dynamic> json) {
     return GoldPrice(
+      id: json['_id'],
       priceId: json['price_id'],
       date: json['date'],
       value: json['value'],
@@ -38,5 +41,4 @@ class GoldPrice {
     );
   }
 
-  get id => null;
 }
