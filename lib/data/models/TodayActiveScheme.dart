@@ -1,5 +1,7 @@
+import 'package:admin/data/models/customer.dart';
 import 'package:admin/screens/dashboard/customer/customer_detail/model/customer_details_model.dart';
 
+/// Safely converts any value to a double
 double parseDouble(dynamic value) {
   if (value == null) return 0.0;
   if (value is double) return value;
@@ -9,6 +11,9 @@ double parseDouble(dynamic value) {
   return 0.0;
 }
 
+/// =======================================
+///   TODAY ACTIVE SCHEME RESPONSE MODEL
+/// =======================================
 class TodayActiveSchemeResponse {
   final List<TodayActiveScheme> data;
   final int limit;
@@ -41,7 +46,6 @@ class TodayActiveSchemeResponse {
     );
   }
 
-  ///  Add this method
   TodayActiveSchemeResponse copyWith({
     List<TodayActiveScheme>? data,
     int? limit,
@@ -62,7 +66,9 @@ class TodayActiveSchemeResponse {
   }
 }
 
-
+/// =======================================
+///   TODAY ACTIVE SCHEME MODEL
+/// =======================================
 class TodayActiveScheme {
   final String savingId;
   final double? paidAmount;
@@ -84,8 +90,9 @@ class TodayActiveScheme {
   final double? deliveredGoldWeight;
   final double? pendingGoldWeight;
   final double? pendingAmount;
+  final double? totalBenefitGram;
+  final double? tottalbonusgoldweight;
   final List<PaymentHistory> history;
-  
 
   TodayActiveScheme({
     required this.savingId,
@@ -108,39 +115,48 @@ class TodayActiveScheme {
     this.deliveredGoldWeight,
     this.pendingGoldWeight,
     this.pendingAmount,
+    this.totalBenefitGram,
+    this.tottalbonusgoldweight,
     required this.history,
   });
 
   factory TodayActiveScheme.fromJson(Map<String, dynamic> json) {
     return TodayActiveScheme(
-      savingId: json['saving_id'] ?? '',
+      savingId: json['saving_id']?.toString() ?? '',
       paidAmount: (json['paidAmount'] as num?)?.toDouble(),
       customer: Customer.fromJson(json['customer'] ?? {}),
-      schemeType: json['scheme_type'] ?? '',
-      schemeId: json['scheme_id'] ?? '',
-      startDate: json['start_date'] ?? '',
-      endDate: json['end_date'] ?? '',
-      status: json['status'] ?? '',
+      schemeType: json['scheme_type']?.toString() ?? '',
+      schemeId: json['scheme_id']?.toString() ?? '',
+      startDate: json['start_date']?.toString() ?? '',
+      endDate: json['end_date']?.toString() ?? '',
+      status: json['status']?.toString() ?? '',
       totalGoldWeight: (json['total_gold_weight'] as num?)?.toDouble(),
-      lastUpdated: json['last_updated'] ?? '',
-      schemePurpose: json['scheme_purpose'] ?? '',
-      schemeName: json['scheme_name'] ?? '',
+      lastUpdated: json['last_updated']?.toString() ?? '',
+      schemePurpose: json['scheme_purpose']?.toString() ?? '',
+      schemeName: json['scheme_name']?.toString() ?? '',
       isKyc: json['is_kyc'] ?? false,
       isCompleted: json['is_completed'] ?? false,
       percentage: (json['percentage'] as num?)?.toDouble(),
       totalAmount: (json['totalAmount'] as num?)?.toDouble(),
       goldDelivered: json['gold_delivered'] ?? false,
-      deliveredGoldWeight: (json['delivered_gold_weight'] as num?)?.toDouble(),
+      deliveredGoldWeight:
+          (json['delivered_gold_weight'] as num?)?.toDouble(),
       pendingGoldWeight: (json['pending_gold_weight'] as num?)?.toDouble(),
       pendingAmount: (json['pending_amount'] as num?)?.toDouble(),
+      totalBenefitGram: (json['total_benefit_gram'] as num?)?.toDouble(),
+      tottalbonusgoldweight:
+          (json['tottalbonusgoldweight'] as num?)?.toDouble(),
       history: (json['history'] as List<dynamic>?)
               ?.map((e) => PaymentHistory.fromJson(e))
               .toList() ??
-          [], //  Safe
+          [],
     );
   }
 }
 
+/// =======================================
+///   PAYMENT HISTORY MODEL
+/// =======================================
 class PaymentHistory {
   final String dueDate;
   final String status;
@@ -172,52 +188,3 @@ class PaymentHistory {
     );
   }
 }
-
-
-class Customer {
-  final String id;
-  final String cName;
-  final String cEmail;
-  final String cDob;
-  final String cPhoneNumber;
-  final List<Nominee> nominees;
-  final List<Address> addresses;
-  final List<Document> documents;
-  final String? cProfileImage;
-
-  Customer({
-    required this.id,
-    required this.cName,
-    required this.cEmail,
-    required this.cDob,
-    required this.cPhoneNumber,
-    required this.nominees,
-    required this.addresses,
-    required this.documents,
-    this.cProfileImage,
-  });
-
-  factory Customer.fromJson(Map<String, dynamic> json) {
-    return Customer(
-      id: json['id'] ?? '',
-      cName: json['cName'] ?? '',
-      cEmail: json['cEmail'] ?? '',
-      cDob: json['cDob'] ?? '',
-      cPhoneNumber: json['cPhoneNumber'] ?? '',
-      cProfileImage: json['c_profile_image'],
-      nominees: (json['nominees'] as List<dynamic>?)
-              ?.map((e) => Nominee.fromJson(e))
-              .toList() ??
-          [],
-      addresses: (json['addresses'] as List<dynamic>?)
-              ?.map((e) => Address.fromJson(e))
-              .toList() ??
-          [],
-      documents: (json['documents'] as List<dynamic>?)
-              ?.map((e) => Document.fromJson(e))
-              .toList() ??
-          [],
-    );
-  }
-}
-

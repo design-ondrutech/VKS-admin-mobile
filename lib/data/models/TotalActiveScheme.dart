@@ -75,6 +75,8 @@ class TotalActiveScheme {
   final double deliveredGoldWeight;
   final double pendingGoldWeight;
   final double pendingAmount;
+  final double? totalBenefitGram;
+  final double? tottalbonusgoldweight;
   final List<History> history; //  fixed: only History
 
   TotalActiveScheme({
@@ -98,6 +100,8 @@ class TotalActiveScheme {
     required this.deliveredGoldWeight,
     required this.pendingGoldWeight,
     required this.pendingAmount,
+    this.totalBenefitGram,
+    this.tottalbonusgoldweight,
     required this.history,
   });
 
@@ -123,6 +127,8 @@ class TotalActiveScheme {
       deliveredGoldWeight: parseDouble(json['delivered_gold_weight']),
       pendingGoldWeight: parseDouble(json['pending_gold_weight']),
       pendingAmount: parseDouble(json['pending_amount']),
+      totalBenefitGram: (json['total_benefit_gram'] as num?)?.toDouble(),
+      tottalbonusgoldweight: (json['tottalbonusgoldweight'] as num?)?.toDouble(),
       history: (json['history'] as List? ?? [])
           .map((e) => History.fromJson(e))
           .toList(),

@@ -3,6 +3,7 @@ import 'package:admin/blocs/today_active_scheme/today_active_event.dart';
 import 'package:admin/blocs/today_active_scheme/today_active_state.dart';
 import 'package:admin/data/models/TodayActiveScheme.dart';
 import 'package:admin/utils/colors.dart';
+import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -196,9 +197,9 @@ class _TodayFlexiblePaymentWidgetState
                                 ),
                               ),
                               const SizedBox(height: 4),
-                              Text("Due: ${tx.dueDate}"),
+                              Text("Due: ${formatDate(tx.dueDate)}"),
                               Text(
-                                "Paid: ${tx.paidDate.isNotEmpty ? tx.paidDate : '-'}",
+                                "Paid:  ${tx.paidDate.isNotEmpty ? formatDate(tx.paidDate) : '-'}",
                               ),
                               Text("Mode: ${tx.paymentMode}"),
                             ],

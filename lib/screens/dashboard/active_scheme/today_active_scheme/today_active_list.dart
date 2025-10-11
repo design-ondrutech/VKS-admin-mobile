@@ -1,7 +1,6 @@
 import 'package:admin/blocs/today_active_scheme/today_active_bloc.dart';
 import 'package:admin/blocs/today_active_scheme/today_active_event.dart';
 import 'package:admin/blocs/today_active_scheme/today_active_state.dart';
-import 'package:admin/data/models/TodayActiveScheme.dart';
 import 'package:admin/screens/dashboard/active_scheme/today_active_scheme/today_active_detail_screen.dart';
 import 'package:admin/utils/colors.dart';
 import 'package:flutter/material.dart';
@@ -166,7 +165,7 @@ class _TodayActiveSchemesScreenState extends State<TodayActiveSchemesScreen> {
                                           ),
                                           const SizedBox(width: 6),
                                           Text(
-                                            scheme.customer.cName,
+                                            scheme.customer.name,
                                             style: const TextStyle(
                                               fontSize: 14,
                                               fontWeight: FontWeight.bold,
@@ -206,9 +205,9 @@ class _TodayActiveSchemesScreenState extends State<TodayActiveSchemesScreen> {
                                   const SizedBox(height: 8),
                                   _infoRow(
                                     Icons.phone,
-                                    scheme.customer.cPhoneNumber,
+                                    scheme.customer.phoneNumber,
                                   ),
-                                  _infoRow(Icons.email, scheme.customer.cEmail),
+                                  _infoRow(Icons.email, scheme.customer.email),
                                   const Divider(height: 24),
                                   _infoRow(
                                     Icons.category,

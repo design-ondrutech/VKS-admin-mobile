@@ -627,6 +627,8 @@ class TotalActiveSchemesRepository {
             delivered_gold_weight
             pending_gold_weight
             pending_amount
+            total_benefit_gram
+            tottalbonusgoldweight
             history {
               dueDate
               status
@@ -805,6 +807,8 @@ class TodayActiveSchemeRepository {
             delivered_gold_weight
             pending_gold_weight
             pending_amount
+            total_benefit_gram
+            tottalbonusgoldweight
             history {
               dueDate
               status

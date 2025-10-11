@@ -33,16 +33,17 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
   }
 
   // ---------- Helper Functions ----------
-  String _safeNumber(dynamic value) {
-    if (value == null) return "0.00";
-    try {
-      final num? parsed = value is num ? value : num.tryParse(value.toString());
-      if (parsed == null || parsed.isNaN) return "0.00";
-      return parsed.toStringAsFixed(2);
-    } catch (_) {
-      return "0.00";
-    }
+String _safeNumber(dynamic value, {int digits = 4}) {
+  if (value == null) return "0.0000";
+  try {
+    final num? parsed = value is num ? value : num.tryParse(value.toString());
+    if (parsed == null || parsed.isNaN) return "0.0000";
+    return parsed.toStringAsFixed(digits);
+  } catch (_) {
+    return "0.0000";
   }
+}
+
 
   Color _statusColor(String status) {
     switch (status.toLowerCase()) {
