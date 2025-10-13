@@ -180,7 +180,7 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                             const SizedBox(height: 8),
 
                             _infoRow(Icons.phone, scheme.customer.phoneNumber),
-                            _infoRow(Icons.email, scheme.customer.email),
+                            // _infoRow(Icons.email, scheme.customer.email),
                             const Divider(height: 24),
                             _infoRow(
                               Icons.category,
@@ -199,16 +199,15 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                               "Amount: ₹${scheme.totalAmount}",
                             ),
 
-                            if (scheme.paidAmount != null)
-                              _infoRow(
-                                Icons.check_circle,
-                                "Paid: ₹${scheme.paidAmount}",
-                              ),
-                            if (scheme.pendingAmount != null)
-                              _infoRow(
-                                Icons.pending,
-                                "Pending: ₹${scheme.pendingAmount}",
-                              ),
+                            _infoRow(
+                              Icons.check_circle,
+                              "Paid: ₹${scheme.paidAmount}",
+                            ),
+                            // if (scheme.pendingAmount != null)
+                            //   _infoRow(
+                            //     Icons.pending,
+                            //     "Pending: ₹${scheme.pendingAmount}",
+                            //   ),
 
                             _infoRow(
                               Icons.calendar_today,

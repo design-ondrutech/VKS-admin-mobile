@@ -1,3 +1,4 @@
+import 'package:admin/screens/dashboard/active_scheme/today_active_scheme/widgets/today_payment_details_section.dart';
 import 'package:admin/screens/dashboard/active_scheme/today_active_scheme/widgets/today_payment_history/today_payment_history_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,7 +8,6 @@ import 'package:admin/data/models/TodayActiveScheme.dart';
 import 'package:admin/utils/colors.dart';
 
 
-// import section widgets
 import 'widgets/today_scheme_details_section.dart';
 import 'widgets/today_customer_info_section.dart';
 
@@ -79,7 +79,9 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
               TodaySchemeDetailsSection(scheme: currentScheme),
 
               // Customer Info
-              TodayCustomerInfoSection(customer: currentScheme.customer),
+              TodayCustomerInfoSection(customer: currentScheme.customer),   
+              
+              TodayPaymentDetailsSection(scheme: currentScheme),
 
               // Payment History
               TodayPaymentHistorySection(scheme: currentScheme),

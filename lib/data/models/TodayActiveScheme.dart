@@ -1,5 +1,4 @@
 import 'package:admin/data/models/customer.dart';
-import 'package:admin/screens/dashboard/customer/customer_detail/model/customer_details_model.dart';
 
 /// Safely converts any value to a double
 double parseDouble(dynamic value) {

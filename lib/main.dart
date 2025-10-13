@@ -31,11 +31,11 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // final HttpLink httpLink = HttpLink('http://api-vkskumaran-0env-env.eba-jpagnpin.ap-south-1.elasticbeanstalk.com/graphql/admin',);
+ // final HttpLink httpLink = HttpLink('http://api-vkskumaran-0env-env.eba-jpagnpin.ap-south-1.elasticbeanstalk.com/graphql/admin',);
 
-   final HttpLink httpLink = HttpLink('http://10.0.2.2:4000/graphql/admin');
+   //final HttpLink httpLink = HttpLink('http://10.0.2.2:4000/graphql/admin');
    
- //  final HttpLink httpLink = HttpLink('https://api.vkskumaran.in/graphql/admin');
+   final HttpLink httpLink = HttpLink('https://api.vkskumaran.in/graphql/admin');
 
   // Create the GraphQL client
   final GraphQLClient graphQLClient = GraphQLClient(

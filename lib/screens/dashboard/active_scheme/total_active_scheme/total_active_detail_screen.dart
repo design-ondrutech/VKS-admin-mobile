@@ -1,4 +1,5 @@
 import 'package:admin/data/models/TotalActiveScheme.dart';
+import 'package:admin/screens/dashboard/active_scheme/total_active_scheme/widgets/payment_details_section.dart';
 import 'package:admin/screens/dashboard/active_scheme/total_active_scheme/widgets/payment_history/payment_history_section.dart';
 import 'package:admin/utils/colors.dart';
 import 'package:flutter/material.dart';
@@ -71,6 +72,10 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
 
               // Customer Info
               CustomerInfoSection(customer: currentScheme.customer),
+
+              // Payment Details
+PaymentDetailsSection(scheme: currentScheme),
+
 
               // Payment History
               PaymentHistorySection(scheme: currentScheme),

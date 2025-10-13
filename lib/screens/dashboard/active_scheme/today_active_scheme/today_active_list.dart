@@ -207,7 +207,8 @@ class _TodayActiveSchemesScreenState extends State<TodayActiveSchemesScreen> {
                                     Icons.phone,
                                     scheme.customer.phoneNumber,
                                   ),
-                                  _infoRow(Icons.email, scheme.customer.email),
+                                //  _infoRow(Icons.email, scheme.customer.email),
+
                                   const Divider(height: 24),
                                   _infoRow(
                                     Icons.category,
@@ -225,16 +226,14 @@ class _TodayActiveSchemesScreenState extends State<TodayActiveSchemesScreen> {
                                     Icons.currency_rupee,
                                     "Total Amount: ₹${scheme.totalAmount}",
                                   ),
-                                  if (scheme.paidAmount != null)
                                     _infoRow(
                                       Icons.check_circle,
                                       "Paid: ₹${scheme.paidAmount}",
                                     ),
-                                  if (scheme.pendingAmount != null)
-                                    _infoRow(
-                                      Icons.pending,
-                                      "Pending: ₹${scheme.pendingAmount}",
-                                    ),
+                                    // _infoRow(
+                                    //   Icons.pending,
+                                    //   "Pending: ₹${scheme.pendingAmount}",
+                                    // ),
                                   _infoRow(
                                     Icons.calendar_today,
                                     "Start: ${formatDate(scheme.startDate)}",

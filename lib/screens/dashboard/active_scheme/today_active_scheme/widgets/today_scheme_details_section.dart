@@ -2,9 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:admin/data/models/TodayActiveScheme.dart';
 import 'package:admin/utils/style.dart';
 
-class TodaySchemeDetailsSection extends StatelessWidget {
+class TodaySchemeDetailsSection extends StatefulWidget {
   final TodayActiveScheme scheme;
   const TodaySchemeDetailsSection({super.key, required this.scheme});
+
+  @override
+  State<TodaySchemeDetailsSection> createState() =>
+      _TodaySchemeDetailsSectionState();
+}
+
+class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
+  bool isExpanded = true;
 
   String formatGram(double? value, {int digits = 4}) {
     if (value == null) return "0.0000";
@@ -13,57 +21,346 @@ class TodaySchemeDetailsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _infoCard(
-      title: "Scheme Details",
-      children: [
-        _infoRow("Scheme Name", scheme.schemeName),
-        _infoRow("Scheme Type", scheme.schemeType),
-        _infoRow("Status", scheme.status),
-        _infoRow("Gold Delivered", scheme.goldDelivered ? "Yes" : "No"),
-        _infoRow(
-            "Delivered Gold Weight", "${formatGram(scheme.deliveredGoldWeight)} g"),
-        _infoRow(
-            "Balance Gold Weight", "${formatGram(scheme.pendingGoldWeight)} g"),
-        _infoRow("Purpose", scheme.schemePurpose),
-        _infoRow("KYC Completed", scheme.isKyc ? "Yes" : "No"),
-        _infoRow("Start Date", formatDate(scheme.startDate)),
-        _infoRow("End Date", formatDate(scheme.endDate)),
-        _infoRow("Last Updated", formatDate(scheme.lastUpdated)),
-      ],
-    );
-  }
+    final scheme = widget.scheme;
 
-  Widget _infoCard({required String title, required List<Widget> children}) {
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.only(bottom: 16),
+      elevation: 3,
+      margin: const EdgeInsets.symmetric(vertical: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: Colors.white,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title,
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    color: Colors.blueGrey)),
+            // 🔹 Header Row (Title + Expand/Collapse)
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.emoji_events_rounded,
+                      color: Colors.redAccent, size: 22),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
+                    "Scheme Details",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: AnimatedRotation(
+                    turns: isExpanded ? 0.0 : 0.5,
+                    duration: const Duration(milliseconds: 300),
+                    child: const Icon(Icons.keyboard_arrow_down,
+                        color: Colors.black54, size: 28),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      isExpanded = !isExpanded;
+                    });
+                  },
+                ),
+              ],
+            ),
+
             const SizedBox(height: 8),
-            ...children,
+
+            //  Expandable Content
+            AnimatedCrossFade(
+              crossFadeState: isExpanded
+                  ? CrossFadeState.showFirst
+                  : CrossFadeState.showSecond,
+              duration: const Duration(milliseconds: 300),
+              firstChild: _buildContent(scheme),
+              secondChild: const SizedBox.shrink(),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _infoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //  Main Layout
+  Widget _buildContent(TodayActiveScheme scheme) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth > 700;
+        return isWide
+            ? Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(flex: 2, child: _buildLeftSection(scheme)),
+                  const SizedBox(width: 20),
+                  Expanded(flex: 1, child: _buildGoldSummary(scheme)),
+                ],
+              )
+            : Column(
+                children: [
+                  _buildLeftSection(scheme),
+                  const SizedBox(height: 20),
+                  _buildGoldSummary(scheme),
+                ],
+              );
+      },
+    );
+  }
+
+  //  Left Section (Scheme Info)
+  Widget _buildLeftSection(TodayActiveScheme scheme) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // LEFT COLUMN
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _infoBlock("Scheme Name", scheme.schemeName,
+                  highlight: true, fontSize: 18),
+              const SizedBox(height: 16),
+              _infoBlock("Purpose", scheme.schemePurpose),
+              const SizedBox(height: 16),
+              _infoBlock("Start Date", formatDate(scheme.startDate)),
+              const SizedBox(height: 16),
+              _infoBlock("End Date", formatDate(scheme.endDate)),
+            ],
+          ),
+        ),
+              const SizedBox(width: 80),
+
+
+        // RIGHT COLUMN
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _infoBlock(
+                "Total Amount",
+                "₹${scheme.totalAmount?.toStringAsFixed(2)}",
+                highlight: true,
+                fontSize: 20,
+                color: Colors.black,
+                valueColor: Colors.black87,
+              ),
+              const SizedBox(height: 16),
+              _infoBlock("Scheme Type", scheme.schemeType,
+                  badgeColor: Colors.amber.shade100,
+                  badgeTextColor: Colors.orange.shade900),
+              const SizedBox(height: 16),
+              _infoBlock("KYC Status", scheme.isKyc ? "Verified" : "KYC Pending",
+                  badgeColor: scheme.isKyc
+                      ? Colors.green.shade100
+                      : Colors.red.shade100,
+                  badgeTextColor: scheme.isKyc
+                      ? Colors.green.shade900
+                      : Colors.red.shade900),
+              const SizedBox(height: 16),
+              _infoBlock("Status", scheme.status,
+                  badgeColor: Colors.yellow.shade100,
+                  badgeTextColor: Colors.orange.shade900),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  //  Right Section (Gold Summary)
+  Widget _buildGoldSummary(TodayActiveScheme scheme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "✨ Gold Summary",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 12),
+        _goldCard(
+          title: "Total Gold (incl. benefits)",
+          value: formatGram(scheme.tottalbonusgoldweight),
+          subtitle: "Includes benefit grams",
+          color: Colors.blue.shade50,
+          textColor: Colors.blue.shade700,
+        ),
+        const SizedBox(height: 10),
+        _goldCard(
+          title: "Total Gold (without benefits)",
+          value: formatGram(scheme.totalGoldWeight),
+          subtitle: "Without benefit grams",
+          color: Colors.yellow.shade50,
+          textColor: Colors.orange.shade700,
+        ),
+        const SizedBox(height: 10),
+        _goldCard(
+          title: "Delivered (stored)",
+          value: formatGram(scheme.deliveredGoldWeight),
+          subtitle: "Already recorded in DB",
+          color: Colors.green.shade50,
+          textColor: Colors.green.shade700,
+        ),
+        const SizedBox(height: 10),
+        _goldCard(
+          title: "Remaining",
+          value: formatGram(scheme.pendingGoldWeight),
+          subtitle: "Remaining to reach total",
+          color: Colors.grey.shade100,
+          textColor: Colors.grey.shade700,
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    scheme.goldDelivered ? Icons.check_circle : Icons.settings,
+                    size: 16,
+                    color:
+                        scheme.goldDelivered ? Colors.green : Colors.black54,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    scheme.goldDelivered ? "Delivered" : "Not Delivered",
+                    style: TextStyle(
+                      color: scheme.goldDelivered
+                          ? Colors.green.shade800
+                          : Colors.black54,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  //  Info Block (Label + Value / Badge)
+  Widget _infoBlock(String label, String value,
+      {bool highlight = false,
+      double fontSize = 15,
+      Color? color,
+      Color? valueColor,
+      Color? badgeColor,
+      Color? badgeTextColor}) {
+    return SizedBox(
+      width: 230,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
-          Flexible(child: Text(value, textAlign: TextAlign.right)),
+          Text(label.toUpperCase(),
+              style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.blueGrey)),
+          const SizedBox(height: 3),
+          if (badgeColor != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: badgeColor,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                value,
+                style: TextStyle(
+                  color: badgeTextColor ?? Colors.black87,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+            )
+          else
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: fontSize,
+                fontWeight: highlight ? FontWeight.bold : FontWeight.w500,
+                color: valueColor ?? Colors.black87,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  //  Gold Summary Card
+  Widget _goldCard({
+    required String title,
+    required String value,
+    required String subtitle,
+    required Color color,
+    required Color textColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title,
+              style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87)),
+          const SizedBox(height: 6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "$value g",
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: textColor),
+              ),
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.black12.withOpacity(0.05),
+                        blurRadius: 2)
+                  ],
+                ),
+                child: Text("0g",
+                    style: TextStyle(
+                        color: textColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(subtitle,
+              style: const TextStyle(fontSize: 12, color: Colors.black54)),
         ],
       ),
     );
