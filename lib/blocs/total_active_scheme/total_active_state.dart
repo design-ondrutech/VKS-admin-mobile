@@ -1,4 +1,3 @@
-// active_scheme_state.dart
 import 'package:admin/data/models/TotalActiveScheme.dart';
 import 'package:equatable/equatable.dart';
 
@@ -29,7 +28,7 @@ class TotalActiveError extends TotalActiveState {
   List<Object?> get props => [message];
 }
 
-//  Add these below
+//  Existing payment states
 class CashPaymentLoading extends TotalActiveState {
   final String savingId;
 
@@ -61,3 +60,32 @@ class CashPaymentFailure extends TotalActiveState {
   List<Object?> get props => [message];
 }
 
+// //  New gold delivery states
+// class GoldDeliveryLoading extends TotalActiveState {}
+
+// class GoldDeliverySuccess extends TotalActiveState {
+//   final String savingId;
+//   final double deliveredWeight;
+//   final bool isFullyDelivered;
+//   final String message;
+
+//   GoldDeliverySuccess({
+//     required this.savingId,
+//     required this.deliveredWeight,
+//     required this.isFullyDelivered,
+//     required this.message,
+//   });
+
+//   @override
+//   List<Object?> get props =>
+//       [savingId, deliveredWeight, isFullyDelivered, message];
+// }
+
+// class GoldDeliveryFailure extends TotalActiveState {
+//   final String error;
+
+//   GoldDeliveryFailure({required this.error});
+
+//   @override
+//   List<Object?> get props => [error];
+// }

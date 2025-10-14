@@ -5,6 +5,7 @@ import 'package:admin/utils/style.dart';
 
 class SchemeDetailsSection extends StatefulWidget {
   final TotalActiveScheme scheme;
+
   const SchemeDetailsSection({super.key, required this.scheme});
 
   @override
@@ -13,6 +14,13 @@ class SchemeDetailsSection extends StatefulWidget {
 
 class _SchemeDetailsSectionState extends State<SchemeDetailsSection> {
   bool isExpanded = true;
+  late TotalActiveScheme _currentScheme;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentScheme = widget.scheme; // copy the scheme to local variable
+  }
 
   String formatGram(double? value, {int digits = 4}) {
     if (value == null) return "0.0000";
@@ -21,7 +29,8 @@ class _SchemeDetailsSectionState extends State<SchemeDetailsSection> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = widget.scheme;
+final scheme = _currentScheme;
+
 
     return Card(
       elevation: 3,
@@ -121,12 +130,37 @@ class _SchemeDetailsSectionState extends State<SchemeDetailsSection> {
     );
   }
 
-  //  Left Section (Scheme Info)
   Widget _buildLeftSection(TotalActiveScheme scheme) {
+    // ✅ Normalize and handle rounding issues
+    double totalRequired = (scheme.tottalbonusgoldweight ?? 0);
+    double delivered = scheme.deliveredGoldWeight;
+    double pending = scheme.pendingGoldWeight;
+
+    String displayStatus;
+    Color badgeColor;
+    Color badgeTextColor;
+
+    if (scheme.status.toLowerCase() == "completed") {
+      // ✅ Check if fully delivered or still awaiting
+      if (delivered >= totalRequired && totalRequired > 0) {
+        displayStatus = "Completed & Gold Delivered";
+        badgeColor = Colors.green.shade100;
+        badgeTextColor = Colors.green.shade800;
+      } else {
+        displayStatus = "Completed (Awaiting Delivery)";
+        badgeColor = Colors.orange.shade100;
+        badgeTextColor = Colors.orange.shade800;
+      }
+    } else {
+      displayStatus = "Active";
+      badgeColor = Colors.blue.shade100;
+      badgeTextColor = Colors.blue.shade800;
+    }
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        //  LEFT COLUMN
+        // LEFT COLUMN
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,9 +181,9 @@ class _SchemeDetailsSectionState extends State<SchemeDetailsSection> {
           ),
         ),
 
-        const SizedBox(width: 80),
+        const SizedBox(width: 40),
 
-        //  RIGHT COLUMN
+        // RIGHT COLUMN
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,11 +213,12 @@ class _SchemeDetailsSectionState extends State<SchemeDetailsSection> {
                     scheme.isKyc ? Colors.green.shade900 : Colors.red.shade900,
               ),
               const SizedBox(height: 16),
+              //  Dynamic Status
               _infoBlock(
                 "Status",
-                scheme.status,
-                badgeColor: Colors.yellow.shade100,
-                badgeTextColor: Colors.orange.shade900,
+                displayStatus,
+                badgeColor: badgeColor,
+                badgeTextColor: badgeTextColor,
               ),
             ],
           ),
@@ -192,8 +227,23 @@ class _SchemeDetailsSectionState extends State<SchemeDetailsSection> {
     );
   }
 
-  //  Right Section (Gold Summary)
   Widget _buildGoldSummary(TotalActiveScheme scheme) {
+    double totalRequired = (scheme.tottalbonusgoldweight ?? 0);
+    double delivered = scheme.deliveredGoldWeight;
+    double pending = scheme.pendingGoldWeight;
+
+    //  Determine status
+    String displayStatus;
+    if (scheme.status.toLowerCase() == "completed") {
+      if (delivered >= totalRequired && totalRequired > 0) {
+        displayStatus = "Completed & Gold Delivered";
+      } else {
+        displayStatus = "Completed (Awaiting Delivery)";
+      }
+    } else {
+      displayStatus = "Active";
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -206,6 +256,7 @@ class _SchemeDetailsSectionState extends State<SchemeDetailsSection> {
           ),
         ),
         const SizedBox(height: 12),
+
         _goldCard(
           title: "Total Gold (incl. benefits)",
           value: formatGram(scheme.tottalbonusgoldweight),
@@ -240,11 +291,10 @@ class _SchemeDetailsSectionState extends State<SchemeDetailsSection> {
         const SizedBox(height: 16),
 
         // --- Delivered Status Row ---
-        // --- Delivered Status Row ---
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Left side: Delivered / Not Delivered Tag
+            // Left side tag
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
@@ -253,46 +303,89 @@ class _SchemeDetailsSectionState extends State<SchemeDetailsSection> {
               ),
               child: Row(
                 children: [
-                  Icon(
-                    scheme.goldDelivered > 0
-                        ? Icons.check_circle
-                        : Icons.settings_outlined,
-                    size: 16,
-                    color:
-                        scheme.goldDelivered > 0
-                            ? Colors.green
-                            : Colors.black54,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    scheme.goldDelivered > 0 ? "Delivered" : "Not Delivered",
-                    style: TextStyle(
-                      color:
-                          scheme.goldDelivered > 0
-                              ? Colors.green.shade800
-                              : Colors.black54,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
+                  Builder(
+                    builder: (context) {
+                      // logic
+                      double totalRequired =
+                          (scheme.tottalbonusgoldweight ?? 0);
+                      double delivered = scheme.deliveredGoldWeight;
+
+                      String deliveryText;
+                      IconData deliveryIcon;
+                      Color deliveryColor;
+
+                      if (delivered >= totalRequired && totalRequired > 0) {
+                        deliveryText = "Delivered";
+                        deliveryIcon = Icons.check_circle;
+                        deliveryColor = Colors.green.shade700;
+                      } else if (delivered > 0 && delivered < totalRequired) {
+                        deliveryText = "Partially Delivered";
+                        deliveryIcon = Icons.hourglass_bottom;
+                        deliveryColor = Colors.orange.shade700;
+                      } else {
+                        deliveryText = "Not Delivered";
+                        deliveryIcon = Icons.settings_outlined;
+                        deliveryColor = Colors.black54;
+                      }
+
+                      return Row(
+                        children: [
+                          Icon(deliveryIcon, size: 16, color: deliveryColor),
+                          const SizedBox(width: 6),
+                          Text(
+                            deliveryText,
+                            style: TextStyle(
+                              color: deliveryColor,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),
             ),
 
-            if (scheme.status.toLowerCase() == "completed")
+            //  Only show button if status = "Completed (Awaiting Delivery)"
+            if (displayStatus == "Completed (Awaiting Delivery)")
               ElevatedButton.icon(
-                onPressed: () {
-                  showDialog(
+                onPressed: () async {
+                  final addedGoldGram = await showDialog<double>(
                     context: context,
                     builder:
                         (context) => SchemeCompletePopup(
-                          totalGoldRequired:
-                              scheme.tottalbonusgoldweight ?? 0.0,
-                          alreadyDelivered: scheme.deliveredGoldWeight,
-                          remainingGold: scheme.pendingGoldWeight,
+                          totalGoldRequired: totalRequired,
+                          alreadyDelivered: delivered,
+                          remainingGold: pending,
                         ),
                   );
+
+                  if (addedGoldGram != null && addedGoldGram > 0) {
+                    setState(() {
+                      _currentScheme = _currentScheme.copyWith(
+                        deliveredGoldWeight:
+                            _currentScheme.deliveredGoldWeight + addedGoldGram,
+                        pendingGoldWeight: (_currentScheme.pendingGoldWeight -
+                                addedGoldGram)
+                            .clamp(0.0, double.infinity),
+                      );
+                    });
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "✅ ${addedGoldGram.toStringAsFixed(4)} g added to Delivered Gold",
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        backgroundColor: Colors.green.shade600,
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  }
                 },
+
                 icon: const Icon(
                   Icons.upload_rounded,
                   color: Colors.white,
@@ -309,7 +402,7 @@ class _SchemeDetailsSectionState extends State<SchemeDetailsSection> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
+                    horizontal: 1,
                     vertical: 10,
                   ),
                   shape: RoundedRectangleBorder(

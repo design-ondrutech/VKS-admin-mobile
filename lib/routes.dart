@@ -32,6 +32,11 @@ class AppRoutes {
   // ignore: constant_identifier_names
   static const String total_flexible_payment = '/dashboard/active_schemes/total/flexible_payment';
 
+static const String schemeCompletePopup = '/dashboard/active_schemes/complete_popup';
+
+// ignore: constant_identifier_names
+static const String scheme_details_section = '/dashboard/active_schemes/scheme_details_section';
+
 
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -80,6 +85,13 @@ class AppRoutes {
 
       case total_flexible_payment:
         return MaterialPageRoute(builder: (_) => const TotalActiveSchemesScreen());
+     
+      case schemeCompletePopup:
+        return MaterialPageRoute(builder: (_) => const TotalActiveSchemesScreen());
+      
+      case scheme_details_section:
+        return MaterialPageRoute(builder: (_) => const TotalActiveSchemesScreen());
+
 
       default:
         return MaterialPageRoute(

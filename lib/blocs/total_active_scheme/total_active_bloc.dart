@@ -30,7 +30,7 @@ class TotalActiveBloc extends Bloc<TotalActiveEvent, TotalActiveState> {
 
     //  Add Cash Payment
     on<AddCashPayment>((event, emit) async {
-   emit(CashPaymentLoading(savingId: event.savingId));
+      emit(CashPaymentLoading(savingId: event.savingId));
       try {
         final response = await repository.addCashCustomerSavings(
           savingId: event.savingId,
@@ -38,27 +38,52 @@ class TotalActiveBloc extends Bloc<TotalActiveEvent, TotalActiveState> {
         );
 
         log("💰 Payment success: $response", name: "TotalActiveBloc");
-
-        //  Artificial 1-second delay to simulate "processing"
         await Future.delayed(const Duration(seconds: 1));
 
-        //  Emit success first (shows snackbar + animation)
         emit(CashPaymentSuccess(
           savingId: response['saving_id'],
           totalAmount: response['total_amount']?.toString() ?? "0",
         ));
 
-        //  Wait another short moment before refreshing list
         await Future.delayed(const Duration(milliseconds: 400));
 
-        //  Fetch latest active schemes (fresh backend data)
         final updated = await repository.getTotalActiveSchemes();
-
         emit(TotalActiveLoaded(response: updated));
       } catch (e, s) {
         log("❌ AddCashPayment Error: $e\n$s", name: "TotalActiveBloc");
         emit(CashPaymentFailure(message: e.toString()));
       }
     });
+
+    //  Update Gold Delivered (Partial / Full)
+    // on<UpdateGoldDelivered>((event, emit) async {
+    //   emit(GoldDeliveryLoading());
+    //   try {
+    //     final response = await repository.updateDeliveredGold(
+    //       savingId: event.savingId,
+    //       deliveredGoldWeight: event.deliveredGoldWeight,
+    //       isFullyDelivered: event.isFullyDelivered,
+    //     );
+
+    //     final data = response['updatedScheme'] ?? {};
+    //     final message =
+    //         response['message'] ?? "Gold delivery updated successfully.";
+
+    //     emit(GoldDeliverySuccess(
+    //       savingId: event.savingId,
+    //       deliveredWeight:
+    //           (data['delivered_gold_weight'] as num?)?.toDouble() ?? 0.0,
+    //       isFullyDelivered: event.isFullyDelivered,
+    //       message: message,
+    //     ));
+
+    //     // Refresh scheme list after update
+    //     final updated = await repository.getTotalActiveSchemes();
+    //     emit(TotalActiveLoaded(response: updated));
+    //   } catch (e, s) {
+    //     log("❌ Gold Delivery Error: $e\n$s", name: "TotalActiveBloc");
+    //     emit(GoldDeliveryFailure(error: e.toString()));
+    //   }
+    // });
   }
 }

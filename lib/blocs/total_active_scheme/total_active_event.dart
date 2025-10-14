@@ -8,7 +8,7 @@ abstract class TotalActiveEvent extends Equatable {
 
 class FetchTotalActiveSchemes extends TotalActiveEvent {}
 
-//  New event for adding cash payment
+//  Existing event for cash payment
 class AddCashPayment extends TotalActiveEvent {
   final String savingId;
   final double amount;
@@ -21,3 +21,19 @@ class AddCashPayment extends TotalActiveEvent {
   @override
   List<Object> get props => [savingId, amount];
 }
+
+//  New event for updating delivered gold
+// class UpdateGoldDelivered extends TotalActiveEvent {
+//   final String savingId;
+//   final double deliveredGoldWeight;
+//   final bool isFullyDelivered;
+
+//   UpdateGoldDelivered({
+//     required this.savingId,
+//     required this.deliveredGoldWeight,
+//     required this.isFullyDelivered,
+//   });
+
+//   @override
+//   List<Object> get props => [savingId, deliveredGoldWeight, isFullyDelivered];
+// }
