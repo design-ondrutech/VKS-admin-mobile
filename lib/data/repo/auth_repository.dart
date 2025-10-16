@@ -712,55 +712,37 @@ class TotalActiveSchemesRepository {
     return Map<String, dynamic>.from(result.data!['addCashCustomerSavings']);
   }
 
-    ///  MUTATION: Update Delivered Gold (partial or full)
-  // Future<Map<String, dynamic>> updateDeliveredGold({
-  //   required String savingId,
-  //   required double deliveredGoldWeight,
-  //   required bool isFullyDelivered,
-  // }) async {
-  //   const mutation = r'''
-  //     mutation UpdateDeliveredGold($data: UpdateDeliveredGoldInput!) {
-  //       updateDeliveredGold(data: $data) {
-  //         success
-  //         message
-  //         updatedScheme {
-  //           saving_id
-  //           delivered_gold_weight
-  //           gold_delivered
-  //           pending_gold_weight
-  //           status
-  //         }
-  //       }
-  //     }
-  //   ''';
+ Future<bool> updateDeliveredGold({
+  required String savingId,
+  required double deliveredGold,
+}) async {
+  const String mutation = r'''
+    mutation UpdateDeliveredGold($savingId: ID!, $deliveredGold: Float!) {
+      updateDeliveredGold(savingId: $savingId, deliveredGold: $deliveredGold) {
+        success
+        message
+      }
+    }
+  ''';
 
-  //   final variables = {
-  //     "data": {
-  //       "saving_id": savingId,
-  //       "delivered_gold_weight": deliveredGoldWeight,
-  //       "isFullyDelivered": isFullyDelivered,
-  //     },
-  //   };
+  final result = await client.mutate(
+    MutationOptions(
+      document: gql(mutation),
+      variables: {
+        "savingId": savingId,
+        "deliveredGold": deliveredGold,
+      },
+    ),
+  );
 
-  //   final result = await client.mutate(
-  //     MutationOptions(
-  //       document: gql(mutation),
-  //       variables: variables,
-  //       fetchPolicy: FetchPolicy.noCache,
-  //     ),
-  //   );
+  if (result.hasException) {
+    log("❌ GraphQL Error: ${result.exception.toString()}");
+    return false;
+  }
 
-  //   if (result.hasException) {
-  //     throw Exception(result.exception.toString());
-  //   }
+  return result.data?['updateDeliveredGold']?['success'] ?? false;
+}
 
-  //   final data = result.data?['updateDeliveredGold'];
-  //   if (data == null) {
-  //     throw Exception("Invalid response from API");
-  //   }
-
-  //   return Map<String, dynamic>.from(data);
-  // }
 
 }
 

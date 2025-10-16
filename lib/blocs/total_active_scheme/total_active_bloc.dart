@@ -55,35 +55,20 @@ class TotalActiveBloc extends Bloc<TotalActiveEvent, TotalActiveState> {
       }
     });
 
-    //  Update Gold Delivered (Partial / Full)
-    // on<UpdateGoldDelivered>((event, emit) async {
-    //   emit(GoldDeliveryLoading());
-    //   try {
-    //     final response = await repository.updateDeliveredGold(
-    //       savingId: event.savingId,
-    //       deliveredGoldWeight: event.deliveredGoldWeight,
-    //       isFullyDelivered: event.isFullyDelivered,
-    //     );
+    on<UpdateDeliveredGoldEvent>((event, emit) async {
+  try {
+    final success = await repository.updateDeliveredGold(
+      savingId: event.savingId,
+      deliveredGold: event.deliveredGold,
+    );
+    if (success) {
+      // Optionally re-fetch updated data
+      add(FetchTotalActiveSchemes());
+    }
+  } catch (e) {
+    log("Error updating gold: $e");
+  }
+});
 
-    //     final data = response['updatedScheme'] ?? {};
-    //     final message =
-    //         response['message'] ?? "Gold delivery updated successfully.";
-
-    //     emit(GoldDeliverySuccess(
-    //       savingId: event.savingId,
-    //       deliveredWeight:
-    //           (data['delivered_gold_weight'] as num?)?.toDouble() ?? 0.0,
-    //       isFullyDelivered: event.isFullyDelivered,
-    //       message: message,
-    //     ));
-
-    //     // Refresh scheme list after update
-    //     final updated = await repository.getTotalActiveSchemes();
-    //     emit(TotalActiveLoaded(response: updated));
-    //   } catch (e, s) {
-    //     log("❌ Gold Delivery Error: $e\n$s", name: "TotalActiveBloc");
-    //     emit(GoldDeliveryFailure(error: e.toString()));
-    //   }
-    // });
   }
 }

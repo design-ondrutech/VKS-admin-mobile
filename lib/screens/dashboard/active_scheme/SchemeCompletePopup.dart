@@ -32,27 +32,28 @@ class _SchemeCompletePopupState extends State<SchemeCompletePopup> {
     super.initState();
     _controller.addListener(() => setState(() {}));
   }
+void _increase() {
+  double currentValue = double.tryParse(_controller.text) ?? 0.0;
+  double newValue = currentValue + 0.0001;
 
-  void _increase() {
-    double currentValue = double.tryParse(_controller.text) ?? 0.0;
-    double newValue = currentValue + 0.0001;
-
-    if (newValue >= widget.remainingGold) {
-      newValue = widget.remainingGold;
-      _isMaxLimit = true;
-    } else {
-      _isMaxLimit = false;
-    }
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller.text = newValue.toStringAsFixed(4);
-      _controller.selection = TextSelection.fromPosition(
-        TextPosition(offset: _controller.text.length),
-      );
-    });
-
-    setState(() {});
+  if (newValue > widget.remainingGold) {
+    //  Prevent going above max limit
+    newValue = widget.remainingGold;
+    _isMaxLimit = false; //  don't show message if just reached limit
+  } else {
+    _isMaxLimit = false;
   }
+
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    _controller.text = newValue.toStringAsFixed(4);
+    _controller.selection = TextSelection.fromPosition(
+      TextPosition(offset: _controller.text.length),
+    );
+  });
+
+  setState(() {});
+}
+
 
   void _decrease() {
     double currentValue = double.tryParse(_controller.text) ?? 0.0;
@@ -84,7 +85,7 @@ class _SchemeCompletePopupState extends State<SchemeCompletePopup> {
   String get previewStatus {
     if (_inputValue == 0 && widget.alreadyDelivered == 0) {
       return "Not Delivered";
-    } else if (_inputValue < widget.remainingGold) {
+    } else if (_inputValue < widget.alreadyDelivered ) {
       return "Partially Delivered ";
     } else if (_inputValue == widget.remainingGold) {
       return "Fully Delivered ";
@@ -146,9 +147,9 @@ class _SchemeCompletePopupState extends State<SchemeCompletePopup> {
               const SizedBox(height: 20),
 
               //  Info Boxes
-              _infoCard("Total Gold Required", widget.totalGoldRequired),
+             // _infoCard("Total Gold Required", widget.totalGoldRequired),
               _infoCard("Already Delivered (DB)", widget.alreadyDelivered),
-              _infoCard("Remaining Gold", widget.remainingGold),
+           //   _infoCard("Remaining Gold", widget.remainingGold),
               const SizedBox(height: 18),
 
               //  Input field + Stepper
@@ -240,13 +241,14 @@ class _SchemeCompletePopupState extends State<SchemeCompletePopup> {
                 Padding(
                   padding: const EdgeInsets.only(top: 6),
                   child: Text(
-                    "Maximum allowed: ${widget.remainingGold.toStringAsFixed(4)} g",
+                    "Maximum allowed: ${remainingAfterUpdate < 0 ? '0.0000' : remainingAfterUpdate.toStringAsFixed(4)} g",
                     style: TextStyle(
                       fontSize: 12.5,
                       color: Colors.grey.shade600,
                     ),
                   ),
                 ),
+
               const SizedBox(height: 18),
 
               // Calculation
@@ -352,11 +354,23 @@ class _SchemeCompletePopupState extends State<SchemeCompletePopup> {
                   Expanded(
                     child: _button(
                       label: "Mark Fully Delivered",
-                      bgColor: Colors.green.shade600,
-                      textColor: Colors.white,
-                      onTap: () {
-                        Navigator.pop(context, widget.totalGoldRequired);
-                      },
+                      bgColor:
+                          isFullDelivery && _isConfirmed
+                              ? Colors.green.shade600
+                              : Colors.grey.shade300,
+                      textColor:
+                          isFullDelivery && _isConfirmed
+                              ? Colors.white
+                              : Colors.grey.shade500,
+                      onTap:
+                          isFullDelivery && _isConfirmed
+                              ? () {
+                                Navigator.pop(
+                                  context,
+                                  widget.totalGoldRequired,
+                                );
+                              }
+                              : null,
                     ),
                   ),
                 ],

@@ -1,7 +1,9 @@
+import 'package:admin/data/repo/auth_repository.dart';
 import 'package:admin/screens/dashboard/active_scheme/SchemeCompletePopup.dart';
 import 'package:flutter/material.dart';
 import 'package:admin/data/models/TotalActiveScheme.dart';
 import 'package:admin/utils/style.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SchemeDetailsSection extends StatefulWidget {
   final TotalActiveScheme scheme;
@@ -29,8 +31,7 @@ class _SchemeDetailsSectionState extends State<SchemeDetailsSection> {
 
   @override
   Widget build(BuildContext context) {
-final scheme = _currentScheme;
-
+    final scheme = _currentScheme;
 
     return Card(
       elevation: 3,
@@ -131,17 +132,16 @@ final scheme = _currentScheme;
   }
 
   Widget _buildLeftSection(TotalActiveScheme scheme) {
-    // ✅ Normalize and handle rounding issues
+    //  Normalize and handle rounding issues
     double totalRequired = (scheme.tottalbonusgoldweight ?? 0);
     double delivered = scheme.deliveredGoldWeight;
-    double pending = scheme.pendingGoldWeight;
 
     String displayStatus;
     Color badgeColor;
     Color badgeTextColor;
 
     if (scheme.status.toLowerCase() == "completed") {
-      // ✅ Check if fully delivered or still awaiting
+      //  Check if fully delivered or still awaiting
       if (delivered >= totalRequired && totalRequired > 0) {
         displayStatus = "Completed & Gold Delivered";
         badgeColor = Colors.green.shade100;
@@ -289,7 +289,6 @@ final scheme = _currentScheme;
           textColor: Colors.grey.shade700,
         ),
         const SizedBox(height: 16),
-
         // --- Delivered Status Row ---
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -372,6 +371,26 @@ final scheme = _currentScheme;
                             .clamp(0.0, double.infinity),
                       );
                     });
+                    //  After UI updates, also update in backend
+                    final success = await context
+                        .read<TotalActiveSchemesRepository>()
+                        .updateDeliveredGold(
+                          savingId: _currentScheme.savingId,
+                          deliveredGold: _currentScheme.deliveredGoldWeight,
+                        );
+                  
+
+                    if (!success) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text(
+                            "⚠️ Failed to sync with server",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          backgroundColor: Colors.redAccent,
+                        ),
+                      );
+                    }
 
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(

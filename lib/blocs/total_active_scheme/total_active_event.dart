@@ -37,3 +37,12 @@ class AddCashPayment extends TotalActiveEvent {
 //   @override
 //   List<Object> get props => [savingId, deliveredGoldWeight, isFullyDelivered];
 // }
+class UpdateDeliveredGoldEvent extends TotalActiveEvent {
+  final String savingId;
+  final double deliveredGold;
+
+  UpdateDeliveredGoldEvent({
+    required this.savingId,
+    required this.deliveredGold,
+  });
+}

@@ -144,7 +144,6 @@ class CustomerDetailScreen extends StatelessWidget {
 Widget _expandableSavingCard(BuildContext context, Saving saving) {
   return StatefulBuilder(
     builder: (context, setState) {
-      bool isExpanded = false;
 
       return StatefulBuilder(
         builder: (context, innerSetState) {
