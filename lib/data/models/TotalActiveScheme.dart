@@ -49,6 +49,16 @@ class TotalActiveSchemeResponse {
       totalCount: totalCount ?? this.totalCount,
     );
   }
+
+  /// ✅ Combine current + new page results
+  TotalActiveSchemeResponse mergeWith(TotalActiveSchemeResponse newPage) {
+    return TotalActiveSchemeResponse(
+      data: [...data, ...newPage.data],
+      limit: newPage.limit,
+      page: newPage.page,
+      totalCount: newPage.totalCount,
+    );
+  }
 }
 
 // =============================
@@ -77,7 +87,7 @@ class TotalActiveScheme {
   final double pendingAmount;
   final double? totalBenefitGram;
   final double? tottalbonusgoldweight;
-  final List<History> history; //  fixed: only History
+  final List<History> history;
 
   TotalActiveScheme({
     required this.savingId,

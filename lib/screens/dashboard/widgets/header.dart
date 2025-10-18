@@ -8,7 +8,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:admin/utils/colors.dart';
 
 class DashboardTopHeader extends StatefulWidget {
-  const DashboardTopHeader({super.key});
+  final GlobalKey<ScaffoldState>? scaffoldKey; //  added
+
+  const DashboardTopHeader({super.key, this.scaffoldKey});
 
   @override
   State<DashboardTopHeader> createState() => _DashboardTopHeaderState();
@@ -145,13 +147,24 @@ class _DashboardTopHeaderState extends State<DashboardTopHeader> {
               ),
 
               // Menu Icon
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Appcolors.buttoncolor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+              InkWell(
+                onTap: () {
+                  //  open the Drawer when menu icon tapped
+                  widget.scaffoldKey?.currentState?.openDrawer();
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Appcolors.buttoncolor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.menu,
+                    size: 28,
+                    color: Colors.black87,
+                  ),
                 ),
-                child: const Icon(Icons.menu, size: 28, color: Colors.black87),
               ),
             ],
           ),

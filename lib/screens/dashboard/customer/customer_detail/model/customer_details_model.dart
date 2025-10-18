@@ -204,6 +204,7 @@ class Document {
   }
 }
 
+
 class Saving {
   final String savingId;
   final double totalAmount;
@@ -213,7 +214,9 @@ class Saving {
   final String endDate;
   final String schemeName;
   final List<Transaction> transactions;
-   final String status;
+
+  // NEW: scheme status from TotalActiveScheme
+  String? schemeStatus;
 
   Saving({
     required this.savingId,
@@ -224,13 +227,12 @@ class Saving {
     required this.endDate,
     required this.schemeName,
     required this.transactions,
-    required this.status,
-
+    this.schemeStatus,
   });
 
   factory Saving.fromJson(Map<String, dynamic> json) {
     return Saving(
-      savingId: json['saving_id'] ?? '',
+      savingId: json['saving_id']?.toString() ?? '',
       totalAmount: (json['total_amount'] ?? 0).toDouble(),
       totalGoldWeight: (json['total_gold_weight'] ?? 0).toDouble(),
       totalBenefitGram: (json['total_benefit_gram'] ?? 0).toDouble(),
@@ -240,11 +242,26 @@ class Saving {
       transactions: (json['transactions'] as List<dynamic>? ?? [])
           .map((t) => Transaction.fromJson(t))
           .toList(),
-       status: json['status'] ?? 'Unknown',
+    );
+  }
 
+  Saving copyWith({
+    String? schemeStatus,
+  }) {
+    return Saving(
+      savingId: savingId,
+      totalAmount: totalAmount,
+      totalGoldWeight: totalGoldWeight,
+      totalBenefitGram: totalBenefitGram,
+      startDate: startDate,
+      endDate: endDate,
+      schemeName: schemeName,
+      transactions: transactions,
+      schemeStatus: schemeStatus ?? this.schemeStatus,
     );
   }
 }
+
 
 class Transaction {
   final String transactionId;

@@ -1,4 +1,5 @@
 
+import 'package:admin/data/app_config.dart';
 import 'package:admin/data/models/add_gold_price.dart';
 import 'package:admin/data/models/barchart.dart';
 import 'package:admin/data/models/card.dart';
@@ -14,7 +15,7 @@ import 'package:admin/screens/dashboard/customer/customer_detail/model/customer_
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'dart:developer';
 
-//login
+
 class AuthRepository {
   final GraphQLClient client;
 
@@ -25,12 +26,18 @@ class AuthRepository {
     String password,
   ) async {
     const String query = r'''
-      mutation AdminLogin($password: String!, $mobileno: String!) {
-        adminLogin(password: $password, mobileno: $mobileno) {
+      mutation AdminLogin($tenantUuid: String!, $password: String!, $mobileno: String!) {
+        adminLogin(tenant_uuid: $tenantUuid, password: $password, mobileno: $mobileno) {
           accessToken
           refreshToken
           user {
             uName
+            tenant_id
+            tenant_uuid
+            id
+            uEmail
+            uPasswordHash
+            uPhoneNumber
           }
         }
       }
@@ -38,18 +45,19 @@ class AuthRepository {
 
     final options = MutationOptions(
       document: gql(query),
-      variables: {'password': password, 'mobileno': mobile},
+      variables: {
+        'tenantUuid': AppConfig.tenantUuid, //  use config value
+        'password': password,
+        'mobileno': mobile,
+      },
     );
 
     final result = await client.mutate(options);
-
-    if (result.hasException) {
-      throw Exception(result.exception.toString());
-    }
-
+    if (result.hasException) throw Exception(result.exception.toString());
     return result.data?['adminLogin'];
   }
 }
+
 
 // Dashboard Repository
 
@@ -261,54 +269,6 @@ class GoldDashboardRepository {
   }
 }
 
-
-// Gold Dashboard Repository
-
-// class GoldPriceRepository {
-//   final GraphQLClient client;
-
-//   GoldPriceRepository(this.client);
-
-
-//   Future<List<GoldPrice>> fetchAllPrices({String? date}) async {
-//   const query = r'''
-//     query GetAllGoldPrice($date: String) {
-//       getAllGoldPrice(date: $date) {
-//         price_id
-//         date
-//         value
-//         metal
-//         unit
-//         price
-//         created_date
-//         isdeleted
-//         percentage_diff
-//         is_price_up
-//       }
-//     }
-//   ''';
-
-//   final result = await client.query(
-//     QueryOptions(
-//       document: gql(query),
-//       variables: {"date": date},
-//       //fetchPolicy: FetchPolicy.networkOnly, //  avoid stale cache
-//     ),
-//   );
-
-//   if (result.hasException) {
-//     throw Exception(result.exception.toString());
-//   }
-
-//   final List data = result.data?['getAllGoldPrice'] ?? [];
-
-//   //  Filter out deleted records
-//   final filtered = data.where((e) => e["isdeleted"] == false).toList();
-
-//   return filtered.map((e) => GoldPrice.fromJson(e)).toList();
-// }
-
-// }
 
 // Add Gold Price Repository
 
@@ -1043,96 +1003,6 @@ class CashPaymentRepository {
   }
 }
 
-// Create Scheme Repository
-// class CreateSchemeRepository {
-//   final GraphQLClient client;
-
-//   CreateSchemeRepository(this.client);
-
-//   // CREATE
-//   Future<CreateSchemeResponse> createScheme(Map<String, dynamic> data) async {
-//     const mutation = r'''
-//       mutation CreateScheme($data: ProductSchemesInput!) {
-//         createScheme(data: $data) {
-//           scheme_id
-//           scheme_name
-//           scheme_type
-//           duration_type
-//           duration
-//           min_amount
-//           max_amount
-//           increment_amount
-//           is_active
-//           scheme_icon
-//           isDeleted
-//           threshold
-//           bonus
-//         }
-//       }
-//     ''';
-
-//     final result = await client.mutate(
-//       MutationOptions(document: gql(mutation), variables: {'data': data}),
-//     );
-
-//     if (result.hasException) throw Exception(result.exception.toString());
-//     final schemeJson = result.data?['createScheme'];
-//     if (schemeJson == null) throw Exception('Create scheme returned null');
-//     return CreateSchemeResponse.fromJson(schemeJson);
-//   }
-
-//   // UPDATE
-//   Future<CreateSchemeResponse> updateScheme(
-//       String schemeId, Map<String, dynamic> data) async {
-//     const mutation = r'''
-//       mutation UpdateScheme($scheme_id: String!, $data: ProductSchemesInput!) {
-//         updateScheme(scheme_id: $scheme_id, data: $data) {
-//           scheme_id
-//           scheme_name
-//           scheme_type
-//           duration_type
-//           duration
-//           min_amount
-//           max_amount
-//           increment_amount
-//           is_active
-//           scheme_icon
-//           isDeleted
-//           threshold
-//           bonus
-//         }
-//       }
-//     ''';
-
-//     // Debug print to confirm variables
-//     print('updateScheme variables: ${{
-//       'scheme_id': schemeId,
-//       'data': data,
-//     }}');
-
-//     final result = await client.mutate(
-//       MutationOptions(
-//         document: gql(mutation),
-//         variables: {
-//           'scheme_id': schemeId,
-//           'data': data,
-//         },
-//       ),
-//     );
-
-//     if (result.hasException) {
-//       throw Exception('UpdateScheme Error: ${result.exception.toString()}');
-//     }
-
-//     final schemeJson = result.data?['updateScheme'];
-//     if (schemeJson == null) throw Exception('Update scheme returned null');
-
-//     return CreateSchemeResponse.fromJson(schemeJson);
-//   }
-// }
-
-
-
 
 
 // Notification Repository
@@ -1289,57 +1159,6 @@ return CustomerDetails.fromJson({
 
 }
 
-// class UpdateSchemeRepository {
-//   final GraphQLClient client;
-
-//   UpdateSchemeRepository(this.client);
-
-//   static const String updateSchemeMutation = r'''
-//     mutation UpdateScheme($data: UpdateProductSchemesInput!, $schemeId: String!) {
-//       updateScheme(data: $data, scheme_id: $schemeId) {
-//         scheme_id
-//         scheme_name
-//         scheme_type
-//         duration_type
-//         duration
-//         min_amount
-//         max_amount
-//         increment_amount
-//         is_active
-//         scheme_icon
-//         scheme_image
-//         scheme_notes
-//         redemption_terms
-//         interest_rate
-//         isDeleted
-//       }
-//     }
-//   ''';
-
-//   Future<UpdateSchemeModel> updateScheme(
-//     String schemeId,
-//     UpdateSchemeModel model,
-//   ) async {
-//     final result = await client.mutate(
-//       MutationOptions(
-//         document: gql(updateSchemeMutation),
-//         variables: {
-//           "schemeId": schemeId,
-//           "data": model.toJson(),
-//         },
-//       ),
-//     );
-
-//     if (result.hasException) {
-//       throw Exception("UpdateScheme Error: ${result.exception}");
-//     }
-
-//     final json = result.data?['updateScheme'];
-//     if (json == null) throw Exception("No data returned from updateScheme");
-
-//     return UpdateSchemeModel.fromJson(json);
-//   }
-// }
 
 class TodayActiveRepository {
   final GraphQLClient client;

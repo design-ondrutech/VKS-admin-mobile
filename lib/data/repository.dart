@@ -7,7 +7,8 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final graphQLClient = getGraphQLClient();
+  //  Wait for the async function to complete
+  final graphQLClient = await getGraphQLClient();
 
   runApp(MyApp(graphQLClient: graphQLClient));
 }
@@ -18,9 +19,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: DashboardScreen(
-        repository: CardRepository(graphQLClient),
+    return GraphQLProvider(
+      client: ValueNotifier(graphQLClient),
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: DashboardScreen(
+          repository: CardRepository(graphQLClient),
+        ),
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:admin/data/models/add_gold_price.dart';
 import 'package:admin/blocs/gold_price/gold_bloc.dart';
 import 'package:admin/blocs/gold_price/gold_event.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AddGoldRateDialog extends StatefulWidget {
@@ -220,35 +221,47 @@ void _onSavePressed() async {
 
 
   /// --- Common Widgets ---
-  Widget _buildTextField(
-    String label,
-    TextEditingController controller, {
-    bool readOnly = false,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-        ),
-        const SizedBox(height: 6),
-        TextField(
-          controller: controller,
-          readOnly: readOnly,
-          decoration: InputDecoration(
-            isDense: true,
-            filled: true,
-            fillColor: Colors.grey.shade100,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(6),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
+ Widget _buildTextField(
+  String label,
+  TextEditingController controller, {
+  bool readOnly = false,
+}) {
+  bool isPriceField = label.toLowerCase().contains("price");
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+      ),
+      const SizedBox(height: 6),
+      TextField(
+        controller: controller,
+        readOnly: readOnly,
+        keyboardType: isPriceField
+            ? const TextInputType.numberWithOptions(decimal: true)
+            : TextInputType.text,
+        inputFormatters: isPriceField
+            ? [
+                FilteringTextInputFormatter.allow(
+                    RegExp(r'^\d*\.?\d{0,2}')), // allows digits + 1 decimal point
+              ]
+            : [],
+        decoration: InputDecoration(
+          isDense: true,
+          filled: true,
+          fillColor: Colors.grey.shade100,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(6),
+            borderSide: BorderSide(color: Colors.grey.shade300),
           ),
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
+
 
   Widget _buildDropdown(
     String label,

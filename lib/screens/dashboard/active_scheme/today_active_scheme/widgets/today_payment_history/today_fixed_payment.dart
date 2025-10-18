@@ -86,8 +86,6 @@ class _TodayFixedPaymentWidgetState extends State<TodayFixedPaymentWidget> {
         }
       },
       builder: (context, state) {
-        bool isLoading = state is AddCashSavingLoading &&
-            currentPayingId == widget.savingId;
 
         return AnimatedSwitcher(
           duration: const Duration(milliseconds: 400),

@@ -1,10 +1,16 @@
 import 'package:admin/utils/colors.dart';
+import 'package:admin/widgets/network_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:graphql_flutter/graphql_flutter.dart'; // ✅ added
+import 'package:shared_preferences/shared_preferences.dart'; // ✅ added
+
 import '../blocs/auth/auth_bloc.dart';
 import '../blocs/auth/auth_event.dart';
 import '../blocs/auth/auth_state.dart';
+import '../data/graphql_config.dart'; // ✅ added
+import '../data/repo/auth_repository.dart'; // ✅ added
 import 'dashboard/dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -17,22 +23,49 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final phone = TextEditingController();
   final password = TextEditingController();
-  bool _obscurePassword = true; // toggle password visibility
+  bool _obscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkInternetOnStart();
+  }
+
+  Future<void> _checkInternetOnStart() async {
+    bool hasInternet = await NetworkHelper.hasInternetConnection();
+    if (!hasInternet) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        NetworkHelper.showNoInternetDialog(context);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F7FD),
       body: BlocListener<AuthBloc, AuthState>(
-        listener: (context, state) {
+        listener: (context, state) async {
           if (state is AuthSuccess) {
+            //  Save token to SharedPreferences (redundant safety)
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('accessToken', state.token);
+
+            //  Rebuild a fresh GraphQL client with the saved token
+            final graphQLClient = await getGraphQLClient();
+            final cardRepository = CardRepository(graphQLClient);
+
+            //  Navigate to Dashboard with token-authenticated repository
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (_) => DashboardHeader()),
+              MaterialPageRoute(
+                builder: (_) => DashboardScreen(repository: cardRepository),
+              ),
             );
           } else if (state is AuthFailure) {
-            ScaffoldMessenger.of(context)
-                .showSnackBar(SnackBar(content: Text(state.message)));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message)),
+            );
           }
         },
         child: Center(
@@ -46,7 +79,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   size: 70,
                   color: Color(0xFFB38B00),
                 ),
-               //  Image.asset('assets/images/admin_icon.png', height: 50),
                 const SizedBox(height: 12),
                 const Text(
                   "Welcome to Admin",
@@ -153,9 +185,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               return;
                             }
 
-                            context.read<AuthBloc>().add(
-                                  LoginRequested(phoneText, passwordText),
-                                );
+                            context
+                                .read<AuthBloc>()
+                                .add(LoginRequested(phoneText, passwordText));
                           },
                           child: const Text(
                             "LOGIN",
@@ -168,7 +200,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 12),                
+                      const SizedBox(height: 12),
                     ],
                   ),
                 ),

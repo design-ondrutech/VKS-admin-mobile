@@ -43,7 +43,7 @@ class CustomerDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ///  Summary Section (Flat Style)
+            /// Summary Section
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -88,142 +88,66 @@ class CustomerDetailScreen extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            ///  Sections
+            /// Basic Info
             _section("Basic Info", [
               _infoRow(Icons.person, "Name", details.cName),
               _infoRow(Icons.email, "Email", details.cEmail),
               _infoRow(Icons.phone, "Phone", details.cPhoneNumber),
             ]),
 
+            /// Address
             _section(
               "Address",
               hasAddress
                   ? [
-                    _infoRow(Icons.home, "Address", address!.cAddressLine1),
-                    _infoRow(Icons.location_city, "City", address.cCity),
-                    _infoRow(Icons.pin_drop, "Pin Code", address.cPinCode),
-                  ]
+                      _infoRow(Icons.home, "Address", address!.cAddressLine1),
+                      _infoRow(Icons.location_city, "City", address.cCity),
+                      _infoRow(Icons.pin_drop, "Pin Code", address.cPinCode),
+                    ]
                   : [const Text("No Address Found")],
             ),
 
+            /// Documents
             _section(
               "Documents",
               hasDocument
                   ? [
-                    _infoRow(Icons.credit_card, "Aadhar", document!.cAadharNo),
-                    _infoRow(Icons.card_membership, "PAN", document.cPanNo),
-                  ]
+                      _infoRow(
+                          Icons.credit_card, "Aadhar", document!.cAadharNo),
+                      _infoRow(Icons.card_membership, "PAN", document.cPanNo),
+                    ]
                   : [const Text("No Documents Found")],
             ),
 
+            /// Nominee
             _section(
               "Nominee",
               hasNominee
                   ? [
-                    _infoRow(Icons.person, "Name", nominee!.cNomineeName),
-                    _infoRow(Icons.email, "Email", nominee.cNomineeEmail),
-                    _infoRow(Icons.phone, "Phone", nominee.cNomineePhoneNo),
-                  ]
+                      _infoRow(Icons.person, "Name", nominee!.cNomineeName),
+                      _infoRow(Icons.email, "Email", nominee.cNomineeEmail),
+                      _infoRow(Icons.phone, "Phone", nominee.cNomineePhoneNo),
+                    ]
                   : [const Text("No Nominee Added")],
             ),
 
+            /// Savings & Transactions
             _section(
               "Savings & Transactions",
               hasSavings
-                  ? details.savings.map((saving) {
-                    return _expandableSavingCard(context, saving);
-                  }).toList()
+                  ? details.savings
+                      .map((saving) =>
+                          _ExpandableSavingCard(saving: saving, formatDate: formatDate))
+                      .toList()
                   : [const Text("No Savings Data")],
             ),
           ],
         ),
       ),
     );
-    
   }
-Widget _expandableSavingCard(BuildContext context, Saving saving) {
-  return StatefulBuilder(
-    builder: (context, setState) {
 
-      return StatefulBuilder(
-        builder: (context, innerSetState) {
-          return Container(
-            margin: const EdgeInsets.symmetric(vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
-            ),
-            child: ExpansionTile(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              tilePadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    saving.schemeName,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              trailing: const Icon(
-                Icons.keyboard_arrow_down_rounded,
-                color: Colors.teal,
-                size: 28,
-              ),
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _infoRow(
-                        Icons.wallet,
-                        "Total Amount",
-                        "₹${saving.totalAmount.toStringAsFixed(0)}",
-                      ),
-                      _infoRow(
-                        Icons.scale,
-                        "Gold Weight",
-                        "${saving.totalGoldWeight} g",
-                      ),
-                      _infoRow(
-                        Icons.date_range,
-                        "Start Date",
-                        formatDate(saving.startDate),
-                      ),
-                      _infoRow(
-                        Icons.date_range,
-                        "End Date",
-                        formatDate(saving.endDate),
-                      ),
-                      const SizedBox(height: 12),
-                      if (saving.transactions.isNotEmpty)
-                        _stripedTable(saving.transactions)
-                      else
-                        const Text("No Transactions Found"),
-                      const SizedBox(height: 10),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      );
-    },
-  );
-}
-
-  ///  Flat Section
+  /// Section Layout
   Widget _section(String title, List<Widget> children) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
@@ -253,7 +177,7 @@ Widget _expandableSavingCard(BuildContext context, Saving saving) {
     );
   }
 
-  ///  Info Row
+  /// Info Row
   Widget _infoRow(IconData icon, String key, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -272,7 +196,7 @@ Widget _expandableSavingCard(BuildContext context, Saving saving) {
     );
   }
 
-  ///  Summary Item (flat style inside grid)
+  /// Summary Grid Item
   Widget _summaryItem(String title, String value, IconData icon, Color color) {
     return Container(
       decoration: BoxDecoration(
@@ -300,8 +224,171 @@ Widget _expandableSavingCard(BuildContext context, Saving saving) {
       ),
     );
   }
+}
 
-  ///  Striped Table for Transactions
+/// Expandable Card for each Saving
+class _ExpandableSavingCard extends StatefulWidget {
+  final Saving saving;
+  final String Function(String) formatDate;
+
+  const _ExpandableSavingCard({
+    required this.saving,
+    required this.formatDate,
+  });
+
+  @override
+  State<_ExpandableSavingCard> createState() => _ExpandableSavingCardState();
+}
+
+class _ExpandableSavingCardState extends State<_ExpandableSavingCard> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final saving = widget.saving;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+      ),
+      child: ExpansionTile(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+
+        //  Title with scheme name + status badge
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                saving.schemeName,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            if (saving.schemeStatus != null &&
+                saving.schemeStatus!.isNotEmpty)
+              _buildStatusBadge(saving.schemeStatus!),
+          ],
+        ),
+
+        //  Animated arrow
+        trailing: AnimatedRotation(
+          turns: _isExpanded ? 0.5 : 0.0,
+          duration: const Duration(milliseconds: 250),
+          child: const Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: Colors.teal,
+            size: 28,
+          ),
+        ),
+
+        onExpansionChanged: (expanded) {
+          setState(() {
+            _isExpanded = expanded;
+          });
+        },
+
+        // 🔹 Content
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _infoRow(Icons.wallet, "Total Amount",
+                    "₹${saving.totalAmount.toStringAsFixed(0)}"),
+                _infoRow(Icons.scale, "Gold Weight",
+                    "${saving.totalGoldWeight} g"),
+                _infoRow(Icons.date_range, "Start Date",
+                    widget.formatDate(saving.startDate)),
+                _infoRow(Icons.date_range, "End Date",
+                    widget.formatDate(saving.endDate)),
+                const SizedBox(height: 12),
+                if (saving.transactions.isNotEmpty)
+                  _stripedTable(saving.transactions)
+                else
+                  const Text("No Transactions Found"),
+                const SizedBox(height: 10),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  //  Badge builder
+  Widget _buildStatusBadge(String status) {
+    final normalized = status.trim().toLowerCase();
+
+    Color color;
+    IconData icon;
+    String label;
+
+    if (normalized == 'completed' || normalized == 'complete') {
+      color = Colors.green;
+      icon = Icons.check_circle;
+      label = 'Completed';
+    } else if (normalized == 'active') {
+      color = Colors.orange;
+      icon = Icons.timelapse;
+      label = 'Active';
+    } else {
+      color = Colors.grey;
+      icon = Icons.help_outline;
+      label = status;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 16),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _infoRow(IconData icon, String key, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: Colors.teal),
+          const SizedBox(width: 10),
+          Text(
+            "$key:",
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+          ),
+          const SizedBox(width: 8),
+          Expanded(child: Text(value.isNotEmpty ? value : "N/A")),
+        ],
+      ),
+    );
+  }
+
   Widget _stripedTable(List<Transaction> transactions) {
     return Table(
       columnWidths: const {
@@ -317,31 +404,23 @@ Widget _expandableSavingCard(BuildContext context, Saving saving) {
           children: const [
             Padding(
               padding: EdgeInsets.all(8),
-              child: Text(
-                "Date",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
+              child:
+                  Text("Date", style: TextStyle(fontWeight: FontWeight.bold)),
             ),
             Padding(
               padding: EdgeInsets.all(8),
-              child: Text(
-                "Amount",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
+              child:
+                  Text("Amount", style: TextStyle(fontWeight: FontWeight.bold)),
             ),
             Padding(
               padding: EdgeInsets.all(8),
-              child: Text(
-                "Gold(g)",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
+              child:
+                  Text("Gold(g)", style: TextStyle(fontWeight: FontWeight.bold)),
             ),
             Padding(
               padding: EdgeInsets.all(8),
-              child: Text(
-                "Type",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
+              child:
+                  Text("Type", style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         ),
@@ -355,15 +434,15 @@ Widget _expandableSavingCard(BuildContext context, Saving saving) {
             children: [
               Padding(
                 padding: const EdgeInsets.all(8),
-                child: Text(formatDate(tx.transactionDate)),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: Text("${tx.transactionGoldGram} g"),
+                child: Text(widget.formatDate(tx.transactionDate)),
               ),
               Padding(
                 padding: const EdgeInsets.all(8),
                 child: Text("₹${tx.transactionAmount.toStringAsFixed(0)}"),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: Text("${tx.transactionGoldGram} g"),
               ),
               Padding(
                 padding: const EdgeInsets.all(8),
@@ -376,4 +455,3 @@ Widget _expandableSavingCard(BuildContext context, Saving saving) {
     );
   }
 }
-

@@ -20,6 +20,7 @@ import 'package:admin/blocs/schemes/schemes_bloc.dart';
 import 'package:admin/blocs/gold_price/gold_bloc.dart';
 import 'package:admin/blocs/gold_price/gold_event.dart';
 import 'package:admin/data/graphql_config.dart';
+import 'package:admin/screens/dashboard/dashboard_screen.dart';
 import 'package:admin/screens/dashboard/gold_price/add_gold_price/bloc/add_gld_bloc.dart';
 import 'package:admin/screens/login_screen.dart';
 import 'package:admin/data/repo/auth_repository.dart';
@@ -27,22 +28,12 @@ import 'package:admin/widgets/global_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  final HttpLink httpLink = HttpLink('http://api-vkskumaran-0env-env.eba-jpagnpin.ap-south-1.elasticbeanstalk.com/graphql/admin',);
-
- //  final HttpLink httpLink = HttpLink('http://10.0.2.2:4000/graphql/admin');
-   
-  //final HttpLink httpLink = HttpLink('https://api.vkskumaran.in/graphql/admin');
-
-  // Create the GraphQL client
-  final GraphQLClient graphQLClient = GraphQLClient(
-    cache: GraphQLCache(),
-    link: httpLink,
-  );
-
+  //  Wait for GraphQL client (includes token if saved)
+  final graphQLClient = await getGraphQLClient();
   runApp(
     GraphQLProvider(
       client: ValueNotifier(graphQLClient),
@@ -75,41 +66,31 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      //  App minimize pannitu open aana udane refresh pannalaam
-      // Gold price refresh
       context.read<GoldPriceBloc>().add(const FetchGoldPriceEvent());
-
-      // Other Blocs refresh (optional)
       context.read<SchemesBloc>().add(FetchSchemes());
       context.read<CardBloc>().add(FetchCardSummary());
       context.read<CustomerBloc>().add(FetchCustomers(page: 1, limit: 10));
       context.read<TotalActiveBloc>().add(FetchTotalActiveSchemes());
-      context.read<TodayActiveSchemeBloc>().add(FetchTodayActiveSchemes(page: 1, limit: 10, startDate: 'today'));
-      context.read<OnlinePaymentBloc>().add(
-        FetchOnlinePayments(page: 1, limit: 10),
+      context.read<TodayActiveSchemeBloc>().add(
+        FetchTodayActiveSchemes(page: 1, limit: 10, startDate: 'today'),
       );
+      context.read<OnlinePaymentBloc>().add(FetchOnlinePayments(page: 1, limit: 10));
       context.read<CashPaymentBloc>().add(FetchCashPayments());
-      context.read<NotificationBloc>().add(
-        FetchNotificationEvent(),
-      ); // if exists
+      context.read<NotificationBloc>().add(FetchNotificationEvent());
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Initialize repositories using widget.client
     final authRepository = AuthRepository(widget.client);
     final dashboardRepository = CardRepository(widget.client);
     final goldRepository = GoldPriceRepository(widget.client);
     final addGoldPriceRepository = AddGoldPriceRepository(widget.client);
     final customerRepository = CustomerRepository(widget.client);
     final goldDashboardRepository = GoldDashboardRepository(widget.client);
-    final totalActiveSchemesRepository = TotalActiveSchemesRepository(
-      client: widget.client,
-    );
-    final todayActiveSchemeRepository = TodayActiveSchemeRepository(
-      widget.client,
-    );
+    final totalActiveSchemesRepository =
+        TotalActiveSchemesRepository(client: widget.client);
+    final todayActiveSchemeRepository = TodayActiveSchemeRepository(widget.client);
     final onlinePaymentRepository = OnlinePaymentRepository(widget.client);
     final cashPaymentRepository = CashPaymentRepository(widget.client);
     final notificationRepository = NotificationRepository(widget.client);
@@ -119,73 +100,76 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         BlocProvider(create: (_) => AuthBloc(authRepository)),
         BlocProvider(create: (_) => DashboardBloc(dashboardRepository)),
         BlocProvider(
-          create:
-              (_) =>
-                  SchemesBloc(SchemeRepository(getGraphQLClient()))
-                    ..add(FetchSchemes()),
+          create: (_) => SchemesBloc(SchemeRepository(widget.client))
+            ..add(FetchSchemes()),
         ),
         BlocProvider(
           create: (_) => CardBloc(dashboardRepository)..add(FetchCardSummary()),
         ),
         BlocProvider(
-          create:
-              (_) =>
-                  GoldPriceBloc(goldRepository)
-                    ..add(const FetchGoldPriceEvent()),
+          create: (_) => GoldPriceBloc(goldRepository)
+            ..add(const FetchGoldPriceEvent()),
         ),
         BlocProvider(create: (_) => AddGoldPriceBloc(addGoldPriceRepository)),
         BlocProvider(
-          create:
-              (_) =>
-                  CustomerBloc(customerRepository)
-                    ..add(FetchCustomers(page: 1, limit: 10)),
+          create: (_) => CustomerBloc(
+                customerRepository,
+                TotalActiveSchemesRepository(client: widget.client),
+              )..add(FetchCustomers(page: 1, limit: 10)),
         ),
         BlocProvider(create: (_) => GoldDashboardBloc(goldDashboardRepository)),
         BlocProvider(
-          create:
-              (_) =>
-                  TotalActiveBloc(repository: totalActiveSchemesRepository)
-                    ..add(FetchTotalActiveSchemes()),
+          create: (_) => TotalActiveBloc(
+            repository: totalActiveSchemesRepository,
+          )..add(FetchTotalActiveSchemes()),
         ),
         BlocProvider(
-          create:
-              (_) =>
-                  TodayActiveSchemeBloc(repository: todayActiveSchemeRepository)
-                    ..add(FetchTodayActiveSchemes(page: 1, limit: 10, startDate: 'today')),
+          create: (_) => TodayActiveSchemeBloc(
+            repository: todayActiveSchemeRepository,
+          )..add(FetchTodayActiveSchemes(page: 1, limit: 10, startDate: 'today')),
         ),
         BlocProvider(
-          create:
-              (_) =>
-                  OnlinePaymentBloc(onlinePaymentRepository)
-                    ..add(FetchOnlinePayments(page: 1, limit: 10)),
+          create: (_) => OnlinePaymentBloc(onlinePaymentRepository)
+            ..add(FetchOnlinePayments(page: 1, limit: 10)),
         ),
         BlocProvider(
-          create:
-              (_) =>
-                  CashPaymentBloc(cashPaymentRepository)
-                    ..add(FetchCashPayments()),
+          create: (_) => CashPaymentBloc(cashPaymentRepository)
+            ..add(FetchCashPayments()),
         ),
         BlocProvider(create: (_) => NotificationBloc(notificationRepository)),
       ],
-
       child: MaterialApp(
         title: 'VKS Admin',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(primarySwatch: Colors.deepPurple),
-        home: GlobalRefreshWrapper(
-          child: const LoginScreen(), // or DashboardScreen after login
+        home: FutureBuilder(
+          future: _getInitialScreen(widget.client), //  Pass the client
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            } else {
+              return GlobalRefreshWrapper(
+                child: snapshot.data ?? const LoginScreen(),
+              );
+            }
+          },
         ),
       ),
     );
   }
+
+  ///  Redirect user based on login token
+  Future<Widget> _getInitialScreen(GraphQLClient client) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+
+    if (token != null && token.isNotEmpty) {
+      final cardRepository = CardRepository(client);
+      return DashboardScreen(repository: cardRepository); //  fixed
+    }
+
+    return const LoginScreen();
+  }
 }
-
-// import 'package:admin/Test%20_Screen%20_Code.dart';
-// import 'package:flutter/material.dart';
-// import 'package:graphql_flutter/graphql_flutter.dart';
-
-// void main() async {
-//   WidgetsFlutterBinding.ensureInitialized();
-//   await initHiveForFlutter();
-//   runApp(const MaterialApp(home: CustomerTestScreen()));
-// }

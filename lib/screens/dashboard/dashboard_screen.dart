@@ -1,9 +1,14 @@
+import 'package:admin/screens/dashboard/widgets/admin_drawer.dart';
+import 'package:admin/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:admin/blocs/card/card_bloc.dart';
 import 'package:admin/blocs/card/card_event.dart';
 import 'package:admin/blocs/card/card_state.dart';
 import 'package:admin/data/repo/auth_repository.dart';
+import 'package:admin/data/graphql_config.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
+
 import 'package:admin/screens/dashboard/active_scheme/total_active_scheme/total_active_list.dart';
 import 'package:admin/screens/dashboard/active_scheme/today_active_scheme/today_active_list.dart';
 import 'package:admin/screens/dashboard/cash_payment/cash_payment_list.dart';
@@ -17,14 +22,46 @@ import 'package:admin/blocs/dashboard/dashboard_bloc.dart';
 import 'package:admin/blocs/dashboard/dashboard_event.dart';
 import 'package:admin/blocs/dashboard/dashboard_state.dart';
 import 'package:admin/widgets/bottom_navigation.dart';
-import 'package:admin/widgets/global_refresh.dart';  //  new import
+import 'package:admin/widgets/global_refresh.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   final CardRepository repository;
   const DashboardScreen({super.key, required this.repository});
 
   @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  GraphQLClient? _client;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _initClient();
+  }
+
+  Future<void> _initClient() async {
+    // Get client with Authorization header
+    final client = await getGraphQLClient();
+    setState(() {
+      _client = client;
+      _loading = false;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_loading || _client == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final repository = CardRepository(_client!);
+
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => CardBloc(repository)..add(FetchCardSummary())),
@@ -35,18 +72,41 @@ class DashboardScreen extends StatelessWidget {
   }
 }
 
-class DashboardHeader extends StatelessWidget {
+
+class DashboardHeader extends StatefulWidget {
   const DashboardHeader({super.key});
+
+  @override
+  State<DashboardHeader> createState() => _DashboardHeaderState();
+}
+
+class _DashboardHeaderState extends State<DashboardHeader> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  Future<void> _logout(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('accessToken'); //  clear token
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (route) => false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7FC),
+      key: _scaffoldKey,
+      backgroundColor: const Color(0xFFF7F7FC),      
+      //  Drawer menu
+      drawer: const AdminDrawer(),
+      //  Main body with header
       body: SafeArea(
-        child: GlobalRefreshWrapper( // Whole dashboard swipe refresh
+        child: GlobalRefreshWrapper(
           child: Column(
             children: [
-              const DashboardTopHeader(),
+              //  Menu icon opens this drawer
+              DashboardTopHeader(scaffoldKey: _scaffoldKey),
               Expanded(
                 child: BlocBuilder<DashboardBloc, DashboardState>(
                   builder: (context, state) {
@@ -59,6 +119,8 @@ class DashboardHeader extends StatelessWidget {
           ),
         ),
       ),
+
+      //  Bottom navigation
       bottomNavigationBar: BlocBuilder<DashboardBloc, DashboardState>(
         builder: (context, state) {
           return CustomBottomNav(
@@ -72,10 +134,9 @@ class DashboardHeader extends StatelessWidget {
     );
   }
 
-  /// Tab Selection
+  //  Same tab switcher
   Widget _getSelectedTab(BuildContext context, String selectedTab) {
     if (selectedTab == "Overview") {
-      //  Removed local RefreshIndicator
       return SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16),
@@ -97,17 +158,14 @@ class DashboardHeader extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         } else if (state is CardLoaded) {
           final summary = state.summary;
-
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _iconCard("Customers", "${summary.totalCustomers}", Icons.group, Colors.blue,
-                  onTap: () {
+              _iconCard("Customers", "${summary.totalCustomers}", Icons.group, Colors.blue, onTap: () {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomersScreen()));
               }),
               const SizedBox(height: 16),
-              _iconCard("Total Active", "${summary.totalActiveSchemes}", Icons.layers, Colors.orange,
-                  onTap: () {
+              _iconCard("Total Active", "${summary.totalActiveSchemes}", Icons.layers, Colors.orange, onTap: () {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const TotalActiveSchemesScreen()));
               }),
               const SizedBox(height: 16),
