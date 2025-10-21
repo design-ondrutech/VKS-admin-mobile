@@ -1,4 +1,3 @@
-import 'package:admin/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,50 +20,60 @@ class AdminDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selectedTab =
-        context.watch<DashboardBloc>().state.selectedTab; // for highlighting
+    final selectedTab = context.watch<DashboardBloc>().state.selectedTab;
 
     return Drawer(
       width: 270,
+      elevation: 8,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topRight: Radius.circular(25),
           bottomRight: Radius.circular(25),
         ),
       ),
-      elevation: 10,
-      child: SafeArea(
-        child: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topRight: Radius.circular(25),
-              bottomRight: Radius.circular(25),
-            ),
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color(0xFFFFFBF0),
+              Color(0xFFFFF3C1),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
+          borderRadius: BorderRadius.only(
+            topRight: Radius.circular(25),
+            bottomRight: Radius.circular(25),
+          ),
+        ),
+        child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ✨ Premium header
+              //  Header section
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 24,
-                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      Color(0xFF8C6C00), // rich deep gold
-                      Color(0xFFF2C94C), // soft golden glow
+                      Color(0xFFB38728),
+                      Color(0xFFF7EF8A),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-
                   borderRadius: BorderRadius.only(
                     topRight: Radius.circular(25),
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 6,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
@@ -72,7 +81,7 @@ class AdminDrawer extends StatelessWidget {
                       radius: 30,
                       backgroundImage: AssetImage('assets/images/icon.jpg'),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 14),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: const [
@@ -80,53 +89,54 @@ class AdminDrawer extends StatelessWidget {
                           "Admin Panel",
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 18,
+                            fontSize: 20,
                             fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
                           ),
                         ),
-                        SizedBox(height: 4),
-                        // Text(
-                        //   "admin@vksjewellers.com",
-                        //   style: TextStyle(
-                        //     color: Colors.white70,
-                        //     fontSize: 13,
-                        //   ),
-                        // ),
+                        SizedBox(height: 5),
+                        Text(
+                          "VKS Jewellers",
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                          ),
+                        ),
                       ],
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 15),
 
-              // ✨ Drawer Menu Items
+              // Menu
               Expanded(
                 child: ListView(
-                  padding: EdgeInsets.zero,
+                  padding: const EdgeInsets.only(top: 8),
                   children: [
-                    _buildMenuItem(
+                    _menuItem(
                       context,
                       icon: Icons.dashboard_rounded,
                       title: "Overview",
                       tabName: "Overview",
                       selected: selectedTab == "Overview",
                     ),
-                    _buildMenuItem(
+                    _menuItem(
                       context,
                       icon: Icons.layers_rounded,
                       title: "Schemes",
                       tabName: "Schemes",
                       selected: selectedTab == "Schemes",
                     ),
-                    _buildMenuItem(
+                    _menuItem(
                       context,
                       icon: Icons.attach_money_rounded,
                       title: "Gold Rate",
                       tabName: "GoldAdd",
                       selected: selectedTab == "GoldAdd",
                     ),
-                    _buildMenuItem(
+                    _menuItem(
                       context,
                       icon: Icons.notifications_rounded,
                       title: "Notifications",
@@ -137,61 +147,66 @@ class AdminDrawer extends StatelessWidget {
                 ),
               ),
 
-              // Divider before Logout
               const Divider(
-                color: Colors.grey,
-                thickness: 0.5,
-                indent: 16,
-                endIndent: 16,
+                color: Colors.black26,
+                indent: 20,
+                endIndent: 20,
+                height: 10,
               ),
 
-              // ✨ Logout Button
+              // 🚪 Logout button
               Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 10,
-                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                 child: ElevatedButton.icon(
                   onPressed: () {
                     showDialog(
                       context: context,
-                      builder:
-                          (ctx) => AlertDialog(
-                            title: const Text("Confirm Logout"),
-                            content: const Text(
-                              "Are you sure you want to logout?",
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(ctx),
-                                child: const Text("Cancel"),
-                              ),
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.redAccent,
-                                ),
-                                onPressed: () {
-                                  Navigator.pop(ctx);
-                                  _logout(context);
-                                },
-                                child: const Text("Logout"),
-                              ),
-                            ],
+                      builder: (ctx) => AlertDialog(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
+                        title: const Text(
+                          "Confirm Logout",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        content: const Text(
+                          "Are you sure you want to logout?",
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            child: const Text("Cancel"),
                           ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.redAccent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              _logout(context);
+                            },
+                            child: const Text("Logout"),
+                          ),
+                        ],
+                      ),
                     );
                   },
                   icon: const Icon(Icons.logout_rounded, color: Colors.white),
                   label: const Text(
                     "Logout",
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(color: Colors.white, fontSize: 16),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Appcolors.buttoncolor,
-                    minimumSize: const Size.fromHeight(45),
+                    backgroundColor: const Color(0xFFB38B00),
+                    minimumSize: const Size.fromHeight(48),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                    elevation: 3,
+                    elevation: 5,
                   ),
                 ),
               ),
@@ -203,35 +218,54 @@ class AdminDrawer extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItem(
+  Widget _menuItem(
     BuildContext context, {
     required IconData icon,
     required String title,
     required String tabName,
     required bool selected,
   }) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: selected ? const Color(0xFFFFF4D2) : Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ListTile(
-        leading: Icon(
-          icon,
-          color: selected ? const Color(0xFFB38B00) : Colors.black87,
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: () {
+        context.read<DashboardBloc>().add(ChangeDashboardTab(tabName));
+        Navigator.pop(context);
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: selected ? const Color(0xFFFFF3C1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: Colors.amber.shade100,
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  ),
+                ]
+              : [],
         ),
-        title: Text(
-          title,
-          style: TextStyle(
-            color: selected ? const Color(0xFFB38B00) : Colors.black87,
-            fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-          ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: selected ? const Color(0xFFB38B00) : Colors.black87,
+              size: 22,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              title,
+              style: TextStyle(
+                color: selected ? const Color(0xFFB38B00) : Colors.black87,
+                fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+                fontSize: 15,
+              ),
+            ),
+          ],
         ),
-        onTap: () {
-          context.read<DashboardBloc>().add(ChangeDashboardTab(tabName));
-          Navigator.pop(context);
-        },
       ),
     );
   }

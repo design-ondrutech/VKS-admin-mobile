@@ -16,15 +16,14 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'dart:developer';
 
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 class AuthRepository {
   final GraphQLClient client;
 
   AuthRepository(this.client);
 
-  Future<Map<String, dynamic>> adminLogin(
-    String mobile,
-    String password,
-  ) async {
+  Future<Map<String, dynamic>> adminLogin(String mobile, String password) async {
     const String query = r'''
       mutation AdminLogin($tenantUuid: String!, $password: String!, $mobileno: String!) {
         adminLogin(tenant_uuid: $tenantUuid, password: $password, mobileno: $mobileno) {
@@ -43,20 +42,40 @@ class AuthRepository {
       }
     ''';
 
+    //  Tenant UUID can be constant for now or dynamic (fetched from config)
+    // You can later make it dynamic if your system supports multi-tenant login screens.
+    const String defaultTenantUuid = "7a551e1b-d39f-4a2b-bad0-74fd753cea4e";
+
     final options = MutationOptions(
       document: gql(query),
       variables: {
-        'tenantUuid': AppConfig.tenantUuid, //  use config value
+        'tenantUuid': defaultTenantUuid,
         'password': password,
         'mobileno': mobile,
       },
     );
 
     final result = await client.mutate(options);
-    if (result.hasException) throw Exception(result.exception.toString());
-    return result.data?['adminLogin'];
+
+    if (result.hasException) {
+      throw Exception(result.exception.toString());
+    }
+
+    final loginData = result.data?['adminLogin'];
+    if (loginData == null) {
+      throw Exception("Invalid login response from server");
+    }
+
+    //  Save tokens and tenant info locally
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('accessToken', loginData['accessToken'] ?? '');
+    await prefs.setString('refreshToken', loginData['refreshToken'] ?? '');
+    await prefs.setString('tenantUuid', loginData['user']?['tenant_uuid'] ?? '');
+
+    return loginData;
   }
 }
+
 
 
 // Dashboard Repository
@@ -273,12 +292,14 @@ class GoldDashboardRepository {
 // Add Gold Price Repository
 
 
+
+
 class GoldPriceRepository {
   final GraphQLClient client;
 
   GoldPriceRepository(this.client);
 
-  ///  Get all gold prices (Always fetch fresh data)
+  /// Fetch all gold prices for the logged-in tenant
   Future<List<GoldPrice>> fetchAllPrices({String? date}) async {
     const query = r'''
       query GetAllGoldPrice($date: String) {
@@ -293,31 +314,51 @@ class GoldPriceRepository {
           isdeleted
           percentage_diff
           is_price_up
+          tenant_uuid
         }
       }
     ''';
 
-    final result = await client.query(
+    //  Get token from SharedPreferences (tenant info is inside token)
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+
+    if (token == null || token.isEmpty) {
+      throw Exception("Token missing. Please log in again.");
+    }
+
+    // Ensure token is in Authorization header
+    final authLink = AuthLink(getToken: () async => 'Bearer $token');
+    final link = authLink.concat(client.link);
+
+    final authedClient = GraphQLClient(
+      cache: GraphQLCache(store: InMemoryStore()),
+      link: link,
+    );
+
+    //  Run GraphQL query (without tenant_uuid argument)
+    final result = await authedClient.query(
       QueryOptions(
         document: gql(query),
         variables: {"date": date},
-        //  Force fresh data from backend (no cache)
         fetchPolicy: FetchPolicy.networkOnly,
       ),
     );
 
     if (result.hasException) {
+      print("❌ GoldPriceRepository Error: ${result.exception.toString()}");
       throw Exception(result.exception.toString());
     }
 
     final List data = result.data?['getAllGoldPrice'] ?? [];
-    // Filter deleted entries
+
+    //  Filter deleted entries
     final filtered = data.where((e) => e["isdeleted"] == false).toList();
 
-    // Return new list instance (UI rebuild)
     return List<GoldPrice>.from(filtered.map((e) => GoldPrice.fromJson(e)));
   }
 }
+
 
 class AddGoldPriceRepository {
   final GraphQLClient client;
