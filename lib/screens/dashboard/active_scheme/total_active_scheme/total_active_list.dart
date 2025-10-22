@@ -1,4 +1,3 @@
-
 import 'package:admin/blocs/total_active_scheme/total_active_bloc.dart';
 import 'package:admin/blocs/total_active_scheme/total_active_event.dart';
 import 'package:admin/blocs/total_active_scheme/total_active_state.dart';
@@ -96,8 +95,14 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                                   context,
                                   MaterialPageRoute(
                                     builder:
-                                        (_) => TotalActiveSchemeDetailScreen(
-                                          scheme: scheme,
+                                        (_) => BlocProvider.value(
+                                          value:
+                                              BlocProvider.of<TotalActiveBloc>(
+                                                context,
+                                              ),
+                                          child: TotalActiveSchemeDetailScreen(
+                                            scheme: scheme,
+                                          ),
                                         ),
                                   ),
                                 );
@@ -203,12 +208,12 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                               Icons.check_circle,
                               "Paid: ₹${scheme.paidAmount}",
                             ),
+
                             // if (scheme.pendingAmount != null)
                             //   _infoRow(
                             //     Icons.pending,
                             //     "Pending: ₹${scheme.pendingAmount}",
                             //   ),
-
                             _infoRow(
                               Icons.calendar_today,
                               "Start Date: ${formatDate(scheme.startDate)}",

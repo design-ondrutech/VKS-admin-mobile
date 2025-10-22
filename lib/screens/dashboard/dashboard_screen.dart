@@ -1,9 +1,19 @@
 import 'package:admin/blocs/cash_payment/cash_payment_bloc.dart';
+import 'package:admin/blocs/cash_payment/cash_payment_event.dart';
 import 'package:admin/blocs/customers/customer_bloc.dart';
+import 'package:admin/blocs/customers/customer_event.dart';
 import 'package:admin/blocs/online_payment/online_payment_bloc.dart';
+import 'package:admin/blocs/online_payment/online_payment_event.dart';
 import 'package:admin/blocs/today_active_scheme/today_active_bloc.dart';
+import 'package:admin/blocs/today_active_scheme/today_active_event.dart';
 import 'package:admin/blocs/total_active_scheme/total_active_bloc.dart';
+import 'package:admin/blocs/total_active_scheme/total_active_event.dart';
 import 'package:admin/blocs/schemes/schemes_bloc.dart';
+import 'package:admin/blocs/schemes/schemes_event.dart';
+import 'package:admin/blocs/gold_price/gold_bloc.dart';
+import 'package:admin/blocs/gold_price/gold_event.dart';
+import 'package:admin/blocs/notification/notification_bloc.dart';
+import 'package:admin/blocs/notification/notification_event.dart';
 import 'package:admin/screens/dashboard/widgets/admin_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,7 +23,6 @@ import 'package:admin/blocs/card/card_state.dart';
 import 'package:admin/data/repo/auth_repository.dart';
 import 'package:admin/data/graphql_config.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-
 import 'package:admin/screens/dashboard/active_scheme/total_active_scheme/total_active_list.dart';
 import 'package:admin/screens/dashboard/active_scheme/today_active_scheme/today_active_list.dart';
 import 'package:admin/screens/dashboard/cash_payment/cash_payment_list.dart';
@@ -39,14 +48,43 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen>
+    with WidgetsBindingObserver {
   GraphQLClient? _client;
   bool _loading = true;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initClient();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// 🔁 Auto refresh when app resumes
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && mounted) {
+      final ctx = context;
+      ctx.read<GoldPriceBloc>().add(const FetchGoldPriceEvent());
+      ctx.read<SchemesBloc>().add(FetchSchemes());
+      ctx.read<CardBloc>().add(FetchCardSummary());
+      ctx.read<CustomerBloc>().add(FetchCustomers(page: 1, limit: 10));
+      ctx.read<TotalActiveBloc>().add(FetchTotalActiveSchemes());
+      ctx.read<TodayActiveSchemeBloc>().add(
+        FetchTodayActiveSchemes(page: 1, limit: 10, startDate: 'today'),
+      );
+      ctx.read<OnlinePaymentBloc>().add(
+        FetchOnlinePayments(page: 1, limit: 10),
+      );
+      ctx.read<CashPaymentBloc>().add(FetchCashPayments());
+      ctx.read<NotificationBloc>().add(FetchNotificationEvent());
+    }
   }
 
   Future<void> _initClient() async {
@@ -139,7 +177,6 @@ class _DashboardHeaderState extends State<DashboardHeader> {
         child: _overviewContent(context),
       );
     } else if (selectedTab == "Schemes") {
-      //  Fix: Properly pass SchemesBloc instance
       return BlocProvider.value(
         value: context.read<SchemesBloc>(),
         child: const SchemesTab(),
@@ -172,9 +209,7 @@ class _DashboardHeaderState extends State<DashboardHeader> {
                   ),
                 );
               }),
-
               const SizedBox(height: 16),
-
               _iconCard("Total Active", "${summary.totalActiveSchemes}", Icons.layers, Colors.orange, onTap: () {
                 Navigator.push(
                   context,
@@ -186,9 +221,7 @@ class _DashboardHeaderState extends State<DashboardHeader> {
                   ),
                 );
               }),
-
               const SizedBox(height: 16),
-
               _iconCard("Today Active", "${summary.todayActiveSchemes}", Icons.layers,
                   const Color.fromARGB(255, 86, 136, 211), onTap: () {
                 Navigator.push(
@@ -201,11 +234,9 @@ class _DashboardHeaderState extends State<DashboardHeader> {
                   ),
                 );
               }),
-
               const SizedBox(height: 16),
-
-              _iconCard("Online Payment", "₹${summary.totalOnlinePayment}", Icons.account_balance_wallet,
-                  Colors.teal, onTap: () {
+              _iconCard("Online Payment", "₹${summary.totalOnlinePayment}",
+                  Icons.account_balance_wallet, Colors.teal, onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -216,11 +247,9 @@ class _DashboardHeaderState extends State<DashboardHeader> {
                   ),
                 );
               }),
-
               const SizedBox(height: 16),
-
-              _iconCard("Cash Payment", "₹${summary.totalCashPayment}", Icons.monetization_on, Colors.purple,
-                  onTap: () {
+              _iconCard("Cash Payment", "₹${summary.totalCashPayment}", Icons.monetization_on,
+                  Colors.purple, onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(

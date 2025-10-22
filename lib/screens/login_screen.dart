@@ -71,10 +71,10 @@ class _LoginScreenState extends State<LoginScreen> {
             final prefs = await SharedPreferences.getInstance();
             await prefs.setString('accessToken', state.token);
 
-            // ✅ rebuild client with token
+            //  rebuild client with token
             final client = await getGraphQLClient();
 
-            // ✅ navigate with full MultiBlocProvider setup
+            //  navigate with full MultiBlocProvider setup
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
@@ -231,7 +231,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  /// ✅Include all required BlocProviders here
+  /// Include all required BlocProviders here
   Widget _buildDashboardWithProviders(GraphQLClient client) {
     final authRepository = AuthRepository(client);
     final dashboardRepository = CardRepository(client);

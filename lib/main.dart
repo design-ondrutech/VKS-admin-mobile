@@ -33,7 +33,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  //  Load client with token (if user logged in before)
+  // Load client with token (if user logged in before)
   final graphQLClient = await getGraphQLClient();
 
   runApp(
@@ -44,69 +44,9 @@ void main() async {
   );
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   final GraphQLClient client;
   const MyApp({super.key, required this.client});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  // 🔹 Auto-refresh when app is resumed
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      if (mounted) {
-        context.read<GoldPriceBloc>().add(const FetchGoldPriceEvent());
-        context.read<SchemesBloc>().add(FetchSchemes());
-        context.read<CardBloc>().add(FetchCardSummary());
-        context.read<CustomerBloc>().add(FetchCustomers(page: 1, limit: 10));
-        context.read<TotalActiveBloc>().add(FetchTotalActiveSchemes());
-        context.read<TodayActiveSchemeBloc>().add(
-          FetchTodayActiveSchemes(page: 1, limit: 10, startDate: 'today'),
-        );
-        context.read<OnlinePaymentBloc>().add(
-          FetchOnlinePayments(page: 1, limit: 10),
-        );
-        context.read<CashPaymentBloc>().add(FetchCashPayments());
-        context.read<NotificationBloc>().add(FetchNotificationEvent());
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'VKS Admin',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.deepPurple),
-      home: FutureBuilder(
-        future: _getInitialScreen(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          } else {
-            return snapshot.data ?? _buildLoginWithProvider(widget.client);
-          }
-        },
-      ),
-    );
-  }
 
   ///  Redirect user based on token
   Future<Widget> _getInitialScreen() async {
@@ -119,7 +59,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     }
 
     //  If not logged in — wrap LoginScreen with AuthBloc
-    return _buildLoginWithProvider(widget.client);
+    return _buildLoginWithProvider(client);
   }
 
   ///  LoginScreen with AuthBloc provider
@@ -139,9 +79,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     final addGoldPriceRepository = AddGoldPriceRepository(client);
     final customerRepository = CustomerRepository(client);
     final goldDashboardRepository = GoldDashboardRepository(client);
-    final totalActiveSchemesRepository = TotalActiveSchemesRepository(
-      client: client,
-    );
+    final totalActiveSchemesRepository = TotalActiveSchemesRepository(client: client);
     final todayActiveSchemeRepository = TodayActiveSchemeRepository(client);
     final onlinePaymentRepository = OnlinePaymentRepository(client);
     final cashPaymentRepository = CashPaymentRepository(client);
@@ -152,58 +90,62 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         BlocProvider(create: (_) => AuthBloc(authRepository)),
         BlocProvider(create: (_) => DashboardBloc(dashboardRepository)),
         BlocProvider(
-          create:
-              (_) => SchemesBloc(SchemeRepository(client))..add(FetchSchemes()),
+          create: (_) => SchemesBloc(SchemeRepository(client))..add(FetchSchemes()),
         ),
-
         BlocProvider(
           create: (_) => CardBloc(dashboardRepository)..add(FetchCardSummary()),
         ),
         BlocProvider(
-          create:
-              (_) =>
-                  GoldPriceBloc(goldRepository)
-                    ..add(const FetchGoldPriceEvent()),
+          create: (_) => GoldPriceBloc(goldRepository)..add(const FetchGoldPriceEvent()),
         ),
         BlocProvider(create: (_) => AddGoldPriceBloc(addGoldPriceRepository)),
         BlocProvider(
-          create:
-              (_) => CustomerBloc(
-                customerRepository,
-                TotalActiveSchemesRepository(client: client),
-              )..add(FetchCustomers(page: 1, limit: 10)),
+          create: (_) => CustomerBloc(
+            customerRepository,
+            TotalActiveSchemesRepository(client: client),
+          )..add(FetchCustomers(page: 1, limit: 10)),
         ),
         BlocProvider(create: (_) => GoldDashboardBloc(goldDashboardRepository)),
         BlocProvider(
-          create:
-              (_) =>
-                  TotalActiveBloc(repository: totalActiveSchemesRepository)
-                    ..add(FetchTotalActiveSchemes()),
+          create: (_) =>
+              TotalActiveBloc(repository: totalActiveSchemesRepository)..add(FetchTotalActiveSchemes()),
         ),
         BlocProvider(
-          create:
-              (_) => TodayActiveSchemeBloc(
-                repository: todayActiveSchemeRepository,
-              )..add(
-                FetchTodayActiveSchemes(page: 1, limit: 10, startDate: 'today'),
-              ),
+          create: (_) => TodayActiveSchemeBloc(repository: todayActiveSchemeRepository)
+            ..add(FetchTodayActiveSchemes(page: 1, limit: 10, startDate: 'today')),
         ),
         BlocProvider(
-          create:
-              (_) =>
-                  OnlinePaymentBloc(onlinePaymentRepository)
-                    ..add(FetchOnlinePayments(page: 1, limit: 10)),
+          create: (_) =>
+              OnlinePaymentBloc(onlinePaymentRepository)..add(FetchOnlinePayments(page: 1, limit: 10)),
         ),
         BlocProvider(
-          create:
-              (_) =>
-                  CashPaymentBloc(cashPaymentRepository)
-                    ..add(FetchCashPayments()),
+          create: (_) => CashPaymentBloc(cashPaymentRepository)..add(FetchCashPayments()),
         ),
         BlocProvider(create: (_) => NotificationBloc(notificationRepository)),
       ],
       child: GlobalRefreshWrapper(
         child: DashboardScreen(repository: dashboardRepository),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'VKS Admin',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(primarySwatch: Colors.deepPurple),
+      home: FutureBuilder(
+        future: _getInitialScreen(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          } else {
+            return snapshot.data ?? _buildLoginWithProvider(client);
+          }
+        },
       ),
     );
   }

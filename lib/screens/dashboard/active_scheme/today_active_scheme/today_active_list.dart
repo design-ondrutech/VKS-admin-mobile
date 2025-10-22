@@ -129,10 +129,15 @@ class _TodayActiveSchemesScreenState extends State<TodayActiveSchemesScreen> {
                                         context,
                                         MaterialPageRoute(
                                           builder:
-                                              (_) =>
-                                                  TodayActiveSchemeDetailScreen(
-                                                    scheme: scheme,
-                                                  ),
+                                              (_) => BlocProvider.value(
+                                                value: BlocProvider.of<
+                                                  TodayActiveSchemeBloc
+                                                >(context),
+                                                child:
+                                                    TodayActiveSchemeDetailScreen(
+                                                      scheme: scheme,
+                                                    ),
+                                              ),
                                         ),
                                       );
                                     },
@@ -207,8 +212,8 @@ class _TodayActiveSchemesScreenState extends State<TodayActiveSchemesScreen> {
                                     Icons.phone,
                                     scheme.customer.phoneNumber,
                                   ),
-                                //  _infoRow(Icons.email, scheme.customer.email),
 
+                                  //  _infoRow(Icons.email, scheme.customer.email),
                                   const Divider(height: 24),
                                   _infoRow(
                                     Icons.category,
@@ -226,14 +231,14 @@ class _TodayActiveSchemesScreenState extends State<TodayActiveSchemesScreen> {
                                     Icons.currency_rupee,
                                     "Total Amount: ₹${scheme.totalAmount}",
                                   ),
-                                    _infoRow(
-                                      Icons.check_circle,
-                                      "Paid: ₹${scheme.paidAmount}",
-                                    ),
-                                    // _infoRow(
-                                    //   Icons.pending,
-                                    //   "Pending: ₹${scheme.pendingAmount}",
-                                    // ),
+                                  _infoRow(
+                                    Icons.check_circle,
+                                    "Paid: ₹${scheme.paidAmount}",
+                                  ),
+                                  // _infoRow(
+                                  //   Icons.pending,
+                                  //   "Pending: ₹${scheme.pendingAmount}",
+                                  // ),
                                   _infoRow(
                                     Icons.calendar_today,
                                     "Start: ${formatDate(scheme.startDate)}",
