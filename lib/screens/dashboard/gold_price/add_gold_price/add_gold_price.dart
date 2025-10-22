@@ -1,5 +1,6 @@
 class GoldPriceInput {
   final String? id; 
+  
   final String date;
   final String metal;
   final String value;

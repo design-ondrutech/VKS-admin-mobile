@@ -50,7 +50,7 @@ class TotalActiveSchemeResponse {
     );
   }
 
-  /// ✅ Combine current + new page results
+  ///  Combine current + new page results
   TotalActiveSchemeResponse mergeWith(TotalActiveSchemeResponse newPage) {
     return TotalActiveSchemeResponse(
       data: [...data, ...newPage.data],

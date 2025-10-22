@@ -1,6 +1,5 @@
 
 import 'package:admin/data/app_config.dart';
-import 'package:admin/data/models/add_gold_price.dart';
 import 'package:admin/data/models/barchart.dart';
 import 'package:admin/data/models/card.dart';
 import 'package:admin/data/models/cash_payment.dart';
@@ -12,11 +11,13 @@ import 'package:admin/data/models/scheme.dart';
 import 'package:admin/data/models/TodayActiveScheme.dart';
 import 'package:admin/data/models/TotalActiveScheme.dart';
 import 'package:admin/screens/dashboard/customer/customer_detail/model/customer_details_model.dart';
+import 'package:admin/screens/dashboard/gold_price/add_gold_price/add_gold_price.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'dart:developer';
 
 
 import 'package:shared_preferences/shared_preferences.dart';
+
 
 class AuthRepository {
   final GraphQLClient client;
@@ -42,9 +43,18 @@ class AuthRepository {
       }
     ''';
 
-    //  Tenant UUID can be constant for now or dynamic (fetched from config)
-    // You can later make it dynamic if your system supports multi-tenant login screens.
     const String defaultTenantUuid = "7a551e1b-d39f-4a2b-bad0-74fd753cea4e";
+
+    //  Create a new client without token (for login only)
+    final HttpLink httpLink = HttpLink(
+      'http://api-vkskumaran-0env-env.eba-jpagnpin.ap-south-1.elasticbeanstalk.com/graphql/admin',
+
+    );
+
+    final unauthenticatedClient = GraphQLClient(
+      cache: GraphQLCache(store: InMemoryStore()),
+      link: httpLink,
+    );
 
     final options = MutationOptions(
       document: gql(query),
@@ -55,26 +65,34 @@ class AuthRepository {
       },
     );
 
-    final result = await client.mutate(options);
+    final result = await unauthenticatedClient.mutate(options);
 
     if (result.hasException) {
-      throw Exception(result.exception.toString());
+      print('❌ GraphQL Login Error: ${result.exception.toString()}');
+      throw Exception(
+        result.exception?.graphqlErrors.isNotEmpty == true
+            ? result.exception!.graphqlErrors.first.message
+            : result.exception.toString(),
+      );
     }
 
     final loginData = result.data?['adminLogin'];
     if (loginData == null) {
-      throw Exception("Invalid login response from server");
+      throw Exception("Invalid login response from server.");
     }
 
-    //  Save tokens and tenant info locally
+    //  Save tokens for next sessions
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('accessToken', loginData['accessToken'] ?? '');
     await prefs.setString('refreshToken', loginData['refreshToken'] ?? '');
     await prefs.setString('tenantUuid', loginData['user']?['tenant_uuid'] ?? '');
 
+    print("✅ Login Successful — Tenant: ${loginData['user']?['tenant_uuid']}");
+
     return loginData;
   }
 }
+
 
 
 
@@ -146,6 +164,7 @@ class SchemeRepository {
             increment_amount
             is_active
             amount_benefits
+            
           }
         }
       }
@@ -314,50 +333,60 @@ class GoldPriceRepository {
           isdeleted
           percentage_diff
           is_price_up
-          tenant_uuid
         }
       }
     ''';
 
-    //  Get token from SharedPreferences (tenant info is inside token)
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('accessToken');
+    try {
+      // 🔐 Retrieve access token
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('accessToken');
 
-    if (token == null || token.isEmpty) {
-      throw Exception("Token missing. Please log in again.");
+      if (token == null || token.isEmpty) {
+        throw Exception("Authentication token missing. Please log in again.");
+      }
+
+      // 🪝 Attach authorization link dynamically
+      final authLink = AuthLink(getToken: () async => 'Bearer $token');
+      final authedClient = GraphQLClient(
+        cache: GraphQLCache(store: InMemoryStore()),
+        link: authLink.concat(client.link),
+      );
+
+      // 🧠 Execute query
+      final result = await authedClient.query(
+        QueryOptions(
+          document: gql(query),
+          variables: {"date": date},
+          fetchPolicy: FetchPolicy.networkOnly,
+        ),
+      );
+
+      // 🚨 Handle errors gracefully
+      if (result.hasException) {
+        final message = result.exception?.graphqlErrors.isNotEmpty == true
+            ? result.exception!.graphqlErrors.first.message
+            : result.exception.toString();
+
+        throw Exception("GraphQL Error: $message");
+      }
+
+      final List<dynamic> rawData = result.data?['getAllGoldPrice'] ?? [];
+
+      // 🧹 Filter out deleted entries safely
+      final filtered = rawData.where((e) => e["isdeleted"] == false).toList();
+
+      // ✅ Convert to model list
+      return filtered.map((e) => GoldPrice.fromJson(e)).toList();
+    } catch (e, stack) {
+      // 🧾 Log detailed error
+      print("❌ GoldPriceRepository Error: $e");
+      print(stack);
+      rethrow;
     }
-
-    // Ensure token is in Authorization header
-    final authLink = AuthLink(getToken: () async => 'Bearer $token');
-    final link = authLink.concat(client.link);
-
-    final authedClient = GraphQLClient(
-      cache: GraphQLCache(store: InMemoryStore()),
-      link: link,
-    );
-
-    //  Run GraphQL query (without tenant_uuid argument)
-    final result = await authedClient.query(
-      QueryOptions(
-        document: gql(query),
-        variables: {"date": date},
-        fetchPolicy: FetchPolicy.networkOnly,
-      ),
-    );
-
-    if (result.hasException) {
-      print("❌ GoldPriceRepository Error: ${result.exception.toString()}");
-      throw Exception(result.exception.toString());
-    }
-
-    final List data = result.data?['getAllGoldPrice'] ?? [];
-
-    //  Filter deleted entries
-    final filtered = data.where((e) => e["isdeleted"] == false).toList();
-
-    return List<GoldPrice>.from(filtered.map((e) => GoldPrice.fromJson(e)));
   }
 }
+
 
 
 class AddGoldPriceRepository {
@@ -402,32 +431,36 @@ class AddGoldPriceRepository {
   ///  UPDATE existing gold price
   Future<GoldPrice> updateGoldPrice(String id, GoldPriceInput input) async {
     const String mutation = r'''
-      mutation UpdateGoldPrice($id: ID!, $data: GoldPriceInput!) {
-        updateGoldPrice(id: $id, data: $data) {
-          price_id
-          date
-          value
-          metal
-          unit
-          price
-          created_date
-          isdeleted
-          percentage_diff
-          is_price_up
-        }
-      }
-    ''';
+  mutation UpdateGoldPrice($data: GoldPriceUpdateInput!) {
+    updateGoldPrice(data: $data) {
+      price_id
+      date
+      value
+      metal
+      unit
+      price
+      created_date
+      isdeleted
+      percentage_diff
+      is_price_up
+    }
+  }
+''';
 
-    final result = await client.mutate(
-      MutationOptions(
-        document: gql(mutation),
-        variables: {
-          'id': id,
-          'data': input.toJson(),
-        },
-        fetchPolicy: FetchPolicy.noCache,
-      ),
-    );
+
+   final result = await client.mutate(
+  MutationOptions(
+    document: gql(mutation),
+    variables: {
+      'data': {
+        'price_id': id, //  Pass ID inside the data map itself
+        ...input.toJson(),
+      },
+    },
+    fetchPolicy: FetchPolicy.noCache,
+  ),
+);
+
 
     if (result.hasException) {
       throw Exception(result.exception.toString());

@@ -1,32 +1,40 @@
+import 'package:admin/screens/dashboard/gold_price/add_gold_price/add_gold_price.dart';
 import 'package:equatable/equatable.dart';
-import 'package:admin/data/models/add_gold_price.dart';
 
 abstract class AddGoldPriceEvent extends Equatable {
+  const AddGoldPriceEvent();
+
   @override
   List<Object?> get props => [];
 }
 
-/// Create
+// 🔹 Add new gold price
 class SubmitGoldPrice extends AddGoldPriceEvent {
   final GoldPriceInput input;
-  SubmitGoldPrice(this.input);
+
+  const SubmitGoldPrice({required this.input});
 
   @override
   List<Object?> get props => [input];
 }
 
-/// Update
+// 🔹 Update existing gold price
 class UpdateGoldPrice extends AddGoldPriceEvent {
   final String id;
   final GoldPriceInput input;
-  UpdateGoldPrice({required this.id, required this.input});
+
+  const UpdateGoldPrice({required this.id, required this.input});
 
   @override
   List<Object?> get props => [id, input];
 }
 
-///  Delete (very important)
+// 🔹 Delete existing gold price
 class DeleteGoldPrice extends AddGoldPriceEvent {
   final String priceId;
-  DeleteGoldPrice(this.priceId);
+
+  const DeleteGoldPrice(this.priceId);
+
+  @override
+  List<Object?> get props => [priceId];
 }

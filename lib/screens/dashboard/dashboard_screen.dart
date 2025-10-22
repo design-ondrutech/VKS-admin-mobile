@@ -1,5 +1,10 @@
+import 'package:admin/blocs/cash_payment/cash_payment_bloc.dart';
+import 'package:admin/blocs/customers/customer_bloc.dart';
+import 'package:admin/blocs/online_payment/online_payment_bloc.dart';
+import 'package:admin/blocs/today_active_scheme/today_active_bloc.dart';
+import 'package:admin/blocs/total_active_scheme/total_active_bloc.dart';
+import 'package:admin/blocs/schemes/schemes_bloc.dart';
 import 'package:admin/screens/dashboard/widgets/admin_drawer.dart';
-import 'package:admin/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:admin/blocs/card/card_bloc.dart';
@@ -24,6 +29,7 @@ import 'package:admin/blocs/dashboard/dashboard_state.dart';
 import 'package:admin/widgets/bottom_navigation.dart';
 import 'package:admin/widgets/global_refresh.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:admin/screens/login_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final CardRepository repository;
@@ -44,7 +50,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _initClient() async {
-    // Get client with Authorization header
     final client = await getGraphQLClient();
     setState(() {
       _client = client;
@@ -55,9 +60,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading || _client == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final repository = CardRepository(_client!);
@@ -72,7 +75,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-
 class DashboardHeader extends StatefulWidget {
   const DashboardHeader({super.key});
 
@@ -85,7 +87,7 @@ class _DashboardHeaderState extends State<DashboardHeader> {
 
   Future<void> _logout(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('accessToken'); //  clear token
+    await prefs.remove('accessToken');
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -97,15 +99,12 @@ class _DashboardHeaderState extends State<DashboardHeader> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: const Color(0xFFF7F7FC),      
-      //  Drawer menu
+      backgroundColor: const Color(0xFFF7F7FC),
       drawer: const AdminDrawer(),
-      //  Main body with header
       body: SafeArea(
         child: GlobalRefreshWrapper(
           child: Column(
             children: [
-              //  Menu icon opens this drawer
               DashboardTopHeader(scaffoldKey: _scaffoldKey),
               Expanded(
                 child: BlocBuilder<DashboardBloc, DashboardState>(
@@ -119,8 +118,6 @@ class _DashboardHeaderState extends State<DashboardHeader> {
           ),
         ),
       ),
-
-      //  Bottom navigation
       bottomNavigationBar: BlocBuilder<DashboardBloc, DashboardState>(
         builder: (context, state) {
           return CustomBottomNav(
@@ -134,7 +131,6 @@ class _DashboardHeaderState extends State<DashboardHeader> {
     );
   }
 
-  //  Same tab switcher
   Widget _getSelectedTab(BuildContext context, String selectedTab) {
     if (selectedTab == "Overview") {
       return SingleChildScrollView(
@@ -143,7 +139,11 @@ class _DashboardHeaderState extends State<DashboardHeader> {
         child: _overviewContent(context),
       );
     } else if (selectedTab == "Schemes") {
-      return const SchemesTab();
+      //  Fix: Properly pass SchemesBloc instance
+      return BlocProvider.value(
+        value: context.read<SchemesBloc>(),
+        child: const SchemesTab(),
+      );
     } else if (selectedTab == "GoldAdd") {
       return const GoldPriceScreen();
     } else {
@@ -162,26 +162,74 @@ class _DashboardHeaderState extends State<DashboardHeader> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _iconCard("Customers", "${summary.totalCustomers}", Icons.group, Colors.blue, onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomersScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BlocProvider.value(
+                      value: context.read<CustomerBloc>(),
+                      child: const CustomersScreen(),
+                    ),
+                  ),
+                );
               }),
+
               const SizedBox(height: 16),
+
               _iconCard("Total Active", "${summary.totalActiveSchemes}", Icons.layers, Colors.orange, onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const TotalActiveSchemesScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BlocProvider.value(
+                      value: context.read<TotalActiveBloc>(),
+                      child: const TotalActiveSchemesScreen(),
+                    ),
+                  ),
+                );
               }),
+
               const SizedBox(height: 16),
+
               _iconCard("Today Active", "${summary.todayActiveSchemes}", Icons.layers,
                   const Color.fromARGB(255, 86, 136, 211), onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const TodayActiveSchemesScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BlocProvider.value(
+                      value: context.read<TodayActiveSchemeBloc>(),
+                      child: const TodayActiveSchemesScreen(),
+                    ),
+                  ),
+                );
               }),
+
               const SizedBox(height: 16),
+
               _iconCard("Online Payment", "₹${summary.totalOnlinePayment}", Icons.account_balance_wallet,
                   Colors.teal, onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const OnlinePaymentScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BlocProvider.value(
+                      value: context.read<OnlinePaymentBloc>(),
+                      child: const OnlinePaymentScreen(),
+                    ),
+                  ),
+                );
               }),
+
               const SizedBox(height: 16),
+
               _iconCard("Cash Payment", "₹${summary.totalCashPayment}", Icons.monetization_on, Colors.purple,
                   onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const CashPaymentScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BlocProvider.value(
+                      value: context.read<CashPaymentBloc>(),
+                      child: const CashPaymentScreen(),
+                    ),
+                  ),
+                );
               }),
             ],
           );
@@ -193,7 +241,13 @@ class _DashboardHeaderState extends State<DashboardHeader> {
     );
   }
 
-  Widget _iconCard(String title, String value, IconData icon, Color color, {VoidCallback? onTap}) {
+  Widget _iconCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color, {
+    VoidCallback? onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -241,7 +295,8 @@ class _DashboardHeaderState extends State<DashboardHeader> {
                       style: TextStyle(color: Colors.grey[600], fontSize: 13, fontWeight: FontWeight.w500)),
                   const SizedBox(height: 6),
                   Text(value,
-                      style: const TextStyle(color: Colors.black87, fontSize: 20, fontWeight: FontWeight.bold)),
+                      style:
+                          const TextStyle(color: Colors.black87, fontSize: 20, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),

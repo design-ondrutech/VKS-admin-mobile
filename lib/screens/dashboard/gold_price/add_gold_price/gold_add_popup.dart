@@ -1,15 +1,18 @@
+import 'package:admin/data/models/gold_rate.dart';
+import 'package:admin/screens/dashboard/gold_price/add_gold_price/add_gold_price.dart';
 import 'package:admin/screens/dashboard/gold_price/add_gold_price/bloc/add_gld_bloc.dart';
-import 'package:admin/data/models/add_gold_price.dart';
 import 'package:admin/blocs/gold_price/gold_bloc.dart';
 import 'package:admin/blocs/gold_price/gold_event.dart';
+import 'package:admin/screens/dashboard/gold_price/add_gold_price/bloc/add_gold_event.dart';
+import 'package:admin/screens/dashboard/gold_price/add_gold_price/bloc/add_gold_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AddGoldRateDialog extends StatefulWidget {
-  final GoldPriceInput? existingPrice; // <-- for edit
+  final GoldPrice? existingPrice; //  now GoldPrice, not GoldPriceInput
 
-  const AddGoldRateDialog({super.key, this.existingPrice});
+  const AddGoldRateDialog({super.key, this.existingPrice, String? id});
 
   @override
   State<AddGoldRateDialog> createState() => _AddGoldRateDialogState();
@@ -35,18 +38,7 @@ class _AddGoldRateDialogState extends State<AddGoldRateDialog> {
       final price = widget.existingPrice!;
       selectedType = price.metal;
       selectedCarat = price.value;
-
-      // Normalize unit to match dropdown items
-      if (units.contains(price.unit)) {
-        selectedUnit = price.unit;
-      } else {
-        // Try to match ignoring case and spaces
-        selectedUnit = units.firstWhere(
-          (u) => u.toLowerCase().replaceAll(' ', '') == price.unit.toLowerCase().replaceAll(' ', ''),
-          orElse: () => units.first,
-        );
-      }
-
+      selectedUnit = units.contains(price.unit) ? price.unit : units.first;
       priceController.text = price.price.toString();
       dateController.text = price.date;
     } else {
@@ -57,8 +49,33 @@ class _AddGoldRateDialogState extends State<AddGoldRateDialog> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Dialog(
+@override
+Widget build(BuildContext context) {
+  return BlocListener<AddGoldPriceBloc, AddGoldPriceState>(
+    listener: (context, state) {
+      if (state is AddGoldPriceSuccess) {
+        Navigator.pop(context); // ✅ close popup
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(widget.existingPrice != null
+                ? "Rate updated successfully"
+                : "Rate added successfully"),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Refresh gold price list
+        context.read<GoldPriceBloc>().add(const FetchGoldPriceEvent());
+      } else if (state is AddGoldPriceFailure) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(state.error),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    },
+    child: Dialog(
       insetPadding: const EdgeInsets.all(20),
       backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -67,7 +84,6 @@ class _AddGoldRateDialogState extends State<AddGoldRateDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            /// Title + Close
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -87,41 +103,26 @@ class _AddGoldRateDialogState extends State<AddGoldRateDialog> {
               ],
             ),
             const Divider(thickness: 1, height: 20),
-
-            /// Date
-            _buildTextField(
-              "Date (YYYY-MM-DD)",
-              dateController,
-              readOnly: true,
-            ),
+            _buildTextField("Date (YYYY-MM-DD)", dateController, readOnly: true),
             const SizedBox(height: 12),
-
-            /// Type + Unit
             Row(
               children: [
                 Expanded(
                   child: _buildDropdown("Type", types, selectedType, (val) {
                     setState(() {
                       selectedType = val;
-                      selectedCarat = null; //  RESET carat when switching type
+                      selectedCarat = null;
                     });
                   }),
                 ),
-
                 const SizedBox(width: 10),
                 Expanded(
-                  child: _buildDropdown(
-                    "Unit",
-                    units,
-                    selectedUnit,
-                    (val) => setState(() => selectedUnit = val),
-                  ),
+                  child: _buildDropdown("Unit", units, selectedUnit,
+                      (val) => setState(() => selectedUnit = val)),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-
-            /// Carat
             _buildDropdown(
               "Carat",
               selectedType == "Gold" ? goldCarats : silverCarats,
@@ -129,30 +130,19 @@ class _AddGoldRateDialogState extends State<AddGoldRateDialog> {
               (val) => setState(() => selectedCarat = val),
             ),
             const SizedBox(height: 12),
-
-            /// Price
             _buildTextField("Price", priceController),
             const SizedBox(height: 20),
-
-            /// Action Buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.redAccent,
-                  ),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                   onPressed: () => Navigator.pop(context),
-                  child: const Text(
-                    "Cancel",
-                    style: TextStyle(color: Colors.white),
-                  ),
+                  child: const Text("Cancel", style: TextStyle(color: Colors.white)),
                 ),
                 const SizedBox(width: 12),
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                  ),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
                   onPressed: _onSavePressed,
                   child: Text(
                     widget.existingPrice != null ? "Update" : "Save",
@@ -164,10 +154,13 @@ class _AddGoldRateDialogState extends State<AddGoldRateDialog> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
-void _onSavePressed() async {
+
+  /// --- Save Button Logic ---
+void _onSavePressed() {
   if (selectedType == null ||
       selectedCarat == null ||
       selectedUnit == null ||
@@ -187,81 +180,56 @@ void _onSavePressed() async {
   );
 
   final addBloc = context.read<AddGoldPriceBloc>();
-  final goldBloc = context.read<GoldPriceBloc>();
 
-  if (widget.existingPrice != null && widget.existingPrice!.id != null) {
-    await addBloc.repository.updateGoldPrice(
-      widget.existingPrice!.id!,
-      input,
-    );
+  if (widget.existingPrice != null && widget.existingPrice!.priceId.isNotEmpty) {
+    addBloc.add(UpdateGoldPrice(
+      id: widget.existingPrice!.priceId,
+      input: input,
+    ));
   } else {
-    await addBloc.repository.addOrUpdateGoldPrice(input);
+    addBloc.add(SubmitGoldPrice(input: input)); //  fixed here
   }
-
-  /// Refresh UI instantly
-  goldBloc.add(const FetchGoldPriceEvent());
-
-  ///  Close popup
-  Navigator.pop(context);
-
-  /// Optional: Snackbar for success
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(widget.existingPrice != null
-          ? "Rate updated successfully"
-          : "Rate added successfully"),
-      backgroundColor: Colors.green,
-    ),
-  );
 }
 
 
 
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    bool readOnly = false,
+  }) {
+    bool isPriceField = label.toLowerCase().contains("price");
 
-
-
-  /// --- Common Widgets ---
- Widget _buildTextField(
-  String label,
-  TextEditingController controller, {
-  bool readOnly = false,
-}) {
-  bool isPriceField = label.toLowerCase().contains("price");
-
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        label,
-        style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-      ),
-      const SizedBox(height: 6),
-      TextField(
-        controller: controller,
-        readOnly: readOnly,
-        keyboardType: isPriceField
-            ? const TextInputType.numberWithOptions(decimal: true)
-            : TextInputType.text,
-        inputFormatters: isPriceField
-            ? [
-                FilteringTextInputFormatter.allow(
-                    RegExp(r'^\d*\.?\d{0,2}')), // allows digits + 1 decimal point
-              ]
-            : [],
-        decoration: InputDecoration(
-          isDense: true,
-          filled: true,
-          fillColor: Colors.grey.shade100,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(6),
-            borderSide: BorderSide(color: Colors.grey.shade300),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+        const SizedBox(height: 6),
+        TextField(
+          controller: controller,
+          readOnly: readOnly,
+          keyboardType: isPriceField
+              ? const TextInputType.numberWithOptions(decimal: true)
+              : TextInputType.text,
+          inputFormatters: isPriceField
+              ? [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                ]
+              : [],
+          decoration: InputDecoration(
+            isDense: true,
+            filled: true,
+            fillColor: Colors.grey.shade100,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(6),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
           ),
         ),
-      ),
-    ],
-  );
-}
-
+      ],
+    );
+  }
 
   Widget _buildDropdown(
     String label,
@@ -272,13 +240,12 @@ void _onSavePressed() async {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-        ),
+        Text(label,
+            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
-          value: items.contains(value) ? value : (value != null ? items.first : null),
+          value:
+              items.contains(value) ? value : (value != null ? items.first : null),
           isDense: true,
           decoration: InputDecoration(
             filled: true,
@@ -288,10 +255,9 @@ void _onSavePressed() async {
               borderSide: BorderSide(color: Colors.grey.shade300),
             ),
           ),
-          items:
-              items
-                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                  .toList(),
+          items: items
+              .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+              .toList(),
           onChanged: onChanged,
         ),
       ],

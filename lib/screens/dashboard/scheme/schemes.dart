@@ -50,14 +50,18 @@ class SchemesTab extends StatelessWidget {
     );
   }
 
-  void _showAddEditDialog(BuildContext context, [Scheme? scheme]) {
-    showDialog(
-      context: context,
-      builder: (_) => AddUpdateSchemeDialog(
+void _showAddEditDialog(BuildContext context, [Scheme? scheme]) {
+  showDialog(
+    context: context,
+    builder: (_) => BlocProvider.value(
+      value: context.read<SchemesBloc>(),
+      child: AddUpdateSchemeDialog(
         initialScheme: scheme,
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   Widget _buildStateUI(BuildContext context, SchemesState state) {
     if (state is SchemeLoading) {
@@ -175,55 +179,56 @@ class SchemesTab extends StatelessWidget {
       ],
     );
   }
-
-  void _showDeleteDialog(BuildContext context, Scheme scheme) {
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return BlocConsumer<SchemesBloc, SchemesState>(
-          listener: (context, state) {
-            if (state is SchemeActionSuccess) {
-              Navigator.pop(ctx); // close dialog
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message), backgroundColor: Colors.green),
-              );
-            } else if (state is SchemeError) {
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("❌ ${state.error}"), backgroundColor: Colors.red),
-              );
-            }
-          },
-          builder: (context, state) {
-            final isLoading = state is SchemeLoading;
-            return AlertDialog(
-              title: const Text("Delete Scheme"),
-              content: Text("Are you sure you want to delete '${scheme.schemeName}'?"),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text("Cancel"),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                  onPressed: isLoading
-                      ? null
-                      : () {
-                          context.read<SchemesBloc>().add(DeleteScheme(scheme.schemeId));
-                        },
-                  child: isLoading
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                        )
-                      : const Text("Delete", style: TextStyle(color: Colors.white)),
-                ),
-              ],
+void _showDeleteDialog(BuildContext context, Scheme scheme) {
+  showDialog(
+    context: context,
+    builder: (_) => BlocProvider.value(
+      value: context.read<SchemesBloc>(),
+      child: BlocConsumer<SchemesBloc, SchemesState>(
+        listener: (context, state) {
+          if (state is SchemeActionSuccess) {
+            Navigator.pop(context);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.message), backgroundColor: Colors.green),
             );
-          },
-        );
-      },
-    );
-  }
+          } else if (state is SchemeError) {
+            Navigator.pop(context);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("❌ ${state.error}"), backgroundColor: Colors.red),
+            );
+          }
+        },
+        builder: (context, state) {
+          final isLoading = state is SchemeLoading;
+          return AlertDialog(
+            title: const Text("Delete Scheme"),
+            content: Text("Are you sure you want to delete '${scheme.schemeName}'?"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("Cancel"),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                onPressed: isLoading
+                    ? null
+                    : () {
+                        context.read<SchemesBloc>().add(DeleteScheme(scheme.schemeId));
+                      },
+                child: isLoading
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Text("Delete", style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          );
+        },
+      ),
+    ),
+  );
+}
+
 }

@@ -13,6 +13,7 @@ class Scheme {
   final double? threshold;
   final double? bonus;
 
+
   Scheme({
     required this.schemeId,
     required this.schemeName,
@@ -25,6 +26,7 @@ class Scheme {
     required this.isActive,
     this.threshold,
     this.bonus,
+
   });
 
 factory Scheme.fromJson(Map<String, dynamic> json) {
@@ -49,10 +51,9 @@ factory Scheme.fromJson(Map<String, dynamic> json) {
     isActive: json['is_active'] == true,
     threshold: threshold,
     bonus: bonus,
+
   );
 }
-
-
   ///  Create Input → generate UUID automatically
   Map<String, dynamic> toCreateInput() {
     return {

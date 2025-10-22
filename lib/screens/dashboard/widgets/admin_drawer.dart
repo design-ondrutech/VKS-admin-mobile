@@ -1,3 +1,4 @@
+import 'package:admin/blocs/auth/auth_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,15 +9,26 @@ import 'package:admin/screens/login_screen.dart';
 class AdminDrawer extends StatelessWidget {
   const AdminDrawer({super.key});
 
-  Future<void> _logout(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('accessToken');
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-      (route) => false,
-    );
-  }
+Future<void> _logout(BuildContext context) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.clear();
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text("Logged out successfully")),
+  );
+
+  Navigator.pushAndRemoveUntil(
+    context,
+    MaterialPageRoute(
+      builder: (_) => BlocProvider.value(
+        value: context.read<AuthBloc>(),
+        child: const LoginScreen(),
+      ),
+    ),
+    (route) => false,
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -154,7 +166,7 @@ class AdminDrawer extends StatelessWidget {
                 height: 10,
               ),
 
-              // 🚪 Logout button
+              //  Logout button
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 14),

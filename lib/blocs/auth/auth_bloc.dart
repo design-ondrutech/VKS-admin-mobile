@@ -1,3 +1,4 @@
+import 'package:admin/data/graphql_config.dart';
 import 'package:admin/data/repo/auth_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'auth_event.dart';
@@ -11,24 +12,32 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<LoginRequested>((event, emit) async {
       emit(AuthLoading());
       try {
-        final data = await authRepository.adminLogin(event.phone, event.password);
+        final data = await authRepository.adminLogin(
+          event.phone,
+          event.password,
+        );
 
         if (data['accessToken'] != null) {
           final token = data['accessToken'];
           final userName = data['user']?['uName'] ?? '';
           final tenantUuid = data['user']?['tenant_uuid'] ?? '';
 
-          //  Save access token and tenant UUID locally
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('accessToken', token);
           await prefs.setString('tenantUuid', tenantUuid);
 
+          //  rebuild client so all future API calls have token header
+          await getGraphQLClient();
+
           emit(AuthSuccess(token: token, name: userName));
         } else {
-          emit(AuthFailure("Invalid phone number or password."));
+          emit(AuthFailure("Invalid phone or password"));
         }
       } catch (e) {
-        emit(AuthFailure("Something went wrong. Please try again later."));
+        print('❌ AuthBloc Login Error: $e'); //  print full backend message
+        emit(
+          AuthFailure("Login failed: ${e.toString()}"),
+        ); //  show backend message
       }
     });
   }
