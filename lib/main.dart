@@ -1,4 +1,3 @@
-import 'package:admin/blocs/notification/notification_event.dart';
 import 'package:admin/blocs/schemes/schemes_event.dart';
 import 'package:admin/blocs/today_active_scheme/today_active_bloc.dart';
 import 'package:admin/blocs/today_active_scheme/today_active_event.dart';

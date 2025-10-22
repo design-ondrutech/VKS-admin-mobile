@@ -66,10 +66,11 @@ class _DashboardScreenState extends State<DashboardScreen>
     super.dispose();
   }
 
-  /// 🔁 Auto refresh when app resumes
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && mounted) {
+  ///  Auto refresh when app resumes
+@override
+void didChangeAppLifecycleState(AppLifecycleState state) {
+  if (state == AppLifecycleState.resumed && mounted) {
+    try {
       final ctx = context;
       ctx.read<GoldPriceBloc>().add(const FetchGoldPriceEvent());
       ctx.read<SchemesBloc>().add(FetchSchemes());
@@ -84,8 +85,12 @@ class _DashboardScreenState extends State<DashboardScreen>
       );
       ctx.read<CashPaymentBloc>().add(FetchCashPayments());
       ctx.read<NotificationBloc>().add(FetchNotificationEvent());
+    } catch (e) {
+      debugPrint("⚠️ Skipped refresh — bloc closed after logout: $e");
     }
   }
+}
+
 
   Future<void> _initClient() async {
     final client = await getGraphQLClient();

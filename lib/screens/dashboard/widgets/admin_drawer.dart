@@ -1,4 +1,5 @@
 import 'package:admin/blocs/auth/auth_bloc.dart';
+import 'package:admin/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -192,7 +193,7 @@ Future<void> _logout(BuildContext context) async {
                           ),
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.redAccent,
+                              backgroundColor: Appcolors.buttoncolor,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
@@ -201,7 +202,7 @@ Future<void> _logout(BuildContext context) async {
                               Navigator.pop(ctx);
                               _logout(context);
                             },
-                            child: const Text("Logout"),
+                            child: const Text("Logout",style: TextStyle(color: Colors.white),),
                           ),
                         ],
                       ),
