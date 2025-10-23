@@ -273,7 +273,7 @@ class _LoginScreenState extends State<LoginScreen> {
         BlocProvider(
           create: (_) => TotalActiveBloc(
             repository: totalActiveSchemesRepository,
-          )..add(FetchTotalActiveSchemes()),
+          )..add(FetchTotalActiveSchemes(page: 1, limit: 10)),
         ),
         BlocProvider(
           create: (_) => TodayActiveSchemeBloc(
@@ -287,7 +287,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         BlocProvider(
           create: (_) =>
-              CashPaymentBloc(cashPaymentRepository)..add(FetchCashPayments()),
+              CashPaymentBloc(cashPaymentRepository)..add(FetchCashPayments(page: 1, limit: 10)),
         ),
         BlocProvider(create: (_) => NotificationBloc(notificationRepository)),
       ],

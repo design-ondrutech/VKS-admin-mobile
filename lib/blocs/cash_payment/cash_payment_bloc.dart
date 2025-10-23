@@ -1,29 +1,32 @@
+import 'dart:developer';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:admin/blocs/cash_payment/cash_payment_event.dart';
 import 'package:admin/blocs/cash_payment/cash_payment_state.dart';
 import 'package:admin/data/repo/auth_repository.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-class CashPaymentBloc extends Bloc<CashPaymentEvent, CashPaymentState> {
+class CashPaymentBloc extends Bloc<FetchCashPayments, CashPaymentState> {
   final CashPaymentRepository repository;
+  bool isFetching = false;
 
   CashPaymentBloc(this.repository) : super(CashPaymentInitial()) {
     on<FetchCashPayments>((event, emit) async {
-      emit(CashPaymentLoading());
+      if (isFetching) return;
+      isFetching = true;
+
       try {
-        final response = await repository.fetchCashPayments();
+        emit(CashPaymentLoading());
 
-        // NaN-safe data
-        final sanitizedData = response.data.map((payment) {
-          return payment.copyWith(
-            transactionGoldGram: payment.transactionGoldGram.isNaN
-                ? 0.0
-                : payment.transactionGoldGram,
-          );
-        }).toList();
+        final response = await repository.fetchCashPayments(
+          page: event.page,
+          limit: event.limit,
+        );
 
-        emit(CashPaymentLoaded(sanitizedData));
+        emit(CashPaymentLoaded(response: response));
       } catch (e) {
-        emit(CashPaymentError("Unable to load data. Please try again."));
+        log("CashPaymentBloc Error: $e", name: "CashPaymentBloc");
+        emit(CashPaymentError("Unable to load cash payments. Please try again."));
+      } finally {
+        isFetching = false;
       }
     });
   }

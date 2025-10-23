@@ -3,12 +3,22 @@ import 'package:admin/blocs/total_active_scheme/total_active_event.dart';
 import 'package:admin/blocs/total_active_scheme/total_active_state.dart';
 import 'package:admin/screens/dashboard/active_scheme/total_active_scheme/Total_active_detail_screen.dart';
 import 'package:admin/utils/colors.dart';
-import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 
 class TotalActiveSchemesScreen extends StatelessWidget {
   const TotalActiveSchemesScreen({super.key});
+
+  String formatDate(String? date) {
+    if (date == null) return "N/A";
+    try {
+      final parsed = DateTime.tryParse(date);
+      return parsed == null ? "N/A" : DateFormat("dd MMM yyyy").format(parsed);
+    } catch (_) {
+      return "N/A";
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +36,9 @@ class TotalActiveSchemesScreen extends StatelessWidget {
       body: BlocBuilder<TotalActiveBloc, TotalActiveState>(
         builder: (context, state) {
           if (state is TotalActiveInitial) {
-            context.read<TotalActiveBloc>().add(FetchTotalActiveSchemes());
+            context.read<TotalActiveBloc>().add(
+              FetchTotalActiveSchemes(page: 1, limit: 10),
+            );
             return const Center(child: CircularProgressIndicator());
           } else if (state is TotalActiveLoading) {
             return const Center(child: CircularProgressIndicator());
@@ -40,191 +52,286 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                 ),
               );
             }
-            return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: schemes.length,
-              itemBuilder: (context, index) {
-                final scheme = schemes[index];
 
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Appcolors.white,
-                        blurRadius: 6,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      //  Header with Scheme Name + View All
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
+            return Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: schemes.length,
+                    itemBuilder: (context, index) {
+                      final scheme = schemes[index];
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
                         decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(16),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                scheme.schemeName,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue.shade900,
-                                ),
-                              ),
-                            ),
-
-                            //  View All Button (near name)
-                            TextButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder:
-                                        (_) => BlocProvider.value(
-                                          value:
-                                              BlocProvider.of<TotalActiveBloc>(
-                                                context,
-                                              ),
-                                          child: TotalActiveSchemeDetailScreen(
-                                            scheme: scheme,
-                                          ),
-                                        ),
-                                  ),
-                                );
-                              },
-                              child: const Text(
-                                "View All",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue,
-                                ),
-                              ),
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Appcolors.white,
+                              blurRadius: 6,
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
-                      ),
-
-                      // Body Content
-                      Padding(
-                        padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            //  Customer Name + Status Row
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.person,
-                                        size: 18,
-                                        color: Colors.black87,
+                            // Header with Scheme Name + View All
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade50,
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(16),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      scheme.schemeName,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.blue.shade900,
                                       ),
-                                      const SizedBox(width: 6),
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (_) => BlocProvider.value(
+                                                value: BlocProvider.of<
+                                                  TotalActiveBloc
+                                                >(context),
+                                                child:
+                                                    TotalActiveSchemeDetailScreen(
+                                                      scheme: scheme,
+                                                    ),
+                                              ),
+                                        ),
+                                      );
+                                    },
+                                    child: const Text(
+                                      "View All",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.blue,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // Body Content
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Customer Name + Status
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
                                       Expanded(
-                                        child: Text(
-                                          scheme.customer.name,
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black87,
+                                        child: Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.person,
+                                              size: 18,
+                                              color: Colors.black87,
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Expanded(
+                                              child: Text(
+                                                scheme.customer.name,
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black87,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color:
+                                              scheme.status.toLowerCase() ==
+                                                      "active"
+                                                  ? Colors.green.shade100
+                                                  : Colors.red.shade100,
+                                          borderRadius: BorderRadius.circular(
+                                            12,
                                           ),
-                                          overflow:
-                                              TextOverflow
-                                                  .ellipsis, // name length adhigama iruntha ... varum
+                                        ),
+                                        child: Text(
+                                          scheme.status,
+                                          style: TextStyle(
+                                            color:
+                                                scheme.status.toLowerCase() ==
+                                                        "active"
+                                                    ? Colors.green.shade800
+                                                    : Colors.red.shade800,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                         ),
                                       ),
                                     ],
                                   ),
-                                ),
-
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
+                                  const SizedBox(height: 8),
+                                  _infoRow(
+                                    Icons.phone,
+                                    scheme.customer.phoneNumber,
                                   ),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        scheme.status.toLowerCase() == "active"
-                                            ? Colors.green.shade100
-                                            : Colors.red.shade100,
-                                    borderRadius: BorderRadius.circular(12),
+                                  const Divider(height: 24),
+                                  _infoRow(
+                                    Icons.category,
+                                    "Type: ${scheme.schemeType}",
                                   ),
-                                  child: Text(
-                                    scheme.status,
-                                    style: TextStyle(
-                                      color:
-                                          scheme.status.toLowerCase() ==
-                                                  "active"
-                                              ? Colors.green.shade800
-                                              : Colors.red.shade800,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                  _infoRow(
+                                    Icons.work_outline,
+                                    "Purpose: ${scheme.schemePurpose}",
                                   ),
-                                ),
-                              ],
-                            ),
-
-                            const SizedBox(height: 8),
-
-                            _infoRow(Icons.phone, scheme.customer.phoneNumber),
-                            // _infoRow(Icons.email, scheme.customer.email),
-                            const Divider(height: 24),
-                            _infoRow(
-                              Icons.category,
-                              "Type: ${scheme.schemeType}",
-                            ),
-                            _infoRow(
-                              Icons.work_outline,
-                              "Purpose: ${scheme.schemePurpose}",
-                            ),
-                            _infoRow(
-                              Icons.scale,
-                              "Gold: ${scheme.totalGoldWeight} gm",
-                            ),
-                            _infoRow(
-                              Icons.currency_rupee,
-                              "Amount: ₹${scheme.totalAmount}",
-                            ),
-
-                            _infoRow(
-                              Icons.check_circle,
-                              "Paid: ₹${scheme.paidAmount}",
-                            ),
-
-                            // if (scheme.pendingAmount != null)
-                            //   _infoRow(
-                            //     Icons.pending,
-                            //     "Pending: ₹${scheme.pendingAmount}",
-                            //   ),
-                            _infoRow(
-                              Icons.calendar_today,
-                              "Start Date: ${formatDate(scheme.startDate)}",
+                                  _infoRow(
+                                    Icons.scale,
+                                    "Gold: ${scheme.totalGoldWeight} gm",
+                                  ),
+                                  _infoRow(
+                                    Icons.currency_rupee,
+                                    "Amount: ₹${scheme.totalAmount}",
+                                  ),
+                                  _infoRow(
+                                    Icons.check_circle,
+                                    "Paid: ₹${scheme.paidAmount}",
+                                  ),
+                                  _infoRow(
+                                    Icons.calendar_today,
+                                    "Start Date: ${formatDate(scheme.startDate)}",
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
+                      );
+                    },
+                  ),
+                ),
+
+                // Pagination Footer
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    border: Border(
+                      top: BorderSide(color: Colors.black12, width: 0.6),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Page ${state.response.currentPage} of ${state.response.totalPages}",
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Row(
+                        children: [
+                          ElevatedButton(
+                            onPressed:
+                                state.response.currentPage > 1
+                                    ? () {
+                                      context.read<TotalActiveBloc>().add(
+                                        FetchTotalActiveSchemes(
+                                          page: state.response.currentPage - 1,
+                                          limit: state.response.limit,
+                                        ),
+                                      );
+                                    }
+                                    : null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  state.response.currentPage > 1
+                                      ? Appcolors.headerbackground
+                                      : Colors.grey.shade300,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 8,
+                              ),
+                            ),
+                            child: Text(
+                              "Previous",
+                              style: TextStyle(
+                                color:
+                                    state.response.currentPage > 1
+                                        ? Colors.white
+                                        : Colors.grey.shade600,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton(
+                            onPressed:
+                                state.response.currentPage <
+                                        state.response.totalPages
+                                    ? () {
+                                      context.read<TotalActiveBloc>().add(
+                                        FetchTotalActiveSchemes(
+                                          page: state.response.currentPage + 1,
+                                          limit: state.response.limit,
+                                        ),
+                                      );
+                                    }
+                                    : null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  state.response.currentPage <
+                                          state.response.totalPages
+                                      ? Appcolors.headerbackground
+                                      : Colors.grey.shade300,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 8,
+                              ),
+                            ),
+                            child: Text(
+                              "Next",
+                              style: TextStyle(
+                                color:
+                                    state.response.currentPage <
+                                            state.response.totalPages
+                                        ? Colors.white
+                                        : Colors.grey.shade600,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                );
-              },
+                ),
+              ],
             );
           } else if (state is TotalActiveError) {
             return Center(
@@ -252,7 +359,7 @@ class TotalActiveSchemesScreen extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              text ?? "N/A", // Null-safe
+              text ?? "N/A",
               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             ),
           ),

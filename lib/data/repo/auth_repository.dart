@@ -1,4 +1,3 @@
-
 import 'package:admin/data/app_config.dart';
 import 'package:admin/data/models/barchart.dart';
 import 'package:admin/data/models/card.dart';
@@ -15,16 +14,17 @@ import 'package:admin/screens/dashboard/gold_price/add_gold_price/add_gold_price
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'dart:developer';
 
-
 import 'package:shared_preferences/shared_preferences.dart';
-
 
 class AuthRepository {
   final GraphQLClient client;
 
   AuthRepository(this.client);
 
-  Future<Map<String, dynamic>> adminLogin(String mobile, String password) async {
+  Future<Map<String, dynamic>> adminLogin(
+    String mobile,
+    String password,
+  ) async {
     const String query = r'''
       mutation AdminLogin($tenantUuid: String!, $password: String!, $mobileno: String!) {
         adminLogin(tenant_uuid: $tenantUuid, password: $password, mobileno: $mobileno) {
@@ -44,18 +44,12 @@ class AuthRepository {
     ''';
 
     const String defaultTenantUuid = "7a551e1b-d39f-4a2b-bad0-74fd753cea4e";
-
     //  Create a new client without token (for login only)
-    final HttpLink httpLink = HttpLink(
-      'http://api-vkskumaran-0env-env.eba-jpagnpin.ap-south-1.elasticbeanstalk.com/graphql/admin',
-
-    );
-
+    final HttpLink httpLink = HttpLink('http://10.0.2.2:4000/graphql/admin');
     final unauthenticatedClient = GraphQLClient(
       cache: GraphQLCache(store: InMemoryStore()),
       link: httpLink,
     );
-
     final options = MutationOptions(
       document: gql(query),
       variables: {
@@ -64,9 +58,7 @@ class AuthRepository {
         'mobileno': mobile,
       },
     );
-
     final result = await unauthenticatedClient.mutate(options);
-
     if (result.hasException) {
       print('❌ GraphQL Login Error: ${result.exception.toString()}');
       throw Exception(
@@ -75,26 +67,21 @@ class AuthRepository {
             : result.exception.toString(),
       );
     }
-
     final loginData = result.data?['adminLogin'];
     if (loginData == null) {
       throw Exception("Invalid login response from server.");
     }
+  final prefs = await SharedPreferences.getInstance();
+await prefs.setString('accessToken', loginData['accessToken'] ?? '');
+await prefs.setString('refreshToken', loginData['refreshToken'] ?? '');
+await prefs.setString('tenant_uuid', loginData['user']?['tenant_uuid'] ?? ''); 
 
-    //  Save tokens for next sessions
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('accessToken', loginData['accessToken'] ?? '');
-    await prefs.setString('refreshToken', loginData['refreshToken'] ?? '');
-    await prefs.setString('tenantUuid', loginData['user']?['tenant_uuid'] ?? '');
+print("✅ Tenant UUID saved: ${loginData['user']?['tenant_uuid']}");
 
-    print("✅ Login Successful — Tenant: ${loginData['user']?['tenant_uuid']}");
 
     return loginData;
   }
 }
-
-
-
 
 // Dashboard Repository
 
@@ -140,9 +127,7 @@ class CardRepository {
   }
 }
 
-
 // Scheme Repository
-
 
 class SchemeRepository {
   final GraphQLClient client;
@@ -218,7 +203,10 @@ class SchemeRepository {
   }
 
   //  Update scheme
-  Future<Scheme> updateScheme(String schemeId, Map<String, dynamic> data) async {
+  Future<Scheme> updateScheme(
+    String schemeId,
+    Map<String, dynamic> data,
+  ) async {
     const String mutation = r'''
       mutation UpdateScheme($data: UpdateProductSchemesInput!, $schemeId: String!) {
         updateScheme(data: $data, scheme_id: $schemeId) {
@@ -237,10 +225,7 @@ class SchemeRepository {
     final result = await client.mutate(
       MutationOptions(
         document: gql(mutation),
-        variables: {
-          "schemeId": schemeId,
-          "data": data,
-        },
+        variables: {"schemeId": schemeId, "data": data},
         //  Prevent GraphQL cache from showing stale data
         fetchPolicy: FetchPolicy.noCache,
       ),
@@ -275,7 +260,6 @@ class SchemeRepository {
   }
 }
 
-
 // Gold Dashboard Repository barchart
 
 class GoldDashboardRepository {
@@ -307,18 +291,13 @@ class GoldDashboardRepository {
   }
 }
 
-
 // Add Gold Price Repository
-
-
-
 
 class GoldPriceRepository {
   final GraphQLClient client;
 
   GoldPriceRepository(this.client);
 
-  /// Fetch all gold prices for the logged-in tenant
   Future<List<GoldPrice>> fetchAllPrices({String? date}) async {
     const query = r'''
       query GetAllGoldPrice($date: String) {
@@ -338,7 +317,6 @@ class GoldPriceRepository {
     ''';
 
     try {
-      // 🔐 Retrieve access token
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('accessToken');
 
@@ -346,14 +324,12 @@ class GoldPriceRepository {
         throw Exception("Authentication token missing. Please log in again.");
       }
 
-      // 🪝 Attach authorization link dynamically
       final authLink = AuthLink(getToken: () async => 'Bearer $token');
       final authedClient = GraphQLClient(
         cache: GraphQLCache(store: InMemoryStore()),
         link: authLink.concat(client.link),
       );
 
-      // 🧠 Execute query
       final result = await authedClient.query(
         QueryOptions(
           document: gql(query),
@@ -362,32 +338,27 @@ class GoldPriceRepository {
         ),
       );
 
-      // 🚨 Handle errors gracefully
       if (result.hasException) {
-        final message = result.exception?.graphqlErrors.isNotEmpty == true
-            ? result.exception!.graphqlErrors.first.message
-            : result.exception.toString();
+        final message =
+            result.exception?.graphqlErrors.isNotEmpty == true
+                ? result.exception!.graphqlErrors.first.message
+                : result.exception.toString();
 
         throw Exception("GraphQL Error: $message");
       }
 
       final List<dynamic> rawData = result.data?['getAllGoldPrice'] ?? [];
 
-      // 🧹 Filter out deleted entries safely
       final filtered = rawData.where((e) => e["isdeleted"] == false).toList();
 
-      // ✅ Convert to model list
       return filtered.map((e) => GoldPrice.fromJson(e)).toList();
     } catch (e, stack) {
-      // 🧾 Log detailed error
       print("❌ GoldPriceRepository Error: $e");
       print(stack);
       rethrow;
     }
   }
 }
-
-
 
 class AddGoldPriceRepository {
   final GraphQLClient client;
@@ -447,20 +418,18 @@ class AddGoldPriceRepository {
   }
 ''';
 
-
-   final result = await client.mutate(
-  MutationOptions(
-    document: gql(mutation),
-    variables: {
-      'data': {
-        'price_id': id, //  Pass ID inside the data map itself
-        ...input.toJson(),
-      },
-    },
-    fetchPolicy: FetchPolicy.noCache,
-  ),
-);
-
+    final result = await client.mutate(
+      MutationOptions(
+        document: gql(mutation),
+        variables: {
+          'data': {
+            'price_id': id, //  Pass ID inside the data map itself
+            ...input.toJson(),
+          },
+        },
+        fetchPolicy: FetchPolicy.noCache,
+      ),
+    );
 
     if (result.hasException) {
       throw Exception(result.exception.toString());
@@ -485,10 +454,7 @@ class AddGoldPriceRepository {
     ''';
 
     final result = await client.query(
-      QueryOptions(
-        document: gql(query),
-        fetchPolicy: FetchPolicy.networkOnly,
-      ),
+      QueryOptions(document: gql(query), fetchPolicy: FetchPolicy.networkOnly),
     );
 
     if (result.hasException) {
@@ -515,10 +481,7 @@ class AddGoldPriceRepository {
     ''';
 
     final result = await client.query(
-      QueryOptions(
-        document: gql(query),
-        fetchPolicy: FetchPolicy.networkOnly,
-      ),
+      QueryOptions(document: gql(query), fetchPolicy: FetchPolicy.networkOnly),
     );
 
     if (result.hasException) {
@@ -578,10 +541,7 @@ class CustomerRepository {
 
     final options = QueryOptions(
       document: gql(query),
-      variables: {
-        "page": page,
-        "limit": limit,
-      },
+      variables: {"page": page, "limit": limit},
       fetchPolicy: FetchPolicy.networkOnly,
     );
 
@@ -600,18 +560,18 @@ class CustomerRepository {
 // Total Active Scheme Repository
 // total_active_scheme_repository.dart
 
-
-
 class TotalActiveSchemesRepository {
   final GraphQLClient client;
 
   TotalActiveSchemesRepository({required this.client});
 
-  ///  QUERY: Fetch all active schemes — always fresh data
-  Future<TotalActiveSchemeResponse> getTotalActiveSchemes() async {
-    const query = r'''
-      query GetTotalActiveSchemes {
-        getTotalActiveSchemes {
+  Future<TotalActiveSchemeResponse> getTotalActiveSchemes({
+    required int page,
+    required int limit,
+  }) async {
+    const String query = r'''
+      query GetTotalActiveSchemes($page: Float, $limit: Float) {
+        getTotalActiveSchemes(page: $page, limit: $limit) {
           data {
             saving_id
             paidAmount
@@ -680,23 +640,44 @@ class TotalActiveSchemesRepository {
       }
     ''';
 
-    final result = await client.query(
-      QueryOptions(
-        document: gql(query),
-        //  Always fetch fresh data from backend
-        fetchPolicy: FetchPolicy.networkOnly,
-      ),
-    );
+    try {
+      final result = await client.query(
+        QueryOptions(
+          document: gql(query),
+          variables: {
+            "page": page,
+            "limit": limit,
+          },
+          fetchPolicy: FetchPolicy.noCache,
+        ),
+      );
 
-    if (result.hasException) {
-      throw Exception(result.exception.toString());
+      if (result.hasException) {
+        log("❌ GraphQL Exception: ${result.exception}", name: "TotalActiveRepo");
+        throw Exception(result.exception.toString());
+      }
+
+      final data = result.data?['getTotalActiveSchemes'];
+      if (data == null) {
+        throw Exception("getTotalActiveSchemes returned null");
+      }
+
+      final response = TotalActiveSchemeResponse.fromJson(
+        Map<String, dynamic>.from(data),
+      );
+
+      log("📄 Loaded Page ${response.currentPage} of ${response.totalPages}",
+          name: "TotalActiveRepo");
+
+      return response;
+    } catch (e) {
+      log("⚠️ Repository Exception: $e", name: "TotalActiveRepo");
+      rethrow;
     }
-
-    //  Always parse as fresh object (no stale memory ref)
-    return TotalActiveSchemeResponse.fromJson(
-      Map<String, dynamic>.from(result.data!['getTotalActiveSchemes']),
-    );
   }
+
+
+
 
   ///  MUTATION: Add cash payment — force no cache
   Future<Map<String, dynamic>> addCashCustomerSavings({
@@ -724,10 +705,7 @@ class TotalActiveSchemesRepository {
     ''';
 
     final variables = {
-      "data": {
-        "saving_id": savingId,
-        "amount": amount,
-      },
+      "data": {"saving_id": savingId, "amount": amount},
     };
 
     final result = await client.mutate(
@@ -746,11 +724,11 @@ class TotalActiveSchemesRepository {
     return Map<String, dynamic>.from(result.data!['addCashCustomerSavings']);
   }
 
- Future<bool> updateDeliveredGold({
-  required String savingId,
-  required double deliveredGold,
-}) async {
-  const String mutation = r'''
+  Future<bool> updateDeliveredGold({
+    required String savingId,
+    required double deliveredGold,
+  }) async {
+    const String mutation = r'''
     mutation UpdateDeliveredGold($savingId: ID!, $deliveredGold: Float!) {
       updateDeliveredGold(savingId: $savingId, deliveredGold: $deliveredGold) {
         success
@@ -759,28 +737,21 @@ class TotalActiveSchemesRepository {
     }
   ''';
 
-  final result = await client.mutate(
-    MutationOptions(
-      document: gql(mutation),
-      variables: {
-        "savingId": savingId,
-        "deliveredGold": deliveredGold,
-      },
-    ),
-  );
+    final result = await client.mutate(
+      MutationOptions(
+        document: gql(mutation),
+        variables: {"savingId": savingId, "deliveredGold": deliveredGold},
+      ),
+    );
 
-  if (result.hasException) {
-    log("❌ GraphQL Error: ${result.exception.toString()}");
-    return false;
+    if (result.hasException) {
+      log("❌ GraphQL Error: ${result.exception.toString()}");
+      return false;
+    }
+
+    return result.data?['updateDeliveredGold']?['success'] ?? false;
   }
-
-  return result.data?['updateDeliveredGold']?['success'] ?? false;
 }
-
-
-}
-
-
 
 // Today Active Scheme Repository
 
@@ -789,7 +760,7 @@ class TodayActiveSchemeRepository {
 
   TodayActiveSchemeRepository(this.client);
 
-  ///  Fetch today's active schemes (always fresh from backend)
+  /// Fetch paginated today active schemes
   Future<TodayActiveSchemeResponse> fetchTodayActiveSchemes({
     String? startDate,
     String? savingId,
@@ -816,46 +787,7 @@ class TodayActiveSchemeRepository {
               id
               cName
               cEmail
-              cDob
-              cPasswordHash
               cPhoneNumber
-              nominees {
-                c_nominee_id
-                c_id
-                c_nominee_name
-                c_nominee_email
-                c_nominee_phone_no
-                c_created_at
-                pin_code
-              }
-              addresses {
-                c_address_id
-                id
-                c_door_no
-                c_address_line1
-                c_address_line2
-                c_city
-                c_state
-                c_pin_code
-                c_is_primary
-                c_created_at
-                tenant_id
-              }
-              documents {
-                c_document_id
-                c_id
-                c_aadhar_no
-                c_pan_no
-                c_created_at
-              }
-              c_profile_image
-              reset_password
-              fcmToken
-              firebaseUid
-              isPhoneVerified
-              lastOtpVerifiedAt
-              lastRegisteredId
-              lastRegisteredAt
             }
             scheme_type
             scheme_id
@@ -893,34 +825,40 @@ class TodayActiveSchemeRepository {
       }
     ''';
 
-    final result = await client.query(
-      QueryOptions(
-        document: gql(query),
-        variables: {
-          'startDate': startDate,
-          'savingId': savingId,
-          'page': page,
-          'limit': limit,
-        },
-        //  Always fetch live data from backend (ignore cache)
-        fetchPolicy: FetchPolicy.networkOnly,
-      ),
-    );
+    try {
+      final result = await client.query(
+        QueryOptions(
+          document: gql(query),
+          variables: {
+            "startDate": startDate,
+            "savingId": savingId,
+            "page": page,
+            "limit": limit,
+          },
+          fetchPolicy: FetchPolicy.noCache,
+        ),
+      );
 
-    if (result.hasException) {
-      throw Exception(result.exception.toString());
+      if (result.hasException) {
+        log("❌ GraphQL Exception: ${result.exception}", name: "TodayActiveRepo");
+        throw Exception(result.exception.toString());
+      }
+
+      final data = result.data?['getTodayActiveSchemes'];
+      if (data == null) throw Exception("No data received from backend");
+
+      // ✅ Convert to response model
+      final response =
+          TodayActiveSchemeResponse.fromJson(Map<String, dynamic>.from(data));
+
+      log("📄 Loaded Page ${response.currentPage} of ${response.totalPages}",
+          name: "TodayActiveRepo");
+
+      return response;
+    } catch (e) {
+      log("⚠️ Repository Exception: $e", name: "TodayActiveRepo");
+      rethrow;
     }
-
-    final data = result.data?['getTodayActiveSchemes'];
-
-    if (data == null) {
-      throw Exception("No data received from backend");
-    }
-
-    //  Ensure new object for UI rebuild
-    return TodayActiveSchemeResponse.fromJson(
-      Map<String, dynamic>.from(data),
-    );
   }
 
   ///  Add cash payment — disable cache to avoid stale updates
@@ -949,10 +887,7 @@ class TodayActiveSchemeRepository {
     ''';
 
     final variables = {
-      "data": {
-        "saving_id": savingId,
-        "amount": amount,
-      },
+      "data": {"saving_id": savingId, "amount": amount},
     };
 
     final result = await client.mutate(
@@ -974,14 +909,26 @@ class TodayActiveSchemeRepository {
 
 // Online Payment Repository
 
+
 class OnlinePaymentRepository {
   final GraphQLClient client;
   OnlinePaymentRepository(this.client);
 
-  Future<OnlinePaymentResponse> fetchOnlinePayments() async {
+  Future<OnlinePaymentResponse> fetchOnlinePayments({
+    required int page,
+    required int limit,
+  }) async {
     const String query = r'''
-      query GetOnlinCashTransaction($transactionType: String) {
-        GetOnlinCashTransaction(transactionType: $transactionType) {
+      query GetOnlinCashTransaction(
+        $transactionType: String, 
+        $page: Float, 
+        $limit: Float
+      ) {
+        GetOnlinCashTransaction(
+          transactionType: $transactionType, 
+          page: $page, 
+          limit: $limit
+        ) {
           data {
             transactionId
             transactionAmount
@@ -1002,26 +949,35 @@ class OnlinePaymentRepository {
     ''';
 
     try {
+      log("Fetching Page: $page, Limit: $limit", name: "OnlinePaymentRepo");
+
       final result = await client.query(
         QueryOptions(
           document: gql(query),
-          variables: {"transactionType": "online"},
-          fetchPolicy: FetchPolicy.networkOnly,
+          variables: {
+            "transactionType": "online",
+            "page": page.toDouble(),
+            "limit": limit.toDouble(),
+          },
+          fetchPolicy: FetchPolicy.noCache,
         ),
       );
 
       if (result.hasException) {
-        log("OnlinePaymentRepo Error: ${result.exception}", name: "OnlinePaymentRepo");
+        log("OnlinePaymentRepo Error: ${result.exception}",
+            name: "OnlinePaymentRepo");
         throw Exception("Unable to fetch online payments. Please try again.");
       }
 
       final responseData = result.data?['GetOnlinCashTransaction'];
-      if (responseData == null) throw Exception("No online payments found");
+      if (responseData == null) {
+        throw Exception("No online payments found");
+      }
 
-      //  Ensure type-safe Map<String, dynamic>
-      final Map<String, dynamic> safeResponse = Map<String, dynamic>.from(responseData);
+      log("Response Page: ${responseData['currentPage']}", name: "OnlinePaymentRepo");
 
-      //  Parse using your model which already handles NaN & null safely
+      final Map<String, dynamic> safeResponse =
+          Map<String, dynamic>.from(responseData);
       return OnlinePaymentResponse.fromJson(safeResponse);
     } catch (e) {
       log("Repository Exception: $e", name: "OnlinePaymentRepo");
@@ -1033,15 +989,25 @@ class OnlinePaymentRepository {
 
 
 
-// Cash Payment Repository
 class CashPaymentRepository {
   final GraphQLClient client;
   CashPaymentRepository(this.client);
 
-  Future<CashPaymentResponse> fetchCashPayments() async {
+  Future<CashPaymentResponse> fetchCashPayments({
+    required int page,
+    required int limit,
+  }) async {
     const String query = r'''
-      query GetOnlinCashTransaction($transactionType: String) {
-        GetOnlinCashTransaction(transactionType: $transactionType) {
+      query GetOnlinCashTransaction(
+        $transactionType: String, 
+        $page: Float, 
+        $limit: Float
+      ) {
+        GetOnlinCashTransaction(
+          transactionType: $transactionType, 
+          page: $page, 
+          limit: $limit
+        ) {
           data {
             transactionId
             transactionAmount
@@ -1061,22 +1027,36 @@ class CashPaymentRepository {
       }
     ''';
 
-    final result = await client.query(
-      QueryOptions(
-        document: gql(query),
-        variables: {"transactionType": "cash"},
-      ),
-    );
+    try {
+      log("Fetching Cash Payments → Page: $page, Limit: $limit", name: "CashPaymentRepo");
 
-    if (result.hasException) throw Exception(result.exception.toString());
+      final result = await client.query(
+        QueryOptions(
+          document: gql(query),
+          variables: {
+            "transactionType": "cash",
+            "page": page.toDouble(),
+            "limit": limit.toDouble(),
+          },
+          fetchPolicy: FetchPolicy.noCache,
+        ),
+      );
 
-    final data = result.data?['GetOnlinCashTransaction'];
-    if (data == null) throw Exception("No cash payments found");
+      if (result.hasException) {
+        log("CashPaymentRepo Error: ${result.exception}", name: "CashPaymentRepo");
+        throw Exception("Unable to fetch cash payments. Please try again.");
+      }
 
-    return CashPaymentResponse.fromJson(data);
+      final responseData = result.data?['GetOnlinCashTransaction'];
+      if (responseData == null) throw Exception("No cash payments found");
+
+      return CashPaymentResponse.fromJson(Map<String, dynamic>.from(responseData));
+    } catch (e) {
+      log("Repository Exception: $e", name: "CashPaymentRepo");
+      rethrow;
+    }
   }
 }
-
 
 
 // Notification Repository
@@ -1107,10 +1087,7 @@ class NotificationRepository {
 
     final options = MutationOptions(
       document: gql(mutation),
-      variables: {
-        "cDescription": cDescription,
-        "cHeader": cHeader,
-      },
+      variables: {"cDescription": cDescription, "cHeader": cHeader},
     );
 
     final result = await client.mutate(options);
@@ -1119,8 +1096,7 @@ class NotificationRepository {
       throw Exception(result.exception.toString());
     }
 
-    return NotificationModel.fromJson(
-        result.data!['sendNotification']);
+    return NotificationModel.fromJson(result.data!['sendNotification']);
   }
 
   fetchNotifications() {}
@@ -1132,8 +1108,8 @@ class CustomerDetailsRepository {
   final GraphQLClient client;
 
   CustomerDetailsRepository(this.client);
-Future<CustomerDetails> fetchCustomerDetails(String customerId) async {
-  const String query = r'''
+  Future<CustomerDetails> fetchCustomerDetails(String customerId) async {
+    const String query = r'''
   query GetAllSchemes($customerId: String!) {
     getCustomerDetails(customerId: $customerId) {
       customer {
@@ -1207,40 +1183,36 @@ Future<CustomerDetails> fetchCustomerDetails(String customerId) async {
   }
 ''';
 
+    final result = await client.query(
+      QueryOptions(
+        document: gql(query),
+        variables: {"customerId": customerId},
+        fetchPolicy: FetchPolicy.networkOnly,
+      ),
+    );
 
-  final result = await client.query(QueryOptions(
-    document: gql(query),
-    variables: {"customerId": customerId},
-    fetchPolicy: FetchPolicy.networkOnly,
-  ));
+    if (result.hasException) {
+      throw Exception(result.exception.toString());
+    }
 
-  if (result.hasException) {
-    throw Exception(result.exception.toString());
+    final data = result.data!['getCustomerDetails'];
+    final customerJson = data['customer'] as Map<String, dynamic>? ?? {};
+    final savingsJson = data['savings'] as List<dynamic>? ?? [];
+    final summaryJson = data['summary'] as Map<String, dynamic>? ?? {};
+
+    return CustomerDetails.fromJson({
+      ...customerJson,
+      'savings': savingsJson,
+      'summary': summaryJson, //  FIXED
+    });
   }
-
- final data = result.data!['getCustomerDetails'];
-final customerJson = data['customer'] as Map<String, dynamic>? ?? {};
-final savingsJson = data['savings'] as List<dynamic>? ?? [];
-final summaryJson = data['summary'] as Map<String, dynamic>? ?? {};
-
-return CustomerDetails.fromJson({
-  ...customerJson,
-  'savings': savingsJson,
-  'summary': summaryJson, //  FIXED
-});
-
 }
-
-}
-
 
 class TodayActiveRepository {
   final GraphQLClient client;
   TodayActiveRepository(this.client);
 
-  Future<void> payNow({
-    required String savingId,
-  }) async {
+  Future<void> payNow({required String savingId}) async {
     const String mutation = r'''
       mutation AddCashCustomerSavings($data: AddAmountToSavingInput!) {
         addCashCustomerSavings(data: $data) {
@@ -1254,15 +1226,12 @@ class TodayActiveRepository {
     ''';
 
     final variables = {
-      "data": {
-        "saving_id": savingId,
-      }
+      "data": {"saving_id": savingId},
     };
 
-    final result = await client.mutate(MutationOptions(
-      document: gql(mutation),
-      variables: variables,
-    ));
+    final result = await client.mutate(
+      MutationOptions(document: gql(mutation), variables: variables),
+    );
 
     if (result.hasException) {
       throw Exception(result.exception.toString());

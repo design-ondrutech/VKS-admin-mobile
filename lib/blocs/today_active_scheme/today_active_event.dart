@@ -1,11 +1,12 @@
 import 'package:equatable/equatable.dart';
 
+/// Base Event Class
 abstract class TodayActiveSchemeEvent extends Equatable {
   @override
   List<Object?> get props => [];
 }
 
-//  Fetch Today Active Schemes
+///  Fetch Today Active Schemes (with Pagination)
 class FetchTodayActiveSchemes extends TodayActiveSchemeEvent {
   final String startDate;
   final String? savingId;
@@ -23,7 +24,7 @@ class FetchTodayActiveSchemes extends TodayActiveSchemeEvent {
   List<Object?> get props => [startDate, savingId, page, limit];
 }
 
-//  Add Cash Payment Event
+///  Add Cash Payment Event
 class AddCashCustomerSavingEvent extends TodayActiveSchemeEvent {
   final String savingId;
   final double amount;

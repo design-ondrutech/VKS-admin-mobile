@@ -42,12 +42,12 @@ class GlobalRefreshWrapper extends StatelessWidget {
         context.read<CustomerBloc>().add(FetchCustomers(page: 1, limit: 10));
 
         // Active Schemes
-        context.read<TotalActiveBloc>().add(FetchTotalActiveSchemes());
+        context.read<TotalActiveBloc>().add(FetchTotalActiveSchemes(page: 1, limit: 10));
         context.read<TodayActiveSchemeBloc>().add(FetchTodayActiveSchemes(page: 1, limit: 10, startDate: 'today'));
 
         // Payments
         context.read<OnlinePaymentBloc>().add(FetchOnlinePayments(page: 1, limit: 10));
-        context.read<CashPaymentBloc>().add(FetchCashPayments());
+        context.read<CashPaymentBloc>().add(FetchCashPayments(page: 1, limit: 10));
 
         // Notifications
         context.read<NotificationBloc>().add(FetchNotificationEvent());

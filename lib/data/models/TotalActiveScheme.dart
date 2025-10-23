@@ -17,22 +17,35 @@ class TotalActiveSchemeResponse {
   final int limit;
   final int page;
   final int totalCount;
+  final int totalPages;
+  final int currentPage;
 
   TotalActiveSchemeResponse({
     required this.data,
     required this.limit,
     required this.page,
     required this.totalCount,
+    required this.totalPages,
+    required this.currentPage,
   });
 
   factory TotalActiveSchemeResponse.fromJson(Map<String, dynamic> json) {
+    final int limit = json['limit'] ?? 0;
+    final int totalCount = json['totalCount'] ?? 0;
+    final int page = json['page'] ?? 1;
+
+    //  Compute totalPages manually
+    final int totalPages = (limit > 0) ? (totalCount / limit).ceil() : 1;
+
     return TotalActiveSchemeResponse(
       data: (json['data'] as List? ?? [])
           .map((e) => TotalActiveScheme.fromJson(e))
           .toList(),
-      limit: json['limit'] ?? 0,
-      page: json['page'] ?? 0,
-      totalCount: json['totalCount'] ?? 0,
+      limit: limit,
+      page: page,
+      totalCount: totalCount,
+      totalPages: totalPages, // computed locally
+      currentPage: page, // reuse 'page' as currentPage
     );
   }
 
@@ -41,25 +54,32 @@ class TotalActiveSchemeResponse {
     int? limit,
     int? page,
     int? totalCount,
+    int? totalPages,
+    int? currentPage,
   }) {
     return TotalActiveSchemeResponse(
       data: data ?? this.data,
       limit: limit ?? this.limit,
       page: page ?? this.page,
       totalCount: totalCount ?? this.totalCount,
+      totalPages: totalPages ?? this.totalPages,
+      currentPage: currentPage ?? this.currentPage,
     );
   }
 
-  ///  Combine current + new page results
   TotalActiveSchemeResponse mergeWith(TotalActiveSchemeResponse newPage) {
     return TotalActiveSchemeResponse(
       data: [...data, ...newPage.data],
       limit: newPage.limit,
       page: newPage.page,
       totalCount: newPage.totalCount,
+      totalPages: newPage.totalPages,
+      currentPage: newPage.currentPage,
     );
   }
 }
+
+
 
 // =============================
 //  TOTAL ACTIVE SCHEME MODEL

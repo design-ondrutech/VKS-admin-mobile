@@ -1,7 +1,9 @@
 import 'package:admin/blocs/auth/auth_bloc.dart';
+import 'package:admin/data/repo/auth_repository.dart';
 import 'package:admin/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:admin/blocs/dashboard/dashboard_bloc.dart';
 import 'package:admin/blocs/dashboard/dashboard_event.dart';
@@ -10,26 +12,33 @@ import 'package:admin/screens/login_screen.dart';
 class AdminDrawer extends StatelessWidget {
   const AdminDrawer({super.key});
 
-Future<void> _logout(BuildContext context) async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.clear();
+  Future<void> _logout(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text("Logged out successfully")),
-  );
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Logged out successfully")),
+    );
 
-  Navigator.pushAndRemoveUntil(
-    context,
-    MaterialPageRoute(
-      builder: (_) => BlocProvider.value(
-        value: context.read<AuthBloc>(),
-        child: const LoginScreen(),
+    final HttpLink httpLink = HttpLink('http://10.0.2.2:4000/graphql/admin');
+    final client = GraphQLClient(
+      link: httpLink,
+      cache: GraphQLCache(store: InMemoryStore()),
+    );
+
+    final authRepository = AuthRepository(client);
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BlocProvider(
+          create: (_) => AuthBloc(authRepository),
+          child: const LoginScreen(),
+        ),
       ),
-    ),
-    (route) => false,
-  );
-}
-
+          (route) => false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,14 +55,7 @@ Future<void> _logout(BuildContext context) async {
       ),
       child: Container(
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFFFFFBF0),
-              Color(0xFFFFF3C1),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
+          color: Color(0xFFF7F7FC), // ✅ Updated background color
           borderRadius: BorderRadius.only(
             topRight: Radius.circular(25),
             bottomRight: Radius.circular(25),
@@ -63,11 +65,11 @@ Future<void> _logout(BuildContext context) async {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              //  Header section
+              // Header section
               Container(
                 width: double.infinity,
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
@@ -160,69 +162,7 @@ Future<void> _logout(BuildContext context) async {
                 ),
               ),
 
-              const Divider(
-                color: Colors.black26,
-                indent: 20,
-                endIndent: 20,
-                height: 10,
-              ),
-
-              //  Logout button
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (ctx) => AlertDialog(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16)),
-                        title: const Text(
-                          "Confirm Logout",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        content: const Text(
-                          "Are you sure you want to logout?",
-                          style: TextStyle(fontSize: 14),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(ctx),
-                            child: const Text("Cancel"),
-                          ),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Appcolors.buttoncolor,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            onPressed: () {
-                              Navigator.pop(ctx);
-                              _logout(context);
-                            },
-                            child: const Text("Logout",style: TextStyle(color: Colors.white),),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.logout_rounded, color: Colors.white),
-                  label: const Text(
-                    "Logout",
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFB38B00),
-                    minimumSize: const Size.fromHeight(48),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    elevation: 5,
-                  ),
-                ),
-              ),
+              // Divider removed + Logout hidden
               const SizedBox(height: 10),
             ],
           ),
@@ -232,12 +172,12 @@ Future<void> _logout(BuildContext context) async {
   }
 
   Widget _menuItem(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String tabName,
-    required bool selected,
-  }) {
+      BuildContext context, {
+        required IconData icon,
+        required String title,
+        required String tabName,
+        required bool selected,
+      }) {
     return InkWell(
       borderRadius: BorderRadius.circular(14),
       onTap: () {
@@ -253,12 +193,12 @@ Future<void> _logout(BuildContext context) async {
           borderRadius: BorderRadius.circular(14),
           boxShadow: selected
               ? [
-                  BoxShadow(
-                    color: Colors.amber.shade100,
-                    blurRadius: 6,
-                    offset: const Offset(0, 3),
-                  ),
-                ]
+            BoxShadow(
+              color: Colors.amber.shade100,
+              blurRadius: 6,
+              offset: const Offset(0, 3),
+            ),
+          ]
               : [],
         ),
         child: Row(

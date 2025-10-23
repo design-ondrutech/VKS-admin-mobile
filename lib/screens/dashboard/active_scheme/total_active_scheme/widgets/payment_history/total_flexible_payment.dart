@@ -49,7 +49,7 @@ class _FlexiblePaymentHistoryWidgetState
 
           // Delay slightly to allow animation, then refresh data
           await Future.delayed(const Duration(milliseconds: 500));
-          context.read<TotalActiveBloc>().add(FetchTotalActiveSchemes());
+          context.read<TotalActiveBloc>().add(FetchTotalActiveSchemes(page: 1, limit: 10));
         } else if (state is CashPaymentFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

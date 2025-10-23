@@ -7,9 +7,10 @@ class CashPaymentInitial extends CashPaymentState {}
 class CashPaymentLoading extends CashPaymentState {}
 
 class CashPaymentLoaded extends CashPaymentState {
-  final List<CashPayment> payments;
-  CashPaymentLoaded(this.payments);
+  final CashPaymentResponse response;
+  CashPaymentLoaded({required this.response});
 }
+
 
 class CashPaymentError extends CashPaymentState {
   final String message;

@@ -4,6 +4,7 @@ import 'package:admin/blocs/customers/customer_bloc.dart';
 import 'package:admin/blocs/customers/customer_event.dart';
 import 'package:admin/blocs/online_payment/online_payment_bloc.dart';
 import 'package:admin/blocs/online_payment/online_payment_event.dart';
+import 'package:admin/blocs/schemes/schemes_state.dart';
 import 'package:admin/blocs/today_active_scheme/today_active_bloc.dart';
 import 'package:admin/blocs/today_active_scheme/today_active_event.dart';
 import 'package:admin/blocs/total_active_scheme/total_active_bloc.dart';
@@ -14,6 +15,7 @@ import 'package:admin/blocs/gold_price/gold_bloc.dart';
 import 'package:admin/blocs/gold_price/gold_event.dart';
 import 'package:admin/blocs/notification/notification_bloc.dart';
 import 'package:admin/blocs/notification/notification_event.dart';
+import 'package:admin/screens/dashboard/gold_price/add_gold_price/bloc/add_gld_bloc.dart';
 import 'package:admin/screens/dashboard/widgets/admin_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -67,30 +69,29 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   ///  Auto refresh when app resumes
-@override
-void didChangeAppLifecycleState(AppLifecycleState state) {
-  if (state == AppLifecycleState.resumed && mounted) {
-    try {
-      final ctx = context;
-      ctx.read<GoldPriceBloc>().add(const FetchGoldPriceEvent());
-      ctx.read<SchemesBloc>().add(FetchSchemes());
-      ctx.read<CardBloc>().add(FetchCardSummary());
-      ctx.read<CustomerBloc>().add(FetchCustomers(page: 1, limit: 10));
-      ctx.read<TotalActiveBloc>().add(FetchTotalActiveSchemes());
-      ctx.read<TodayActiveSchemeBloc>().add(
-        FetchTodayActiveSchemes(page: 1, limit: 10, startDate: 'today'),
-      );
-      ctx.read<OnlinePaymentBloc>().add(
-        FetchOnlinePayments(page: 1, limit: 10),
-      );
-      ctx.read<CashPaymentBloc>().add(FetchCashPayments());
-      ctx.read<NotificationBloc>().add(FetchNotificationEvent());
-    } catch (e) {
-      debugPrint("⚠️ Skipped refresh — bloc closed after logout: $e");
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && mounted) {
+      try {
+        final ctx = context;
+        ctx.read<GoldPriceBloc>().add(const FetchGoldPriceEvent());
+        ctx.read<SchemesBloc>().add(FetchSchemes());
+        ctx.read<CardBloc>().add(FetchCardSummary());
+        ctx.read<CustomerBloc>().add(FetchCustomers(page: 1, limit: 10));
+        ctx.read<TotalActiveBloc>().add(FetchTotalActiveSchemes(page: 1, limit: 10));
+        ctx.read<TodayActiveSchemeBloc>().add(
+          FetchTodayActiveSchemes(page: 1, limit: 10, startDate: 'today'),
+        );
+        ctx.read<OnlinePaymentBloc>().add(
+          FetchOnlinePayments(page: 1, limit: 10),
+        );
+        ctx.read<CashPaymentBloc>().add(FetchCashPayments(page: 1, limit: 10));
+        ctx.read<NotificationBloc>().add(FetchNotificationEvent());
+      } catch (e) {
+        debugPrint("⚠️ Skipped refresh — bloc closed after logout: $e");
+      }
     }
   }
-}
-
 
   Future<void> _initClient() async {
     final client = await getGraphQLClient();
@@ -110,7 +111,9 @@ void didChangeAppLifecycleState(AppLifecycleState state) {
 
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => CardBloc(repository)..add(FetchCardSummary())),
+        BlocProvider(
+          create: (_) => CardBloc(repository)..add(FetchCardSummary()),
+        ),
         BlocProvider(create: (_) => DashboardBloc(repository)),
       ],
       child: const DashboardHeader(),
@@ -152,7 +155,10 @@ class _DashboardHeaderState extends State<DashboardHeader> {
               Expanded(
                 child: BlocBuilder<DashboardBloc, DashboardState>(
                   builder: (context, state) {
-                    final tab = state.selectedTab.isEmpty ? "Overview" : state.selectedTab;
+                    final tab =
+                        state.selectedTab.isEmpty
+                            ? "Overview"
+                            : state.selectedTab;
                     return _getSelectedTab(context, tab);
                   },
                 ),
@@ -173,25 +179,46 @@ class _DashboardHeaderState extends State<DashboardHeader> {
       ),
     );
   }
-
-  Widget _getSelectedTab(BuildContext context, String selectedTab) {
-    if (selectedTab == "Overview") {
-      return SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
-        child: _overviewContent(context),
-      );
-    } else if (selectedTab == "Schemes") {
-      return BlocProvider.value(
-        value: context.read<SchemesBloc>(),
-        child: const SchemesTab(),
-      );
-    } else if (selectedTab == "GoldAdd") {
-      return const GoldPriceScreen();
-    } else {
-      return const NotificationsTab();
-    }
+Widget _getSelectedTab(BuildContext context, String selectedTab) {
+  // ---------- OVERVIEW ----------
+  if (selectedTab == "Overview") {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(16),
+      child: _overviewContent(context),
+    );
   }
+
+  // ---------- SCHEMES ----------
+  else if (selectedTab == "Schemes") {
+    final schemesBloc = context.read<SchemesBloc>();
+
+    if (schemesBloc.state is SchemeInitial) {
+      schemesBloc.add(FetchSchemes());
+    }
+
+    return BlocProvider.value(
+      value: schemesBloc,
+      child: const SchemesTab(),
+    );
+  }
+
+  // ---------- GOLD PRICE ADD ----------
+  else if (selectedTab == "GoldAdd") {
+    final client = GraphQLProvider.of(context).value;
+
+    return BlocProvider(
+      create: (_) => AddGoldPriceBloc(AddGoldPriceRepository(client)),
+      child: const GoldPriceScreen(),
+    );
+  }
+
+  // ---------- NOTIFICATIONS ----------
+  else {
+    return const NotificationsTab();
+  }
+}
+
 
   Widget _overviewContent(BuildContext context) {
     return BlocBuilder<CardBloc, CardState>(
@@ -203,68 +230,100 @@ class _DashboardHeaderState extends State<DashboardHeader> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _iconCard("Customers", "${summary.totalCustomers}", Icons.group, Colors.blue, onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => BlocProvider.value(
-                      value: context.read<CustomerBloc>(),
-                      child: const CustomersScreen(),
+              _iconCard(
+                "Customers",
+                "${summary.totalCustomers}",
+                Icons.group,
+                Colors.blue,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (_) => BlocProvider.value(
+                            value: context.read<CustomerBloc>(),
+                            child: const CustomersScreen(),
+                          ),
                     ),
-                  ),
-                );
-              }),
+                  );
+                },
+              ),
               const SizedBox(height: 16),
-              _iconCard("Total Active", "${summary.totalActiveSchemes}", Icons.layers, Colors.orange, onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => BlocProvider.value(
-                      value: context.read<TotalActiveBloc>(),
-                      child: const TotalActiveSchemesScreen(),
+              _iconCard(
+                "Total Active",
+                "${summary.totalActiveSchemes}",
+                Icons.layers,
+                Colors.orange,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (_) => BlocProvider.value(
+                            value: context.read<TotalActiveBloc>(),
+                            child: const TotalActiveSchemesScreen(),
+                          ),
                     ),
-                  ),
-                );
-              }),
+                  );
+                },
+              ),
               const SizedBox(height: 16),
-              _iconCard("Today Active", "${summary.todayActiveSchemes}", Icons.layers,
-                  const Color.fromARGB(255, 86, 136, 211), onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => BlocProvider.value(
-                      value: context.read<TodayActiveSchemeBloc>(),
-                      child: const TodayActiveSchemesScreen(),
+              _iconCard(
+                "Today Active",
+                "${summary.todayActiveSchemes}",
+                Icons.layers,
+                const Color.fromARGB(255, 86, 136, 211),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (_) => BlocProvider.value(
+                            value: context.read<TodayActiveSchemeBloc>(),
+                            child: const TodayActiveSchemesScreen(),
+                          ),
                     ),
-                  ),
-                );
-              }),
+                  );
+                },
+              ),
               const SizedBox(height: 16),
-              _iconCard("Online Payment", "₹${summary.totalOnlinePayment}",
-                  Icons.account_balance_wallet, Colors.teal, onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => BlocProvider.value(
-                      value: context.read<OnlinePaymentBloc>(),
-                      child: const OnlinePaymentScreen(),
+              _iconCard(
+                "Online Payment",
+                "₹${summary.totalOnlinePayment}",
+                Icons.account_balance_wallet,
+                Colors.teal,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (_) => BlocProvider.value(
+                            value: context.read<OnlinePaymentBloc>(),
+                            child: const OnlinePaymentScreen(),
+                          ),
                     ),
-                  ),
-                );
-              }),
+                  );
+                },
+              ),
               const SizedBox(height: 16),
-              _iconCard("Cash Payment", "₹${summary.totalCashPayment}", Icons.monetization_on,
-                  Colors.purple, onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => BlocProvider.value(
-                      value: context.read<CashPaymentBloc>(),
-                      child: const CashPaymentScreen(),
+              _iconCard(
+                "Cash Payment",
+                "₹${summary.totalCashPayment}",
+                Icons.monetization_on,
+                Colors.purple,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (_) => BlocProvider.value(
+                            value: context.read<CashPaymentBloc>(),
+                            child: const CashPaymentScreen(),
+                          ),
                     ),
-                  ),
-                );
-              }),
+                  );
+                },
+              ),
             ],
           );
         } else if (state is CardError) {
@@ -325,12 +384,23 @@ class _DashboardHeaderState extends State<DashboardHeader> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title,
-                      style: TextStyle(color: Colors.grey[600], fontSize: 13, fontWeight: FontWeight.w500)),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   const SizedBox(height: 6),
-                  Text(value,
-                      style:
-                          const TextStyle(color: Colors.black87, fontSize: 20, fontWeight: FontWeight.bold)),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      color: Colors.black87,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
             ),

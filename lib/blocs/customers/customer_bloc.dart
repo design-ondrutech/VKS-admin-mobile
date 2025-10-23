@@ -8,9 +8,9 @@ class CustomerBloc extends Bloc<CustomerEvent, CustomerState> {
   final CustomerRepository customerRepository;
   final TotalActiveSchemesRepository schemeRepository;
 
+
   CustomerBloc(this.customerRepository, this.schemeRepository)
       : super(CustomerLoading()) {
-    // 🔹 Fetch all customers
     on<FetchCustomers>((event, emit) async {
       emit(CustomerLoading());
       try {
@@ -37,7 +37,7 @@ class CustomerBloc extends Bloc<CustomerEvent, CustomerState> {
 
         // 2 Fetch all active/completed schemes
         final totalSchemesResponse =
-            await schemeRepository.getTotalActiveSchemes();
+            await schemeRepository.getTotalActiveSchemes(page: 1, limit: 10);
 
         // 3 Create map of savingId → TotalActiveScheme
         final Map<String, TotalActiveScheme> schemeMap = {

@@ -33,17 +33,16 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
   }
 
   // ---------- Helper Functions ----------
-String _safeNumber(dynamic value, {int digits = 4}) {
-  if (value == null) return "0.0000";
-  try {
-    final num? parsed = value is num ? value : num.tryParse(value.toString());
-    if (parsed == null || parsed.isNaN) return "0.0000";
-    return parsed.toStringAsFixed(digits);
-  } catch (_) {
-    return "0.0000";
+  String _safeNumber(dynamic value, {int digits = 4}) {
+    if (value == null) return "0.0000";
+    try {
+      final num? parsed = value is num ? value : num.tryParse(value.toString());
+      if (parsed == null || parsed.isNaN) return "0.0000";
+      return parsed.toStringAsFixed(digits);
+    } catch (_) {
+      return "0.0000";
+    }
   }
-}
-
 
   Color _statusColor(String status) {
     switch (status.toLowerCase()) {
@@ -110,9 +109,10 @@ String _safeNumber(dynamic value, {int digits = 4}) {
           Icon(icon, size: 18, color: Colors.grey.shade700),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(text,
-                style:
-                    const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+            ),
           ),
         ],
       ),
@@ -127,9 +127,7 @@ String _safeNumber(dynamic value, {int digits = 4}) {
         backgroundColor:
             enabled ? Appcolors.headerbackground : Colors.grey.shade300,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(6),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
       ),
       child: Text(
         label,
@@ -153,20 +151,24 @@ String _safeNumber(dynamic value, {int digits = 4}) {
       child: Scaffold(
         backgroundColor: Colors.grey.shade100,
         appBar: AppBar(
-          title: const Text("Online Payments",
-              style: TextStyle(color: Appcolors.white)),
+          title: const Text(
+            "Online Payments",
+            style: TextStyle(color: Appcolors.white),
+          ),
           centerTitle: true,
           backgroundColor: Appcolors.headerbackground,
           elevation: 0,
         ),
         body: BlocBuilder<OnlinePaymentBloc, OnlinePaymentState>(
           builder: (context, state) {
-            if (state is OnlinePaymentLoading && bloc.allPayments.isEmpty) {
+            if (state is OnlinePaymentLoading) {
               return const Center(child: CircularProgressIndicator());
             } else if (state is OnlinePaymentError) {
               return Center(
-                child: Text("Error: ${state.message}",
-                    style: const TextStyle(color: Colors.red)),
+                child: Text(
+                  "Error: ${state.message}",
+                  style: const TextStyle(color: Colors.red),
+                ),
               );
             } else if (state is OnlinePaymentLoaded) {
               final payments = state.response!.data;
@@ -182,8 +184,9 @@ String _safeNumber(dynamic value, {int digits = 4}) {
                       itemCount: payments.length,
                       itemBuilder: (context, index) {
                         final OnlinePayment payment = payments[index];
-                        final txnStatus =
-                            _statusString(payment.transactionStatus);
+                        final txnStatus = _statusString(
+                          payment.transactionStatus,
+                        );
 
                         return Container(
                           margin: const EdgeInsets.only(bottom: 12),
@@ -192,75 +195,135 @@ String _safeNumber(dynamic value, {int digits = 4}) {
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 4))
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 6,
+                                offset: const Offset(0, 4),
+                              ),
                             ],
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              // Header (Customer name + Status)
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 12),
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.blue.shade50,
                                   borderRadius: const BorderRadius.vertical(
-                                      top: Radius.circular(16)),
+                                    top: Radius.circular(16),
+                                  ),
                                 ),
                                 child: Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Expanded(
-                                        child: Text(
-                                            payment.customerName.isNotEmpty
-                                                ? payment.customerName
-                                                : "No Name",
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.blue.shade900),
-                                            overflow:
-                                                TextOverflow.ellipsis)),
+                                      child: Text(
+                                        payment.customerName.isNotEmpty
+                                            ? payment.customerName
+                                            : "No Name",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.blue.shade900,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
                                     Container(
                                       padding: const EdgeInsets.symmetric(
-                                          horizontal: 10, vertical: 4),
+                                        horizontal: 10,
+                                        vertical: 4,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: _statusColor(txnStatus),
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Row(
                                         children: [
-                                          Icon(_statusIcon(txnStatus),
-                                              size: 16,
-                                              color:
-                                                  _statusTextColor(txnStatus)),
+                                          Icon(
+                                            _statusIcon(txnStatus),
+                                            size: 16,
+                                            color: _statusTextColor(txnStatus),
+                                          ),
                                           const SizedBox(width: 4),
-                                          Text(txnStatus.toUpperCase(),
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.w600,
-                                                  fontSize: 13,
-                                                  color: _statusTextColor(
-                                                      txnStatus))),
+                                          Text(
+                                            txnStatus.toUpperCase(),
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 13,
+                                              color: _statusTextColor(
+                                                txnStatus,
+                                              ),
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
+
+                              // Card body
                               Padding(
                                 padding: const EdgeInsets.all(16),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    _infoRow(Icons.calendar_today,
-                                        _formatDate(payment.transactionDate)),
+                                    _infoRow(
+                                      Icons.calendar_today,
+                                      _formatDate(payment.transactionDate),
+                                    ),
                                     const Divider(height: 24),
-                                    _infoRow(Icons.workspace_premium,
-                                        "${_safeNumber(payment.transactionGoldGram)} gm"),
-                                    _infoRow(Icons.currency_rupee,
-                                        "₹${_safeNumber(payment.transactionAmount)}"),
+
+                                    // Amount Left — Gram Right
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.currency_rupee,
+                                                size: 18,
+                                                color: Colors.grey,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                _safeNumber(
+                                                  payment.transactionAmount,
+                                                ),
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.workspace_premium,
+                                              size: 18,
+                                              color: Colors.grey,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              "${_safeNumber(payment.transactionGoldGram)} gm",
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
                                   ],
                                 ),
                               ),
@@ -274,7 +337,9 @@ String _safeNumber(dynamic value, {int digits = 4}) {
                   // ---------- Pagination Footer ----------
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        vertical: 12, horizontal: 16),
+                      vertical: 12,
+                      horizontal: 16,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       border: const Border(

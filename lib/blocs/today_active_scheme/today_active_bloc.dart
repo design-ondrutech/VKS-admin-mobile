@@ -1,6 +1,6 @@
 import 'dart:developer';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:admin/data/repo/auth_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'today_active_event.dart';
 import 'today_active_state.dart';
 
@@ -10,11 +10,11 @@ class TodayActiveSchemeBloc
 
   TodayActiveSchemeBloc({required this.repository})
       : super(TodayActiveSchemeInitial()) {
-    ///  Fetch today’s active schemes (with fresh backend data)
+    // 🟢 Fetch Today’s Active Schemes
     on<FetchTodayActiveSchemes>((event, emit) async {
       emit(TodayActiveSchemeLoading());
       try {
-        //  Force fresh data from repository (networkOnly)
+        // Call repository to fetch backend paginated data
         final response = await repository.fetchTodayActiveSchemes(
           startDate: event.startDate,
           savingId: event.savingId,
@@ -22,52 +22,26 @@ class TodayActiveSchemeBloc
           limit: event.limit,
         );
 
-        //  Filter: only today's active schemes
-        final today = DateTime.now();
-        final filteredSchemes = response.data.where((scheme) {
-          final isActive = scheme.status.toLowerCase() == "active";
-          final schemeDate = DateTime.tryParse(scheme.startDate);
-          final isToday = schemeDate != null &&
-              schemeDate.year == today.year &&
-              schemeDate.month == today.month &&
-              schemeDate.day == today.day;
-          return isActive && isToday;
-        }).toList();
-
-        if (filteredSchemes.isEmpty) {
-          emit(TodayActiveSchemeError("No active schemes for today found."));
+        // ✅ If no schemes found
+        if (response.data.isEmpty) {
+          emit(TodayActiveSchemeError("No active schemes found for today."));
           return;
         }
 
-        //  Client-side pagination
-        final startIndex = (event.page - 1) * event.limit;
-        final endIndex =
-            (startIndex + event.limit).clamp(0, filteredSchemes.length);
-        final pageData = filteredSchemes.sublist(startIndex, endIndex);
-
-        final totalPages = (filteredSchemes.length / event.limit).ceil();
-
-        //  Ensure new data instance for rebuild
-        final paginatedResponse = response.copyWith(
-          data: List.from(pageData),
-          totalCount: filteredSchemes.length,
-          page: event.page,
-          limit: event.limit,
-        );
-
+        // ✅ Emit loaded state with current + total pages
         emit(TodayActiveSchemeLoaded(
-          paginatedResponse,
-          currentPage: event.page,
-          totalPages: totalPages,
+          response: response,
+          currentPage: response.currentPage,
+          totalPages: response.totalPages,
         ));
       } catch (e, s) {
-        log("Bloc Error (Fetch Today Active): $e\n$s",
+        log("❌ Error while fetching today active schemes: $e\n$s",
             name: "TodayActiveSchemeBloc");
-        emit(TodayActiveSchemeError("Failed to load active schemes"));
+        emit(TodayActiveSchemeError("Failed to load today’s active schemes."));
       }
     });
 
-    /// 🔹 Add Cash Payment (Mutation)
+    // 🟡 Add Cash Payment (with auto-refresh)
     on<AddCashCustomerSavingEvent>((event, emit) async {
       emit(AddCashSavingLoading());
       try {
@@ -78,12 +52,13 @@ class TodayActiveSchemeBloc
 
         log("✅ Payment Added Successfully: $result",
             name: "TodayActiveSchemeBloc");
+
         emit(AddCashSavingSuccess(result));
 
-        // ⚡ Wait a bit for backend to update before refetch
-        await Future.delayed(const Duration(milliseconds: 400));
+        // Small delay to allow backend to update
+        await Future.delayed(const Duration(milliseconds: 500));
 
-        //  Auto-refresh today’s active schemes (fresh fetch)
+        // 🌀 Auto refresh list after successful payment
         final today = DateTime.now().toIso8601String().split('T').first;
         add(FetchTodayActiveSchemes(
           startDate: today,
@@ -91,7 +66,7 @@ class TodayActiveSchemeBloc
           limit: 10,
         ));
       } catch (e, s) {
-        log("Bloc Error (Add Cash): $e\n$s",
+        log("❌ Error while adding cash payment: $e\n$s",
             name: "TodayActiveSchemeBloc");
         emit(AddCashSavingError("Unable to add payment. Please try again."));
       }
