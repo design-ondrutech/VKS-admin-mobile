@@ -69,7 +69,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget _buildLoginWithProvider() {
     final unauthenticatedClient = GraphQLClient(
       cache: GraphQLCache(store: InMemoryStore()),
-      link: HttpLink('http://10.0.2.2:4000/graphql/admin'),
+      link: HttpLink( 'http://api-vkskumaran-0env-env.eba-jpagnpin.ap-south-1.elasticbeanstalk.com/graphql/admin'),
     );
 
     final authRepository = AuthRepository(unauthenticatedClient);

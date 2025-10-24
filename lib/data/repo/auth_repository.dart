@@ -45,7 +45,7 @@ class AuthRepository {
 
     const String defaultTenantUuid = "7a551e1b-d39f-4a2b-bad0-74fd753cea4e";
     //  Create a new client without token (for login only)
-    final HttpLink httpLink = HttpLink('http://10.0.2.2:4000/graphql/admin');
+    final HttpLink httpLink = HttpLink('http://api-vkskumaran-0env-env.eba-jpagnpin.ap-south-1.elasticbeanstalk.com/graphql/admin');
     final unauthenticatedClient = GraphQLClient(
       cache: GraphQLCache(store: InMemoryStore()),
       link: httpLink,

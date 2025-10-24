@@ -2,7 +2,7 @@ import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<GraphQLClient> getGraphQLClient() async {
-  const String endpoint = 'http://10.0.2.2:4000/graphql/admin';
+  const String endpoint = 'http://api-vkskumaran-0env-env.eba-jpagnpin.ap-south-1.elasticbeanstalk.com/graphql/admin';
 
   final prefs = await SharedPreferences.getInstance();
   final token = prefs.getString('accessToken');

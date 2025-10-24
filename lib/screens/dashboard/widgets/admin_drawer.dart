@@ -36,7 +36,7 @@ class AdminDrawer extends StatelessWidget {
           child: const LoginScreen(),
         ),
       ),
-          (route) => false,
+      (route) => false,
     );
   }
 
@@ -65,11 +65,10 @@ class AdminDrawer extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header section
+              // Header Section
               Container(
                 width: double.infinity,
-                padding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
@@ -125,7 +124,7 @@ class AdminDrawer extends StatelessWidget {
 
               const SizedBox(height: 15),
 
-              // Menu
+              // Menu Items
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.only(top: 8),
@@ -162,7 +161,73 @@ class AdminDrawer extends StatelessWidget {
                 ),
               ),
 
-              // Divider removed + Logout hidden
+              const Divider(
+                color: Colors.black26,
+                indent: 20,
+                endIndent: 20,
+                height: 10,
+              ),
+
+              // Logout Button (✅ Still Visible)
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        title: const Text(
+                          "Confirm Logout",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        content: const Text(
+                          "Are you sure you want to logout?",
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            child: const Text("Cancel"),
+                          ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Appcolors.buttoncolor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              _logout(context);
+                            },
+                            child: const Text(
+                              "Logout",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.logout_rounded, color: Colors.white),
+                  label: const Text(
+                    "Logout",
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFB38B00),
+                    minimumSize: const Size.fromHeight(48),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    elevation: 5,
+                  ),
+                ),
+              ),
               const SizedBox(height: 10),
             ],
           ),
@@ -172,12 +237,12 @@ class AdminDrawer extends StatelessWidget {
   }
 
   Widget _menuItem(
-      BuildContext context, {
-        required IconData icon,
-        required String title,
-        required String tabName,
-        required bool selected,
-      }) {
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String tabName,
+    required bool selected,
+  }) {
     return InkWell(
       borderRadius: BorderRadius.circular(14),
       onTap: () {
@@ -193,12 +258,12 @@ class AdminDrawer extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           boxShadow: selected
               ? [
-            BoxShadow(
-              color: Colors.amber.shade100,
-              blurRadius: 6,
-              offset: const Offset(0, 3),
-            ),
-          ]
+                  BoxShadow(
+                    color: Colors.amber.shade100,
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  ),
+                ]
               : [],
         ),
         child: Row(

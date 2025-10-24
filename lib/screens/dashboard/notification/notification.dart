@@ -16,9 +16,7 @@ class NotificationsTab extends StatefulWidget {
 }
 
 class _NotificationsTabState extends State<NotificationsTab>
-    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-  late TabController _tabController;
-
+    with AutomaticKeepAliveClientMixin {
   final TextEditingController headerCtrl = TextEditingController();
   final TextEditingController contentCtrl = TextEditingController();
 
@@ -31,7 +29,6 @@ class _NotificationsTabState extends State<NotificationsTab>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
     _loadSavedNotifications();
 
     contentCtrl.addListener(() {
@@ -41,7 +38,7 @@ class _NotificationsTabState extends State<NotificationsTab>
     });
   }
 
-  // 🔹 Load saved messages from SharedPreferences
+  /// 🔹 Load messages from local storage
   Future<void> _loadSavedNotifications() async {
     final prefs = await SharedPreferences.getInstance();
     final String? savedData = prefs.getString('todayNotifications');
@@ -54,7 +51,7 @@ class _NotificationsTabState extends State<NotificationsTab>
     }
   }
 
-  // 🔹 Save messages to SharedPreferences
+  /// 🔹 Save messages locally
   Future<void> _saveNotifications() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('todayNotifications', jsonEncode(todayNotifications));
@@ -62,7 +59,6 @@ class _NotificationsTabState extends State<NotificationsTab>
 
   @override
   void dispose() {
-    _tabController.dispose();
     headerCtrl.dispose();
     contentCtrl.dispose();
     super.dispose();
@@ -78,72 +74,32 @@ class _NotificationsTabState extends State<NotificationsTab>
         elevation: 0,
         backgroundColor: Colors.white,
         automaticallyImplyLeading: false,
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: Appcolors.buttoncolor,
-          indicatorWeight: 3,
-          labelColor: Appcolors.buttoncolor,
-          unselectedLabelColor: Colors.black54,
-          labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-          tabs: const [
-            Tab(text: "Send All"),
-            //  Tab(text: "Send Specific"),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _messageCard(),
+            const SizedBox(height: 24),
+            const Text(
+              "Today Notification",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+            const SizedBox(height: 16),
+            Column(
+              children: todayNotifications
+                  .map(
+                    (n) => notificationItem(
+                      title: n["title"]!,
+                      subtitle: n["subtitle"]!,
+                      time: n["time"]!,
+                    ),
+                  )
+                  .toList(),
+            ),
           ],
         ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [_buildSendAll(), _buildSendSpecific()],
-      ),
-    );
-  }
-
-  /// -------------------- SEND ALL TAB --------------------
-  Widget _buildSendAll() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _messageCard(),
-          const SizedBox(height: 24),
-          const Text(
-            "Today Notification",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-          ),
-          const SizedBox(height: 16),
-          Column(
-            children:
-                todayNotifications
-                    .map(
-                      (n) => notificationItem(
-                        title: n["title"]!,
-                        subtitle: n["subtitle"]!,
-                        time: n["time"]!,
-                      ),
-                    )
-                    .toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// -------------------- SEND SPECIFIC TAB --------------------
-  Widget _buildSendSpecific() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          _messageCard(),
-          const SizedBox(height: 24),
-          const Center(
-            child: Text(
-              "Here you can send notifications to specific users.",
-              style: TextStyle(fontSize: 14, color: Colors.black54),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -156,6 +112,7 @@ class _NotificationsTabState extends State<NotificationsTab>
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Notification Sent Successfully!")),
           );
+
           setState(() {
             final now = TimeOfDay.now();
             final formattedTime =
@@ -167,6 +124,7 @@ class _NotificationsTabState extends State<NotificationsTab>
               "time": formattedTime,
             });
 
+            // Keep only latest 3 messages
             if (todayNotifications.length > 3) {
               todayNotifications.removeLast();
             }
@@ -174,14 +132,13 @@ class _NotificationsTabState extends State<NotificationsTab>
             contentLength = 0;
           });
 
-          _saveNotifications(); // 🔹 save locally
-
+          _saveNotifications(); // save locally
           headerCtrl.clear();
           contentCtrl.clear();
         } else if (state is NotificationFailure) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(" ${state.error}")));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(" ${state.error}")),
+          );
         }
       },
       builder: (context, state) {
@@ -204,10 +161,8 @@ class _NotificationsTabState extends State<NotificationsTab>
                 controller: headerCtrl,
                 decoration: InputDecoration(
                   hintText: "Title",
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(color: Colors.grey.shade300),
@@ -226,10 +181,8 @@ class _NotificationsTabState extends State<NotificationsTab>
                 maxLength: 200,
                 decoration: InputDecoration(
                   hintText: "Content",
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(color: Colors.grey.shade300),
@@ -242,47 +195,40 @@ class _NotificationsTabState extends State<NotificationsTab>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   ElevatedButton.icon(
-                    onPressed:
-                        state is NotificationLoading
-                            ? null
-                            : () {
-                              if (headerCtrl.text.isNotEmpty &&
-                                  contentCtrl.text.isNotEmpty) {
-                                context.read<NotificationBloc>().add(
-                                  SendNotificationEvent(
-                                    cHeader: headerCtrl.text,
-                                    cDescription: contentCtrl.text,
-                                  ),
-                                );
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      "Please enter title & content",
+                    onPressed: state is NotificationLoading
+                        ? null
+                        : () {
+                            if (headerCtrl.text.isNotEmpty &&
+                                contentCtrl.text.isNotEmpty) {
+                              context.read<NotificationBloc>().add(
+                                    SendNotificationEvent(
+                                      cHeader: headerCtrl.text,
+                                      cDescription: contentCtrl.text,
                                     ),
-                                  ),
-                                );
-                              }
-                            },
-                    icon:
-                        state is NotificationLoading
-                            ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                            : const Icon(
-                              Icons.send,
-                              size: 16,
+                                  );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content:
+                                      Text("Please enter title & content"),
+                                ),
+                              );
+                            }
+                          },
+                    icon: state is NotificationLoading
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
                               color: Colors.white,
                             ),
-                    label:
-                        state is NotificationLoading
-                            ? const SizedBox.shrink()
-                            : const Text("Send"),
+                          )
+                        : const Icon(Icons.send,
+                            size: 16, color: Colors.white),
+                    label: state is NotificationLoading
+                        ? const SizedBox.shrink()
+                        : const Text("Send"),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Appcolors.buttoncolor,
                       foregroundColor: Colors.white,
