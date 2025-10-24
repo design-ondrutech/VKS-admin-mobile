@@ -17,6 +17,7 @@ import 'package:admin/blocs/notification/notification_bloc.dart';
 import 'package:admin/blocs/notification/notification_event.dart';
 import 'package:admin/screens/dashboard/gold_price/add_gold_price/bloc/add_gld_bloc.dart';
 import 'package:admin/screens/dashboard/widgets/admin_drawer.dart';
+import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:admin/blocs/card/card_bloc.dart';
@@ -39,8 +40,6 @@ import 'package:admin/blocs/dashboard/dashboard_event.dart';
 import 'package:admin/blocs/dashboard/dashboard_state.dart';
 import 'package:admin/widgets/bottom_navigation.dart';
 import 'package:admin/widgets/global_refresh.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:admin/screens/login_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final CardRepository repository;
@@ -78,7 +77,9 @@ class _DashboardScreenState extends State<DashboardScreen>
         ctx.read<SchemesBloc>().add(FetchSchemes());
         ctx.read<CardBloc>().add(FetchCardSummary());
         ctx.read<CustomerBloc>().add(FetchCustomers(page: 1, limit: 10));
-        ctx.read<TotalActiveBloc>().add(FetchTotalActiveSchemes(page: 1, limit: 10));
+        ctx.read<TotalActiveBloc>().add(
+          FetchTotalActiveSchemes(page: 1, limit: 10),
+        );
         ctx.read<TodayActiveSchemeBloc>().add(
           FetchTodayActiveSchemes(page: 1, limit: 10, startDate: 'today'),
         );
@@ -131,16 +132,6 @@ class DashboardHeader extends StatefulWidget {
 class _DashboardHeaderState extends State<DashboardHeader> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  Future<void> _logout(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('accessToken');
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-      (route) => false,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -179,46 +170,40 @@ class _DashboardHeaderState extends State<DashboardHeader> {
       ),
     );
   }
-Widget _getSelectedTab(BuildContext context, String selectedTab) {
-  // ---------- OVERVIEW ----------
-  if (selectedTab == "Overview") {
-    return SingleChildScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(16),
-      child: _overviewContent(context),
-    );
-  }
 
-  // ---------- SCHEMES ----------
-  else if (selectedTab == "Schemes") {
-    final schemesBloc = context.read<SchemesBloc>();
-
-    if (schemesBloc.state is SchemeInitial) {
-      schemesBloc.add(FetchSchemes());
+  Widget _getSelectedTab(BuildContext context, String selectedTab) {
+    // ---------- OVERVIEW ----------
+    if (selectedTab == "Overview") {
+      return SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        child: _overviewContent(context),
+      );
     }
+    // ---------- SCHEMES ----------
+    else if (selectedTab == "Schemes") {
+      final schemesBloc = context.read<SchemesBloc>();
 
-    return BlocProvider.value(
-      value: schemesBloc,
-      child: const SchemesTab(),
-    );
+      if (schemesBloc.state is SchemeInitial) {
+        schemesBloc.add(FetchSchemes());
+      }
+
+      return BlocProvider.value(value: schemesBloc, child: const SchemesTab());
+    }
+    // ---------- GOLD PRICE ADD ----------
+    else if (selectedTab == "GoldAdd") {
+      final client = GraphQLProvider.of(context).value;
+
+      return BlocProvider(
+        create: (_) => AddGoldPriceBloc(AddGoldPriceRepository(client)),
+        child: const GoldPriceScreen(),
+      );
+    }
+    // ---------- NOTIFICATIONS ----------
+    else {
+      return const NotificationsTab();
+    }
   }
-
-  // ---------- GOLD PRICE ADD ----------
-  else if (selectedTab == "GoldAdd") {
-    final client = GraphQLProvider.of(context).value;
-
-    return BlocProvider(
-      create: (_) => AddGoldPriceBloc(AddGoldPriceRepository(client)),
-      child: const GoldPriceScreen(),
-    );
-  }
-
-  // ---------- NOTIFICATIONS ----------
-  else {
-    return const NotificationsTab();
-  }
-}
-
 
   Widget _overviewContent(BuildContext context) {
     return BlocBuilder<CardBloc, CardState>(
@@ -289,7 +274,7 @@ Widget _getSelectedTab(BuildContext context, String selectedTab) {
               const SizedBox(height: 16),
               _iconCard(
                 "Online Payment",
-                "₹${summary.totalOnlinePayment}",
+                "₹${formatAmount(summary.totalOnlinePayment)}",
                 Icons.account_balance_wallet,
                 Colors.teal,
                 onTap: () {
@@ -308,7 +293,7 @@ Widget _getSelectedTab(BuildContext context, String selectedTab) {
               const SizedBox(height: 16),
               _iconCard(
                 "Cash Payment",
-                "₹${summary.totalCashPayment}",
+                "₹${formatAmount(summary.totalCashPayment)}",
                 Icons.monetization_on,
                 Colors.purple,
                 onTap: () {

@@ -55,10 +55,11 @@ class _TodayActiveSchemesScreenState extends State<TodayActiveSchemesScreen> {
           } else if (state is TodayActiveSchemeError) {
             return Center(
               child: Text(
-                "Error: ${state.message}",
+                " ${state.message}",
                 style: const TextStyle(
-                  color: Colors.red,
+                  color: Colors.grey,
                   fontWeight: FontWeight.bold,
+                  fontSize: 16,
                 ),
               ),
             );

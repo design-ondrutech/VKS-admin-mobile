@@ -13,6 +13,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthLoading());
       try {
         final data = await authRepository.adminLogin(
+          event.context,
           event.phone,
           event.password,
         );
@@ -26,7 +27,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           await prefs.setString('accessToken', token);
           await prefs.setString('tenantUuid', tenantUuid);
 
-          //  rebuild client so all future API calls have token header
+          // rebuild client so all future API calls have token header
           await getGraphQLClient();
 
           emit(AuthSuccess(token: token, name: userName));
@@ -34,10 +35,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           emit(AuthFailure("Invalid phone or password"));
         }
       } catch (e) {
-        print('❌ AuthBloc Login Error: $e'); //  print full backend message
-        emit(
-          AuthFailure("Login failed: ${e.toString()}"),
-        ); //  show backend message
+        print('❌ AuthBloc Login Error: $e');
+        emit(AuthFailure("Login failed: ${e.toString()}"));
       }
     });
   }

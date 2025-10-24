@@ -33,11 +33,11 @@ class _AddUpdateSchemeDialogState extends State<AddUpdateSchemeDialog> {
     final s = widget.initialScheme;
 
    nameCtrl = TextEditingController(text: s?.schemeName ?? "");
-durationCtrl = TextEditingController(text: s?.duration?.toString() ?? "");
+durationCtrl = TextEditingController(text: s?.duration.toString() ?? "");
 minCtrl = TextEditingController(
-  text: (s?.minAmount != null && s!.minAmount! % 1 == 0)
-      ? s.minAmount!.toInt().toString()
-      : s?.minAmount?.toString() ?? "",
+  text: (s?.minAmount != null && s!.minAmount % 1 == 0)
+      ? s.minAmount.toInt().toString()
+      : s?.minAmount.toString() ?? "",
 );
 maxCtrl = TextEditingController(
   text: (s?.maxAmount != null && s!.maxAmount! % 1 == 0)

@@ -1,4 +1,3 @@
-import 'package:admin/screens/dashboard/gold_price/add_gold_price/add_gold_price.dart';
 import 'package:admin/data/models/gold_rate.dart';
 import 'package:admin/blocs/gold_price/gold_bloc.dart';
 import 'package:admin/blocs/gold_price/gold_event.dart';
@@ -43,7 +42,6 @@ class _GoldPriceScreenState extends State<GoldPriceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ Ensure AddGoldPriceBloc is available for dialogs
     return BlocProvider.value(
       value: context.read<AddGoldPriceBloc>(),
       child: Scaffold(
@@ -295,7 +293,7 @@ class _GoldPriceScreenState extends State<GoldPriceScreen> {
                     const SizedBox(height: 8),
                     _labelValue(
                       "Price",
-                      "₹${price.price}",
+                      "₹${formatAmount(price.price)}",
                       isBold: true,
                       color: const Color(0xFF4A235A),
                     ),

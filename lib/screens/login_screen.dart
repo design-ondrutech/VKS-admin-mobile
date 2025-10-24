@@ -203,9 +203,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               );
                               return;
                             }
-
                             context.read<AuthBloc>().add(
-                                  LoginRequested(phoneText, passwordText),
+                                  LoginRequested(phoneText, passwordText,context),
                                 );
                           },
                           child: const Text(

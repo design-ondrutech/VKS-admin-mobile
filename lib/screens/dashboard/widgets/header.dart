@@ -3,6 +3,7 @@ import 'package:admin/blocs/gold_price/gold_bloc.dart';
 import 'package:admin/blocs/gold_price/gold_event.dart';
 import 'package:admin/blocs/gold_price/gold_state.dart';
 import 'package:admin/data/models/gold_rate.dart';
+import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:admin/utils/colors.dart';
@@ -122,9 +123,17 @@ class _DashboardTopHeaderState extends State<DashboardTopHeader> {
 
                           return Row(
                             children: [
-                              _priceTag("Gold", goldPrice, Colors.orange),
+                              _priceTag(
+                                "Gold",
+                                " ${formatAmount(goldPrice)}",
+                                Colors.orange,
+                              ),
                               const SizedBox(width: 12),
-                              _priceTag("Silver", silverPrice, Colors.blueGrey),
+                              _priceTag(
+                                "Silver",
+                                " ${formatAmount(silverPrice)}",
+                                Colors.blueGrey,
+                              ),
                             ],
                           );
                         }

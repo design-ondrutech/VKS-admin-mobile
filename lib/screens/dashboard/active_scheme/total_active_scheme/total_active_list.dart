@@ -35,20 +35,31 @@ class TotalActiveSchemesScreen extends StatelessWidget {
       ),
       body: BlocBuilder<TotalActiveBloc, TotalActiveState>(
         builder: (context, state) {
+          // Initial Fetch
           if (state is TotalActiveInitial) {
             context.read<TotalActiveBloc>().add(
               FetchTotalActiveSchemes(page: 1, limit: 10),
             );
             return const Center(child: CircularProgressIndicator());
-          } else if (state is TotalActiveLoading) {
+          }
+
+          // Loading State
+          else if (state is TotalActiveLoading) {
             return const Center(child: CircularProgressIndicator());
-          } else if (state is TotalActiveLoaded) {
+          }
+
+          // Loaded Data
+          else if (state is TotalActiveLoaded) {
             final schemes = state.response.data;
             if (schemes.isEmpty) {
               return const Center(
                 child: Text(
-                  "No active schemes found for today",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  "Error: No active schemes found.",
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
                 ),
               );
             }
@@ -109,16 +120,14 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder:
-                                              (_) => BlocProvider.value(
-                                                value: BlocProvider.of<
-                                                  TotalActiveBloc
-                                                >(context),
-                                                child:
-                                                    TotalActiveSchemeDetailScreen(
-                                                      scheme: scheme,
-                                                    ),
-                                              ),
+                                          builder: (_) => BlocProvider.value(
+                                            value: BlocProvider.of<
+                                                TotalActiveBloc>(context),
+                                            child:
+                                                TotalActiveSchemeDetailScreen(
+                                              scheme: scheme,
+                                            ),
+                                          ),
                                         ),
                                       );
                                     },
@@ -134,7 +143,7 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                               ),
                             ),
 
-                            // Body Content
+                            // Scheme Details
                             Padding(
                               padding: const EdgeInsets.all(16),
                               child: Column(
@@ -179,9 +188,8 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                                                       "active"
                                                   ? Colors.green.shade100
                                                   : Colors.red.shade100,
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
                                         child: Text(
                                           scheme.status,
@@ -259,17 +267,17 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                       Row(
                         children: [
                           ElevatedButton(
-                            onPressed:
-                                state.response.currentPage > 1
-                                    ? () {
-                                      context.read<TotalActiveBloc>().add(
-                                        FetchTotalActiveSchemes(
-                                          page: state.response.currentPage - 1,
-                                          limit: state.response.limit,
-                                        ),
-                                      );
-                                    }
-                                    : null,
+                            onPressed: state.response.currentPage > 1
+                                ? () {
+                                    context.read<TotalActiveBloc>().add(
+                                          FetchTotalActiveSchemes(
+                                            page:
+                                                state.response.currentPage - 1,
+                                            limit: state.response.limit,
+                                          ),
+                                        );
+                                  }
+                                : null,
                             style: ElevatedButton.styleFrom(
                               backgroundColor:
                                   state.response.currentPage > 1
@@ -283,10 +291,9 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                             child: Text(
                               "Previous",
                               style: TextStyle(
-                                color:
-                                    state.response.currentPage > 1
-                                        ? Colors.white
-                                        : Colors.grey.shade600,
+                                color: state.response.currentPage > 1
+                                    ? Colors.white
+                                    : Colors.grey.shade600,
                               ),
                             ),
                           ),
@@ -296,13 +303,15 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                                 state.response.currentPage <
                                         state.response.totalPages
                                     ? () {
-                                      context.read<TotalActiveBloc>().add(
-                                        FetchTotalActiveSchemes(
-                                          page: state.response.currentPage + 1,
-                                          limit: state.response.limit,
-                                        ),
-                                      );
-                                    }
+                                        context.read<TotalActiveBloc>().add(
+                                              FetchTotalActiveSchemes(
+                                                page: state
+                                                        .response.currentPage +
+                                                    1,
+                                                limit: state.response.limit,
+                                              ),
+                                            );
+                                      }
                                     : null,
                             style: ElevatedButton.styleFrom(
                               backgroundColor:
@@ -318,11 +327,10 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                             child: Text(
                               "Next",
                               style: TextStyle(
-                                color:
-                                    state.response.currentPage <
-                                            state.response.totalPages
-                                        ? Colors.white
-                                        : Colors.grey.shade600,
+                                color: state.response.currentPage <
+                                        state.response.totalPages
+                                    ? Colors.white
+                                    : Colors.grey.shade600,
                               ),
                             ),
                           ),
@@ -333,17 +341,36 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                 ),
               ],
             );
-          } else if (state is TotalActiveError) {
-            return Center(
+          }
+
+          // Empty State
+          else if (state is TotalActiveEmpty) {
+            return const Center(
               child: Text(
-                "Error: ${state.message}",
-                style: const TextStyle(
-                  color: Colors.red,
+                "No active schemes found.",
+                style: TextStyle(
+                  color: Colors.grey,
                   fontWeight: FontWeight.bold,
+                  fontSize: 14,
                 ),
               ),
             );
           }
+
+          // Error State
+          else if (state is TotalActiveError) {
+            return Center(
+              child: Text(
+                " ${state.message}",
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+            );
+          }
+
           return const SizedBox.shrink();
         },
       ),
@@ -360,7 +387,8 @@ class TotalActiveSchemesScreen extends StatelessWidget {
           Expanded(
             child: Text(
               text ?? "N/A",
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              style:
+                  const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             ),
           ),
         ],

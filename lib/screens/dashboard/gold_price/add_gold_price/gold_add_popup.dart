@@ -54,7 +54,7 @@ Widget build(BuildContext context) {
   return BlocListener<AddGoldPriceBloc, AddGoldPriceState>(
     listener: (context, state) {
       if (state is AddGoldPriceSuccess) {
-        Navigator.pop(context); // ✅ close popup
+        Navigator.pop(context); //  close popup
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(widget.existingPrice != null

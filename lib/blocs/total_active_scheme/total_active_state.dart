@@ -46,3 +46,4 @@ class CashPaymentFailure extends TotalActiveState {
   final String message;
   CashPaymentFailure({required this.message});
 }
+class TotalActiveEmpty extends TotalActiveState {}

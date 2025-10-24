@@ -23,8 +23,8 @@ class _TodayPaymentDetailsSectionState
   @override
   Widget build(BuildContext context) {
     final scheme = widget.scheme;
-    final totalAmount = scheme.totalAmount ?? 0;
-    final paidAmount = scheme.paidAmount ?? 0;
+    final totalAmount = scheme.totalAmount;
+    final paidAmount = scheme.paidAmount;
     final progress = totalAmount > 0 ? (paidAmount / totalAmount) : 0.0;
 
     return Card(

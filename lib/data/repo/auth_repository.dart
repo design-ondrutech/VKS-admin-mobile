@@ -1,4 +1,3 @@
-import 'package:admin/data/app_config.dart';
 import 'package:admin/data/models/barchart.dart';
 import 'package:admin/data/models/card.dart';
 import 'package:admin/data/models/cash_payment.dart';
@@ -11,10 +10,12 @@ import 'package:admin/data/models/TodayActiveScheme.dart';
 import 'package:admin/data/models/TotalActiveScheme.dart';
 import 'package:admin/screens/dashboard/customer/customer_detail/model/customer_details_model.dart';
 import 'package:admin/screens/dashboard/gold_price/add_gold_price/add_gold_price.dart';
+import 'package:admin/widgets/network_helper.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'dart:developer';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/material.dart';
 
 class AuthRepository {
   final GraphQLClient client;
@@ -22,9 +23,16 @@ class AuthRepository {
   AuthRepository(this.client);
 
   Future<Map<String, dynamic>> adminLogin(
+    BuildContext context, //  add context parameter (needed for popup)
     String mobile,
     String password,
   ) async {
+    bool hasConnection = await NetworkHelper.hasInternetConnection();
+    if (!hasConnection) {
+      NetworkHelper.showNoInternetDialog(context);
+      throw Exception("No Internet Connection"); // stop further execution
+    }
+
     const String query = r'''
       mutation AdminLogin($tenantUuid: String!, $password: String!, $mobileno: String!) {
         adminLogin(tenant_uuid: $tenantUuid, password: $password, mobileno: $mobileno) {
@@ -44,12 +52,17 @@ class AuthRepository {
     ''';
 
     const String defaultTenantUuid = "7a551e1b-d39f-4a2b-bad0-74fd753cea4e";
+
     //  Create a new client without token (for login only)
-    final HttpLink httpLink = HttpLink('http://api-vkskumaran-0env-env.eba-jpagnpin.ap-south-1.elasticbeanstalk.com/graphql/admin');
+    final HttpLink httpLink = HttpLink(
+      'http://api-vkskumaran-0env-env.eba-jpagnpin.ap-south-1.elasticbeanstalk.com/graphql/admin',
+    );
+
     final unauthenticatedClient = GraphQLClient(
       cache: GraphQLCache(store: InMemoryStore()),
       link: httpLink,
     );
+
     final options = MutationOptions(
       document: gql(query),
       variables: {
@@ -58,30 +71,39 @@ class AuthRepository {
         'mobileno': mobile,
       },
     );
-    final result = await unauthenticatedClient.mutate(options);
-    if (result.hasException) {
-      print('❌ GraphQL Login Error: ${result.exception.toString()}');
-      throw Exception(
-        result.exception?.graphqlErrors.isNotEmpty == true
-            ? result.exception!.graphqlErrors.first.message
-            : result.exception.toString(),
-      );
+
+    try {
+      final result = await unauthenticatedClient.mutate(options);
+
+      if (result.hasException) {
+        print('❌ GraphQL Login Error: ${result.exception.toString()}');
+        throw Exception(
+          result.exception?.graphqlErrors.isNotEmpty == true
+              ? result.exception!.graphqlErrors.first.message
+              : result.exception.toString(),
+        );
+      }
+
+      final loginData = result.data?['adminLogin'];
+      if (loginData == null) {
+        throw Exception("Invalid login response from server.");
+      }
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('accessToken', loginData['accessToken'] ?? '');
+      await prefs.setString('refreshToken', loginData['refreshToken'] ?? '');
+      await prefs.setString('tenant_uuid', loginData['user']?['tenant_uuid'] ?? '');
+
+      print("✅ Tenant UUID saved: ${loginData['user']?['tenant_uuid']}");
+
+      return loginData;
+    } catch (e) {
+      debugPrint('Error: $e');
+      throw Exception("Something went wrong while logging in.");
     }
-    final loginData = result.data?['adminLogin'];
-    if (loginData == null) {
-      throw Exception("Invalid login response from server.");
-    }
-  final prefs = await SharedPreferences.getInstance();
-await prefs.setString('accessToken', loginData['accessToken'] ?? '');
-await prefs.setString('refreshToken', loginData['refreshToken'] ?? '');
-await prefs.setString('tenant_uuid', loginData['user']?['tenant_uuid'] ?? ''); 
-
-print("✅ Tenant UUID saved: ${loginData['user']?['tenant_uuid']}");
-
-
-    return loginData;
   }
 }
+
 
 // Dashboard Repository
 

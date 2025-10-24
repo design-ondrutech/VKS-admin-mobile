@@ -20,23 +20,28 @@ class TotalActiveBloc extends Bloc<TotalActiveEvent, TotalActiveState> {
       try {
         emit(TotalActiveLoading());
 
-        final response = await repository.getTotalActiveSchemes(page: 1, limit: 10);
+        final response = await repository.getTotalActiveSchemes(
+          page: 1,
+          limit: 10,
+        );
 
         // Save pagination data (if available)
         currentPage = response.page;
         totalPages = (response.totalCount / response.limit).ceil();
 
         if (response.data.isEmpty) {
-          emit(TotalActiveError(message: "No active schemes found."));
+          emit(TotalActiveEmpty());
           return;
         }
 
         emit(TotalActiveLoaded(response: response));
       } catch (e) {
         log("TotalActiveBloc Error: $e", name: "TotalActiveBloc");
-        emit(TotalActiveError(
-          message: "Unable to load total active schemes. Please try again.",
-        ));
+        emit(
+          TotalActiveError(
+            message: "Unable to load total active schemes. Please try again.",
+          ),
+        );
       } finally {
         isFetching = false;
       }
@@ -54,14 +59,19 @@ class TotalActiveBloc extends Bloc<TotalActiveEvent, TotalActiveState> {
         log("💰 Payment success: $response", name: "TotalActiveBloc");
         await Future.delayed(const Duration(seconds: 1));
 
-        emit(CashPaymentSuccess(
-          savingId: response['saving_id'],
-          totalAmount: response['total_amount']?.toString() ?? "0",
-        ));
+        emit(
+          CashPaymentSuccess(
+            savingId: response['saving_id'],
+            totalAmount: response['total_amount']?.toString() ?? "0",
+          ),
+        );
 
         await Future.delayed(const Duration(milliseconds: 400));
 
-        final updated = await repository.getTotalActiveSchemes(page: 1, limit: 10);
+        final updated = await repository.getTotalActiveSchemes(
+          page: 1,
+          limit: 10,
+        );
         emit(TotalActiveLoaded(response: updated));
       } catch (e, s) {
         log("❌ AddCashPayment Error: $e\n$s", name: "TotalActiveBloc");

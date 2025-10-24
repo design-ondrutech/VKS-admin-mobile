@@ -10,7 +10,6 @@ class TodayActiveSchemeBloc
 
   TodayActiveSchemeBloc({required this.repository})
       : super(TodayActiveSchemeInitial()) {
-    // 🟢 Fetch Today’s Active Schemes
     on<FetchTodayActiveSchemes>((event, emit) async {
       emit(TodayActiveSchemeLoading());
       try {
@@ -22,13 +21,13 @@ class TodayActiveSchemeBloc
           limit: event.limit,
         );
 
-        // ✅ If no schemes found
+        //  If no schemes found
         if (response.data.isEmpty) {
           emit(TodayActiveSchemeError("No active schemes found for today."));
           return;
         }
 
-        // ✅ Emit loaded state with current + total pages
+      
         emit(TodayActiveSchemeLoaded(
           response: response,
           currentPage: response.currentPage,
@@ -41,7 +40,6 @@ class TodayActiveSchemeBloc
       }
     });
 
-    // 🟡 Add Cash Payment (with auto-refresh)
     on<AddCashCustomerSavingEvent>((event, emit) async {
       emit(AddCashSavingLoading());
       try {
@@ -55,10 +53,8 @@ class TodayActiveSchemeBloc
 
         emit(AddCashSavingSuccess(result));
 
-        // Small delay to allow backend to update
         await Future.delayed(const Duration(milliseconds: 500));
 
-        // 🌀 Auto refresh list after successful payment
         final today = DateTime.now().toIso8601String().split('T').first;
         add(FetchTodayActiveSchemes(
           startDate: today,

@@ -2,7 +2,6 @@ import 'dart:developer';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:admin/blocs/online_payment/online_payment_event.dart';
 import 'package:admin/blocs/online_payment/online_payment_state.dart';
-import 'package:admin/data/models/online_payment.dart';
 import 'package:admin/data/repo/auth_repository.dart';
 
 class OnlinePaymentBloc extends Bloc<FetchOnlinePayments, OnlinePaymentState> {
