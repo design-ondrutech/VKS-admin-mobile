@@ -188,9 +188,13 @@ class _SchemeDetailsSectionState extends State<SchemeDetailsSection> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _infoBlock(
-                "Total Amount",
-                "₹${scheme.totalAmount.toStringAsFixed(2)}",
+             _infoBlock(
+                scheme.schemeType.toLowerCase() == "fixed"
+                    ? "Total Amount"
+                    : "Paid Amount",
+                scheme.schemeType.toLowerCase() == "fixed"
+                    ? "₹${scheme.totalAmount.toStringAsFixed(0)}"
+                    : "₹${scheme.paidAmount.toStringAsFixed(0)}",
                 highlight: true,
                 fontSize: 20,
                 color: Colors.black,

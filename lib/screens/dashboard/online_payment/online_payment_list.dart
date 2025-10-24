@@ -33,15 +33,20 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
   }
 
   // ---------- Helper Functions ----------
-  String _safeNumber(dynamic value, {int digits = 4}) {
-    if (value == null) return "0.0000";
-    try {
-      final num? parsed = value is num ? value : num.tryParse(value.toString());
-      if (parsed == null || parsed.isNaN) return "0.0000";
-      return parsed.toStringAsFixed(digits);
-    } catch (_) {
-      return "0.0000";
+  String formatAmount(dynamic value) {
+    if (value == null) return '0';
+    double numValue = double.tryParse(value.toString()) ?? 0;
+    if (numValue == numValue.roundToDouble()) {
+      return numValue.toInt().toString(); // remove .0
+    } else {
+      return numValue.toStringAsFixed(2); // keep 2 decimals if needed
     }
+  }
+
+  String formatGoldGram(dynamic value) {
+    if (value == null) return '0.0000';
+    double numValue = double.tryParse(value.toString()) ?? 0;
+    return numValue.toStringAsFixed(4); // always 4 decimals
   }
 
   Color _statusColor(String status) {
@@ -294,7 +299,7 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
                                               ),
                                               const SizedBox(width: 4),
                                               Text(
-                                                _safeNumber(
+                                                formatAmount(
                                                   payment.transactionAmount,
                                                 ),
                                                 style: const TextStyle(
@@ -314,7 +319,7 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
                                             ),
                                             const SizedBox(width: 4),
                                             Text(
-                                              "${_safeNumber(payment.transactionGoldGram)} gm",
+                                              "${formatGoldGram(payment.transactionGoldGram)} gm",
                                               style: const TextStyle(
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.w600,

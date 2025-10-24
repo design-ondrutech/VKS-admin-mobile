@@ -133,68 +133,106 @@ class _PaymentDetailsSectionState extends State<PaymentDetailsSection> {
   }
 
   Widget _buildAmountSection(TotalActiveScheme scheme, double progress) {
+    final isFixed = scheme.schemeType.toLowerCase() == "fixed";
+    // or get from scheme.status
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("Total Amount",
-            style: TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 14,
-                color: Colors.black54)),
-        const SizedBox(height: 4),
-        Text("₹${scheme.totalAmount.toStringAsFixed(2)}",
-            style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 22,
-                color: Colors.black)),
-        const SizedBox(height: 6),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text("Paid",
-                style: TextStyle(fontSize: 13, color: Colors.black54)),
-            Text("₹${scheme.paidAmount.toStringAsFixed(2)}",
-                style: const TextStyle(
-                    color: Colors.green,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14)),
-          ],
-        ),
-        const SizedBox(height: 8),
-        const Divider(),
-        const SizedBox(height: 8),
-        const Text("Next Due On",
-            style: TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 13,
-                color: Colors.black54)),
-        const SizedBox(height: 4),
         Text(
-          scheme.history.isNotEmpty
-              ? formatDate(scheme.history.first.dueDate)
-              : "-",
+          isFixed ? "Total Amount" : "Paid Amount",
           style: const TextStyle(
-              fontWeight: FontWeight.w600, fontSize: 14, color: Colors.black87),
-        ),
-        const SizedBox(height: 12),
-        const Text("Payment Breakdown",
-            style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: Colors.black54)),
-        const SizedBox(height: 6),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(6),
-          child: LinearProgressIndicator(
-            value: progress,
-            backgroundColor: Colors.grey.shade200,
-            color: Colors.blue,
-            minHeight: 6,
+            fontWeight: FontWeight.w500,
+            fontSize: 14,
+            color: Colors.black54,
           ),
         ),
+        const SizedBox(height: 4),
+
+        Text(
+          isFixed
+              ? "₹${scheme.totalAmount.toStringAsFixed(0)}"
+              : "₹${scheme.paidAmount.toStringAsFixed(0)}",
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+            color: Colors.black,
+          ),
+        ),
+
         const SizedBox(height: 6),
-        Text("${(progress * 100).toStringAsFixed(2)}%",
-            style: const TextStyle(fontSize: 12, color: Colors.black54)),
+        if (isFixed) // show paid row only for Fixed schemes
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                "Paid",
+                style: TextStyle(fontSize: 13, color: Colors.black54),
+              ),
+              Text(
+                "₹${scheme.paidAmount.toStringAsFixed(0)}",
+                style: const TextStyle(
+                  color: Colors.green,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        const SizedBox(height: 8),
+        const Divider(),
+        // const SizedBox(height: 8),
+
+        if (scheme.schemeType.toLowerCase() == "fixed") ...[
+          const Text(
+            "Next Due On",
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 13,
+              color: Colors.black54,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            scheme.history.isNotEmpty
+                ? "Due: ${formatDate(_getNextDueDate(scheme))}"
+                : "-",
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+              color: Colors.black87,
+            ),
+          ),
+        ],
+
+        if (isFixed) ...[
+          const SizedBox(height: 12),
+          const Text(
+            "Payment Breakdown",
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: Colors.black54,
+            ),
+          ),
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: progress,
+              backgroundColor: Colors.grey.shade200,
+              color: Colors.blue,
+              minHeight: 6,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            "${(progress * 100).toStringAsFixed(0)}%",
+            style: const TextStyle(fontSize: 12, color: Colors.black54),
+          ),
+
+          const SizedBox(height: 16),
+        ],
       ],
     );
   }
@@ -287,5 +325,21 @@ class _PaymentDetailsSectionState extends State<PaymentDetailsSection> {
         ),
       ],
     );
+  }
+  
+  String _getNextDueDate(TotalActiveScheme scheme) {
+    final unpaidTx =
+        scheme.history
+            .where((tx) => tx.status.toLowerCase() != "paid")
+            .toList();
+
+    if (unpaidTx.isNotEmpty) {
+      unpaidTx.sort((a, b) => a.dueDate.compareTo(b.dueDate));
+      return unpaidTx.first.dueDate;
+    }
+
+    final allTx = List.of(scheme.history);
+    allTx.sort((a, b) => b.dueDate.compareTo(a.dueDate));
+    return allTx.first.dueDate;
   }
 }

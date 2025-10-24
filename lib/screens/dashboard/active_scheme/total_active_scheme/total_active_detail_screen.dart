@@ -46,19 +46,24 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _summaryCard(
-                      title: "Total Amount",
+                      title:
+                          currentScheme.schemeType.toLowerCase() == "fixed"
+                              ? "Total Amount"
+                              : "Paid Amount",
                       value:
-                          "₹${currentScheme.totalAmount.toStringAsFixed(2)}",
+                          currentScheme.schemeType.toLowerCase() == "fixed"
+                              ? "₹${currentScheme.totalAmount.toStringAsFixed(0)}"
+                              : "₹${currentScheme.paidAmount.toStringAsFixed(0)}",
                       color: Colors.green[400]!,
                       icon: Icons.account_balance_wallet,
                     ),
                   ),
+
                   const SizedBox(width: 12),
                   Expanded(
                     child: _summaryCard(
                       title: "Total Gold Weight",
-                      value:
-                          "${_formatGram(currentScheme.totalGoldWeight)} g",
+                      value: "${_formatGram(currentScheme.totalGoldWeight)} g",
                       color: Colors.amber[700]!,
                       icon: Icons.scale,
                     ),
@@ -74,8 +79,7 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
               CustomerInfoSection(customer: currentScheme.customer),
 
               // Payment Details
-PaymentDetailsSection(scheme: currentScheme),
-
+              PaymentDetailsSection(scheme: currentScheme),
 
               // Payment History
               PaymentHistorySection(scheme: currentScheme),
@@ -107,9 +111,13 @@ PaymentDetailsSection(scheme: currentScheme),
           children: [
             Icon(icon, color: Colors.white, size: 28),
             const SizedBox(height: 8),
-            Text(title,
-                style: const TextStyle(
-                    color: Colors.white70, fontWeight: FontWeight.w600)),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white70,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
             const SizedBox(height: 4),
             Text(
               value,

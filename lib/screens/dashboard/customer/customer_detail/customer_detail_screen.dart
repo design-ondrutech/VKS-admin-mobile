@@ -296,7 +296,6 @@ class _ExpandableSavingCardState extends State<_ExpandableSavingCard> {
           });
         },
 
-        // 🔹 Content
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),

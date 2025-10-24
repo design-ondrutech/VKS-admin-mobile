@@ -42,8 +42,11 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
                     color: Colors.red.shade50,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.emoji_events_rounded,
-                      color: Colors.redAccent, size: 22),
+                  child: const Icon(
+                    Icons.emoji_events_rounded,
+                    color: Colors.redAccent,
+                    size: 22,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 const Expanded(
@@ -60,8 +63,11 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
                   icon: AnimatedRotation(
                     turns: isExpanded ? 0.0 : 0.5,
                     duration: const Duration(milliseconds: 300),
-                    child: const Icon(Icons.keyboard_arrow_down,
-                        color: Colors.black54, size: 28),
+                    child: const Icon(
+                      Icons.keyboard_arrow_down,
+                      color: Colors.black54,
+                      size: 28,
+                    ),
                   ),
                   onPressed: () {
                     setState(() {
@@ -76,9 +82,10 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
 
             //  Expandable Content
             AnimatedCrossFade(
-              crossFadeState: isExpanded
-                  ? CrossFadeState.showFirst
-                  : CrossFadeState.showSecond,
+              crossFadeState:
+                  isExpanded
+                      ? CrossFadeState.showFirst
+                      : CrossFadeState.showSecond,
               duration: const Duration(milliseconds: 300),
               firstChild: _buildContent(scheme),
               secondChild: const SizedBox.shrink(),
@@ -96,20 +103,20 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
         final isWide = constraints.maxWidth > 700;
         return isWide
             ? Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(flex: 2, child: _buildLeftSection(scheme)),
-                  const SizedBox(width: 20),
-                  Expanded(flex: 1, child: _buildGoldSummary(scheme)),
-                ],
-              )
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(flex: 2, child: _buildLeftSection(scheme)),
+                const SizedBox(width: 20),
+                Expanded(flex: 1, child: _buildGoldSummary(scheme)),
+              ],
+            )
             : Column(
-                children: [
-                  _buildLeftSection(scheme),
-                  const SizedBox(height: 20),
-                  _buildGoldSummary(scheme),
-                ],
-              );
+              children: [
+                _buildLeftSection(scheme),
+                const SizedBox(height: 20),
+                _buildGoldSummary(scheme),
+              ],
+            );
       },
     );
   }
@@ -124,8 +131,12 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _infoBlock("Scheme Name", scheme.schemeName,
-                  highlight: true, fontSize: 18),
+              _infoBlock(
+                "Scheme Name",
+                scheme.schemeName,
+                highlight: true,
+                fontSize: 18,
+              ),
               const SizedBox(height: 16),
               _infoBlock("Purpose", scheme.schemePurpose),
               const SizedBox(height: 16),
@@ -135,8 +146,7 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
             ],
           ),
         ),
-              const SizedBox(width: 80),
-
+        const SizedBox(width: 80),
 
         // RIGHT COLUMN
         Expanded(
@@ -144,29 +154,41 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _infoBlock(
-                "Total Amount",
-                "₹${scheme.totalAmount?.toStringAsFixed(2)}",
+                scheme.schemeType.toLowerCase() == "fixed"
+                    ? "Total Amount"
+                    : "Paid Amount",
+                scheme.schemeType.toLowerCase() == "fixed"
+                    ? "₹${scheme.totalAmount.toStringAsFixed(0)}"
+                    : "₹${scheme.paidAmount.toStringAsFixed(0)}",
                 highlight: true,
                 fontSize: 20,
                 color: Colors.black,
                 valueColor: Colors.black87,
               ),
+
               const SizedBox(height: 16),
-              _infoBlock("Scheme Type", scheme.schemeType,
-                  badgeColor: Colors.amber.shade100,
-                  badgeTextColor: Colors.orange.shade900),
+              _infoBlock(
+                "Scheme Type",
+                scheme.schemeType,
+                badgeColor: Colors.amber.shade100,
+                badgeTextColor: Colors.orange.shade900,
+              ),
               const SizedBox(height: 16),
-              _infoBlock("KYC Status", scheme.isKyc ? "Verified" : "KYC Pending",
-                  badgeColor: scheme.isKyc
-                      ? Colors.green.shade100
-                      : Colors.red.shade100,
-                  badgeTextColor: scheme.isKyc
-                      ? Colors.green.shade900
-                      : Colors.red.shade900),
+              _infoBlock(
+                "KYC Status",
+                scheme.isKyc ? "Verified" : "KYC Pending",
+                badgeColor:
+                    scheme.isKyc ? Colors.green.shade100 : Colors.red.shade100,
+                badgeTextColor:
+                    scheme.isKyc ? Colors.green.shade900 : Colors.red.shade900,
+              ),
               const SizedBox(height: 16),
-              _infoBlock("Status", scheme.status,
-                  badgeColor: Colors.yellow.shade100,
-                  badgeTextColor: Colors.orange.shade900),
+              _infoBlock(
+                "Status",
+                scheme.status,
+                badgeColor: Colors.yellow.shade100,
+                badgeTextColor: Colors.orange.shade900,
+              ),
             ],
           ),
         ),
@@ -233,16 +255,16 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
                   Icon(
                     scheme.goldDelivered ? Icons.check_circle : Icons.settings,
                     size: 16,
-                    color:
-                        scheme.goldDelivered ? Colors.green : Colors.black54,
+                    color: scheme.goldDelivered ? Colors.green : Colors.black54,
                   ),
                   const SizedBox(width: 6),
                   Text(
                     scheme.goldDelivered ? "Delivered" : "Not Delivered",
                     style: TextStyle(
-                      color: scheme.goldDelivered
-                          ? Colors.green.shade800
-                          : Colors.black54,
+                      color:
+                          scheme.goldDelivered
+                              ? Colors.green.shade800
+                              : Colors.black54,
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
                     ),
@@ -257,23 +279,29 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
   }
 
   //  Info Block (Label + Value / Badge)
-  Widget _infoBlock(String label, String value,
-      {bool highlight = false,
-      double fontSize = 15,
-      Color? color,
-      Color? valueColor,
-      Color? badgeColor,
-      Color? badgeTextColor}) {
+  Widget _infoBlock(
+    String label,
+    String value, {
+    bool highlight = false,
+    double fontSize = 15,
+    Color? color,
+    Color? valueColor,
+    Color? badgeColor,
+    Color? badgeTextColor,
+  }) {
     return SizedBox(
       width: 230,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label.toUpperCase(),
-              style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.blueGrey)),
+          Text(
+            label.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: Colors.blueGrey,
+            ),
+          ),
           const SizedBox(height: 3),
           if (badgeColor != null)
             Container(
@@ -323,11 +351,14 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title,
-              style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87)),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
           const SizedBox(height: 6),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -335,9 +366,10 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
               Text(
                 "$value g",
                 style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: textColor),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: textColor,
+                ),
               ),
               Container(
                 padding: const EdgeInsets.all(6),
@@ -346,21 +378,27 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                        color: Colors.black12.withOpacity(0.05),
-                        blurRadius: 2)
+                      color: Colors.black12.withOpacity(0.05),
+                      blurRadius: 2,
+                    ),
                   ],
                 ),
-                child: Text("0g",
-                    style: TextStyle(
-                        color: textColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 11)),
+                child: Text(
+                  "0g",
+                  style: TextStyle(
+                    color: textColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                  ),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 4),
-          Text(subtitle,
-              style: const TextStyle(fontSize: 12, color: Colors.black54)),
+          Text(
+            subtitle,
+            style: const TextStyle(fontSize: 12, color: Colors.black54),
+          ),
         ],
       ),
     );

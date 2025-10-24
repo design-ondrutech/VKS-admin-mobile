@@ -7,7 +7,6 @@ import 'package:admin/blocs/today_active_scheme/today_active_state.dart';
 import 'package:admin/data/models/TodayActiveScheme.dart';
 import 'package:admin/utils/colors.dart';
 
-
 import 'widgets/today_scheme_details_section.dart';
 import 'widgets/today_customer_info_section.dart';
 
@@ -35,7 +34,7 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
       body: BlocBuilder<TodayActiveSchemeBloc, TodayActiveSchemeState>(
         builder: (context, state) {
           TodayActiveScheme currentScheme = scheme;
-        
+
           // Refresh after payment
           if (state is TodayActiveSchemeLoaded) {
             try {
@@ -54,19 +53,24 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _summaryCard(
-                      title: "Total Amount",
+                      title:
+                          currentScheme.schemeType.toLowerCase() == "fixed"
+                              ? "Total Amount"
+                              : "Paid Amount",
                       value:
-                          "₹${currentScheme.totalAmount?.toStringAsFixed(2)}",
+                          currentScheme.schemeType.toLowerCase() == "fixed"
+                              ? "₹${currentScheme.totalAmount.toStringAsFixed(0)}"
+                              : "₹${currentScheme.paidAmount.toStringAsFixed(0)}",
                       color: Colors.green[400]!,
                       icon: Icons.account_balance_wallet,
                     ),
                   ),
+
                   const SizedBox(width: 12),
                   Expanded(
                     child: _summaryCard(
                       title: "Total Gold Weight",
-                      value:
-                          "${formatGram(currentScheme.totalGoldWeight)} g",
+                      value: "${formatGram(currentScheme.totalGoldWeight)} g",
                       color: Colors.amber[700]!,
                       icon: Icons.scale,
                     ),
@@ -79,8 +83,8 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
               TodaySchemeDetailsSection(scheme: currentScheme),
 
               // Customer Info
-              TodayCustomerInfoSection(customer: currentScheme.customer),   
-              
+              TodayCustomerInfoSection(customer: currentScheme.customer),
+
               TodayPaymentDetailsSection(scheme: currentScheme),
 
               // Payment History
@@ -108,9 +112,13 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
           children: [
             Icon(icon, color: Colors.white, size: 28),
             const SizedBox(height: 8),
-            Text(title,
-                style: const TextStyle(
-                    color: Colors.white70, fontWeight: FontWeight.w600)),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white70,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
             const SizedBox(height: 4),
             Text(
               value,

@@ -39,7 +39,6 @@ class TodayActiveSchemeResponse {
     final int totalCount = json['totalCount'] ?? 0;
     final int page = json['page'] ?? 1;
 
-    // 🧮 Compute total pages for pagination
     final int totalPages = (limit > 0) ? (totalCount / limit).ceil() : 1;
 
     return TodayActiveSchemeResponse(
