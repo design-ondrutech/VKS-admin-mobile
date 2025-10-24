@@ -3,6 +3,7 @@ import 'package:admin/blocs/total_active_scheme/total_active_event.dart';
 import 'package:admin/blocs/total_active_scheme/total_active_state.dart';
 import 'package:admin/screens/dashboard/active_scheme/total_active_scheme/Total_active_detail_screen.dart';
 import 'package:admin/utils/colors.dart';
+import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -42,12 +43,10 @@ class TotalActiveSchemesScreen extends StatelessWidget {
             );
             return const Center(child: CircularProgressIndicator());
           }
-
           // Loading State
           else if (state is TotalActiveLoading) {
             return const Center(child: CircularProgressIndicator());
           }
-
           // Loaded Data
           else if (state is TotalActiveLoaded) {
             final schemes = state.response.data;
@@ -120,14 +119,16 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (_) => BlocProvider.value(
-                                            value: BlocProvider.of<
-                                                TotalActiveBloc>(context),
-                                            child:
-                                                TotalActiveSchemeDetailScreen(
-                                              scheme: scheme,
-                                            ),
-                                          ),
+                                          builder:
+                                              (_) => BlocProvider.value(
+                                                value: BlocProvider.of<
+                                                  TotalActiveBloc
+                                                >(context),
+                                                child:
+                                                    TotalActiveSchemeDetailScreen(
+                                                      scheme: scheme,
+                                                    ),
+                                              ),
                                         ),
                                       );
                                     },
@@ -188,8 +189,9 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                                                       "active"
                                                   ? Colors.green.shade100
                                                   : Colors.red.shade100,
-                                          borderRadius:
-                                              BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
                                         child: Text(
                                           scheme.status,
@@ -225,11 +227,12 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                                   ),
                                   _infoRow(
                                     Icons.currency_rupee,
-                                    "Amount: ₹${scheme.totalAmount}",
+                                    "Amount: ₹${formatAmount(scheme.totalAmount)}",
                                   ),
-                                  _infoRow(
+
+                                 _infoRow(
                                     Icons.check_circle,
-                                    "Paid: ₹${scheme.paidAmount}",
+                                    "Paid: ₹${formatAmount(scheme.paidAmount)}",
                                   ),
                                   _infoRow(
                                     Icons.calendar_today,
@@ -267,17 +270,17 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                       Row(
                         children: [
                           ElevatedButton(
-                            onPressed: state.response.currentPage > 1
-                                ? () {
-                                    context.read<TotalActiveBloc>().add(
-                                          FetchTotalActiveSchemes(
-                                            page:
-                                                state.response.currentPage - 1,
-                                            limit: state.response.limit,
-                                          ),
-                                        );
-                                  }
-                                : null,
+                            onPressed:
+                                state.response.currentPage > 1
+                                    ? () {
+                                      context.read<TotalActiveBloc>().add(
+                                        FetchTotalActiveSchemes(
+                                          page: state.response.currentPage - 1,
+                                          limit: state.response.limit,
+                                        ),
+                                      );
+                                    }
+                                    : null,
                             style: ElevatedButton.styleFrom(
                               backgroundColor:
                                   state.response.currentPage > 1
@@ -291,9 +294,10 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                             child: Text(
                               "Previous",
                               style: TextStyle(
-                                color: state.response.currentPage > 1
-                                    ? Colors.white
-                                    : Colors.grey.shade600,
+                                color:
+                                    state.response.currentPage > 1
+                                        ? Colors.white
+                                        : Colors.grey.shade600,
                               ),
                             ),
                           ),
@@ -303,15 +307,13 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                                 state.response.currentPage <
                                         state.response.totalPages
                                     ? () {
-                                        context.read<TotalActiveBloc>().add(
-                                              FetchTotalActiveSchemes(
-                                                page: state
-                                                        .response.currentPage +
-                                                    1,
-                                                limit: state.response.limit,
-                                              ),
-                                            );
-                                      }
+                                      context.read<TotalActiveBloc>().add(
+                                        FetchTotalActiveSchemes(
+                                          page: state.response.currentPage + 1,
+                                          limit: state.response.limit,
+                                        ),
+                                      );
+                                    }
                                     : null,
                             style: ElevatedButton.styleFrom(
                               backgroundColor:
@@ -327,10 +329,11 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                             child: Text(
                               "Next",
                               style: TextStyle(
-                                color: state.response.currentPage <
-                                        state.response.totalPages
-                                    ? Colors.white
-                                    : Colors.grey.shade600,
+                                color:
+                                    state.response.currentPage <
+                                            state.response.totalPages
+                                        ? Colors.white
+                                        : Colors.grey.shade600,
                               ),
                             ),
                           ),
@@ -342,7 +345,6 @@ class TotalActiveSchemesScreen extends StatelessWidget {
               ],
             );
           }
-
           // Empty State
           else if (state is TotalActiveEmpty) {
             return const Center(
@@ -356,7 +358,6 @@ class TotalActiveSchemesScreen extends StatelessWidget {
               ),
             );
           }
-
           // Error State
           else if (state is TotalActiveError) {
             return Center(
@@ -387,8 +388,7 @@ class TotalActiveSchemesScreen extends StatelessWidget {
           Expanded(
             child: Text(
               text ?? "N/A",
-              style:
-                  const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             ),
           ),
         ],

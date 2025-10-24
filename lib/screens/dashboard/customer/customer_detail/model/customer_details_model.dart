@@ -213,10 +213,11 @@ class Saving {
   final String startDate;
   final String endDate;
   final String schemeName;
+  final double totalSchemeAmount;
+  final double totalSchemeGoldWeight;
+  final double totalBonusGoldWeight; // from 'tottalbonusgoldweight'
+  final bool isCompleted;
   final List<Transaction> transactions;
-
-  // NEW: scheme status from TotalActiveScheme
-  String? schemeStatus;
 
   Saving({
     required this.savingId,
@@ -226,41 +227,34 @@ class Saving {
     required this.startDate,
     required this.endDate,
     required this.schemeName,
+    required this.totalSchemeAmount,
+    required this.totalSchemeGoldWeight,
+    required this.totalBonusGoldWeight,
+    required this.isCompleted,
     required this.transactions,
-    this.schemeStatus,
   });
 
   factory Saving.fromJson(Map<String, dynamic> json) {
-    return Saving(
-      savingId: json['saving_id']?.toString() ?? '',
-      totalAmount: (json['total_amount'] ?? 0).toDouble(),
-      totalGoldWeight: (json['total_gold_weight'] ?? 0).toDouble(),
-      totalBenefitGram: (json['total_benefit_gram'] ?? 0).toDouble(),
-      startDate: json['start_date'] ?? '',
-      endDate: json['end_date'] ?? '',
-      schemeName: json['schemeName'] ?? '',
-      transactions: (json['transactions'] as List<dynamic>? ?? [])
-          .map((t) => Transaction.fromJson(t))
-          .toList(),
-    );
-  }
-
-  Saving copyWith({
-    String? schemeStatus,
-  }) {
-    return Saving(
-      savingId: savingId,
-      totalAmount: totalAmount,
-      totalGoldWeight: totalGoldWeight,
-      totalBenefitGram: totalBenefitGram,
-      startDate: startDate,
-      endDate: endDate,
-      schemeName: schemeName,
-      transactions: transactions,
-      schemeStatus: schemeStatus ?? this.schemeStatus,
-    );
-  }
+  return Saving(
+    savingId: json['saving_id']?.toString() ?? '',
+    totalAmount: (json['total_amount'] ?? 0).toDouble(),
+    totalGoldWeight: (json['total_gold_weight'] ?? 0).toDouble(),
+    totalBenefitGram: (json['total_benefit_gram'] ?? 0).toDouble(),
+    startDate: json['start_date'] ?? '',
+    endDate: json['end_date'] ?? '',
+    schemeName: json['schemeName'] ?? '',
+    totalSchemeAmount: (json['total_scheme_amount'] ?? 0).toDouble(),
+    totalSchemeGoldWeight: (json['total_scheme_gold_weight'] ?? 0).toDouble(),
+    totalBonusGoldWeight: (json['tottalbonusgoldweight'] ?? 0).toDouble(),
+    isCompleted: json['is_completed'] == true, //  fixed here
+    transactions: (json['transactions'] as List<dynamic>? ?? [])
+        .map((t) => Transaction.fromJson(t))
+        .toList(),
+  );
 }
+
+}
+
 
 
 class Transaction {

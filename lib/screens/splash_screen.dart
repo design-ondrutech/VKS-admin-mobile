@@ -41,8 +41,8 @@ class _SplashScreenState extends State<SplashScreen> {
     final token = prefs.getString('accessToken');
     final tenantUuid = prefs.getString('tenant_uuid');
 
-    print("🔍 Token at startup: $token");
-    print("🔍 Tenant UUID at startup: $tenantUuid");
+    print(" Token at startup: $token");
+    print(" Tenant UUID at startup: $tenantUuid");
 
     if (token != null &&
         token.isNotEmpty &&
@@ -57,7 +57,7 @@ class _SplashScreenState extends State<SplashScreen> {
         ),
       );
     } else {
-      await prefs.clear(); // clean any invalid session
+      await prefs.clear(); 
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
@@ -128,3 +128,4 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 }
+

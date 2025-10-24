@@ -3,6 +3,7 @@ import 'package:admin/blocs/today_active_scheme/today_active_event.dart';
 import 'package:admin/blocs/today_active_scheme/today_active_state.dart';
 import 'package:admin/screens/dashboard/active_scheme/today_active_scheme/today_active_detail_screen.dart';
 import 'package:admin/utils/colors.dart';
+import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -230,12 +231,13 @@ class _TodayActiveSchemesScreenState extends State<TodayActiveSchemesScreen> {
                                   ),
                                   _infoRow(
                                     Icons.currency_rupee,
-                                    "Total Amount: ₹${scheme.totalAmount}",
+                                    "Amount: ₹${formatAmount(scheme.totalAmount)}",
                                   ),
                                   _infoRow(
                                     Icons.check_circle,
-                                    "Paid: ₹${scheme.paidAmount}",
+                                    "Paid: ₹${formatAmount(scheme.paidAmount)}",
                                   ),
+
                                   // _infoRow(
                                   //   Icons.pending,
                                   //   "Pending: ₹${scheme.pendingAmount}",

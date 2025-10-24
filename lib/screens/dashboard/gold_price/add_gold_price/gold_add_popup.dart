@@ -39,7 +39,8 @@ class _AddGoldRateDialogState extends State<AddGoldRateDialog> {
       selectedType = price.metal;
       selectedCarat = price.value;
       selectedUnit = units.contains(price.unit) ? price.unit : units.first;
-      priceController.text = price.price.toString();
+      priceController.text =
+    (price.price % 1 == 0) ? price.price.toInt().toString() : price.price.toStringAsFixed(2);
       dateController.text = price.date;
     } else {
       final now = DateTime.now();
@@ -192,44 +193,63 @@ void _onSavePressed() {
 }
 
 
+Widget _buildTextField(
+  String label,
+  TextEditingController controller, {
+  bool readOnly = false,
+}) {
+  bool isPriceField = label.toLowerCase().contains("price");
 
-  Widget _buildTextField(
-    String label,
-    TextEditingController controller, {
-    bool readOnly = false,
-  }) {
-    bool isPriceField = label.toLowerCase().contains("price");
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(label,
+          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+      const SizedBox(height: 6),
+      TextField(
+        controller: controller,
+        readOnly: readOnly,
+        keyboardType: isPriceField
+            ? const TextInputType.numberWithOptions(decimal: true)
+            : TextInputType.text,
+        inputFormatters: isPriceField
+            ? [
+                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+              ]
+            : [],
+        onChanged: (value) {
+          if (isPriceField && value.isNotEmpty) {
+            final double? val = double.tryParse(value);
+            if (val != null) {
+              //  If decimal part is zero, show integer only
+              final formatted = (val % 1 == 0)
+                  ? val.toInt().toString()
+                  : val.toStringAsFixed(2);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label,
-            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
-        const SizedBox(height: 6),
-        TextField(
-          controller: controller,
-          readOnly: readOnly,
-          keyboardType: isPriceField
-              ? const TextInputType.numberWithOptions(decimal: true)
-              : TextInputType.text,
-          inputFormatters: isPriceField
-              ? [
-                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
-                ]
-              : [],
-          decoration: InputDecoration(
-            isDense: true,
-            filled: true,
-            fillColor: Colors.grey.shade100,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(6),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
+              if (controller.text != formatted) {
+                controller.value = TextEditingValue(
+                  text: formatted,
+                  selection:
+                      TextSelection.collapsed(offset: formatted.length),
+                );
+              }
+            }
+          }
+        },
+        decoration: InputDecoration(
+          isDense: true,
+          filled: true,
+          fillColor: Colors.grey.shade100,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(6),
+            borderSide: BorderSide(color: Colors.grey.shade300),
           ),
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
+
 
   Widget _buildDropdown(
     String label,

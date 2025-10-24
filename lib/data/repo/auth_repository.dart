@@ -1180,21 +1180,26 @@ class CustomerDetailsRepository {
         lastRegisteredAt
       }
       savings {
-        saving_id
-        total_amount
-        total_gold_weight
-        total_benefit_gram
-        start_date
-        end_date
-        schemeName
-        transactions {
-          transactionId
-          transactionDate
-          transactionAmount
-          transactionGoldGram
-          transactionType
-        }
+      saving_id
+      total_amount
+      total_gold_weight
+      total_benefit_gram
+      start_date
+      end_date
+      schemeName
+      total_scheme_amount
+      total_scheme_gold_weight
+      transactions {
+        transactionId
+        transactionDate
+        transactionAmount
+        transactionGoldGram
+        transactionType
+        transactionStatus
       }
+      tottalbonusgoldweight
+      is_completed
+    }
       summary {
         total_paid_amount
         total_paid_gold_weight

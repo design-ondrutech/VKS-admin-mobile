@@ -100,10 +100,10 @@ class CustomerDetailScreen extends StatelessWidget {
               "Address",
               hasAddress
                   ? [
-                      _infoRow(Icons.home, "Address", address!.cAddressLine1),
-                      _infoRow(Icons.location_city, "City", address.cCity),
-                      _infoRow(Icons.pin_drop, "Pin Code", address.cPinCode),
-                    ]
+                    _infoRow(Icons.home, "Address", address!.cAddressLine1),
+                    _infoRow(Icons.location_city, "City", address.cCity),
+                    _infoRow(Icons.pin_drop, "Pin Code", address.cPinCode),
+                  ]
                   : [const Text("No Address Found")],
             ),
 
@@ -112,10 +112,9 @@ class CustomerDetailScreen extends StatelessWidget {
               "Documents",
               hasDocument
                   ? [
-                      _infoRow(
-                          Icons.credit_card, "Aadhar", document!.cAadharNo),
-                      _infoRow(Icons.card_membership, "PAN", document.cPanNo),
-                    ]
+                    _infoRow(Icons.credit_card, "Aadhar", document!.cAadharNo),
+                    _infoRow(Icons.card_membership, "PAN", document.cPanNo),
+                  ]
                   : [const Text("No Documents Found")],
             ),
 
@@ -124,10 +123,10 @@ class CustomerDetailScreen extends StatelessWidget {
               "Nominee",
               hasNominee
                   ? [
-                      _infoRow(Icons.person, "Name", nominee!.cNomineeName),
-                      _infoRow(Icons.email, "Email", nominee.cNomineeEmail),
-                      _infoRow(Icons.phone, "Phone", nominee.cNomineePhoneNo),
-                    ]
+                    _infoRow(Icons.person, "Name", nominee!.cNomineeName),
+                    _infoRow(Icons.email, "Email", nominee.cNomineeEmail),
+                    _infoRow(Icons.phone, "Phone", nominee.cNomineePhoneNo),
+                  ]
                   : [const Text("No Nominee Added")],
             ),
 
@@ -136,8 +135,12 @@ class CustomerDetailScreen extends StatelessWidget {
               "Savings & Transactions",
               hasSavings
                   ? details.savings
-                      .map((saving) =>
-                          _ExpandableSavingCard(saving: saving, formatDate: formatDate))
+                      .map(
+                        (saving) => _ExpandableSavingCard(
+                          saving: saving,
+                          formatDate: formatDate,
+                        ),
+                      )
                       .toList()
                   : [const Text("No Savings Data")],
             ),
@@ -231,10 +234,7 @@ class _ExpandableSavingCard extends StatefulWidget {
   final Saving saving;
   final String Function(String) formatDate;
 
-  const _ExpandableSavingCard({
-    required this.saving,
-    required this.formatDate,
-  });
+  const _ExpandableSavingCard({required this.saving, required this.formatDate});
 
   @override
   State<_ExpandableSavingCard> createState() => _ExpandableSavingCardState();
@@ -255,12 +255,10 @@ class _ExpandableSavingCardState extends State<_ExpandableSavingCard> {
         boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
       ),
       child: ExpansionTile(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
 
-        //  Title with scheme name + status badge
+        //  Title with scheme name + status badge (using isCompleted)
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -273,9 +271,7 @@ class _ExpandableSavingCardState extends State<_ExpandableSavingCard> {
                 ),
               ),
             ),
-            if (saving.schemeStatus != null &&
-                saving.schemeStatus!.isNotEmpty)
-              _buildStatusBadge(saving.schemeStatus!),
+            _buildStatusBadge(saving.isCompleted ? 'completed' : 'active'),
           ],
         ),
 
@@ -296,20 +292,38 @@ class _ExpandableSavingCardState extends State<_ExpandableSavingCard> {
           });
         },
 
+        //  Expanded content
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _infoRow(Icons.wallet, "Total Amount",
-                    "₹${saving.totalAmount.toStringAsFixed(0)}"),
-                _infoRow(Icons.scale, "Gold Weight",
-                    "${saving.totalGoldWeight} g"),
-                _infoRow(Icons.date_range, "Start Date",
-                    widget.formatDate(saving.startDate)),
-                _infoRow(Icons.date_range, "End Date",
-                    widget.formatDate(saving.endDate)),
+                _infoRow(
+                  Icons.wallet,
+                  "Total Amount",
+                  "₹${saving.totalAmount.toStringAsFixed(0)}",
+                ),
+                _infoRow(
+                  Icons.workspace_premium,
+                  "Total Gold (with Benefit)",
+                  "${(saving.totalBonusGoldWeight).toStringAsFixed(4)} g",
+                ),
+                _infoRow(
+                  Icons.scale,
+                  "Total Gold (Without Benefit)",
+                  "${saving.totalGoldWeight} g",
+                ),
+                _infoRow(
+                  Icons.date_range,
+                  "Start Date",
+                  widget.formatDate(saving.startDate),
+                ),
+                _infoRow(
+                  Icons.date_range,
+                  "End Date",
+                  widget.formatDate(saving.endDate),
+                ),
                 const SizedBox(height: 12),
                 if (saving.transactions.isNotEmpty)
                   _stripedTable(saving.transactions)
@@ -324,7 +338,7 @@ class _ExpandableSavingCardState extends State<_ExpandableSavingCard> {
     );
   }
 
-  //  Badge builder
+  //  Status badge builder
   Widget _buildStatusBadge(String status) {
     final normalized = status.trim().toLowerCase();
 
@@ -370,6 +384,7 @@ class _ExpandableSavingCardState extends State<_ExpandableSavingCard> {
     );
   }
 
+  //  Info row builder
   Widget _infoRow(IconData icon, String key, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -388,6 +403,7 @@ class _ExpandableSavingCardState extends State<_ExpandableSavingCard> {
     );
   }
 
+  //  Transaction table
   Widget _stripedTable(List<Transaction> transactions) {
     return Table(
       columnWidths: const {
@@ -403,23 +419,31 @@ class _ExpandableSavingCardState extends State<_ExpandableSavingCard> {
           children: const [
             Padding(
               padding: EdgeInsets.all(8),
-              child:
-                  Text("Date", style: TextStyle(fontWeight: FontWeight.bold)),
+              child: Text(
+                "Date",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
             Padding(
               padding: EdgeInsets.all(8),
-              child:
-                  Text("Amount", style: TextStyle(fontWeight: FontWeight.bold)),
+              child: Text(
+                "Amount",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
             Padding(
               padding: EdgeInsets.all(8),
-              child:
-                  Text("Gold(g)", style: TextStyle(fontWeight: FontWeight.bold)),
+              child: Text(
+                "Gold(g)",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
             Padding(
               padding: EdgeInsets.all(8),
-              child:
-                  Text("Type", style: TextStyle(fontWeight: FontWeight.bold)),
+              child: Text(
+                "Type",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         ),
