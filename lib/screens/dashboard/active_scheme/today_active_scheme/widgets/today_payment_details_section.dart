@@ -78,7 +78,7 @@ class _TodayPaymentDetailsSectionState
                     turns: isExpanded ? 0.0 : 0.5,
                     duration: const Duration(milliseconds: 300),
                     child: const Icon(
-                      Icons.keyboard_arrow_down,
+                      Icons.keyboard_arrow_up,
                       color: Colors.black54,
                       size: 28,
                     ),
@@ -193,8 +193,8 @@ class _TodayPaymentDetailsSectionState
           ),
         const SizedBox(height: 8),
         const Divider(),
-        // const SizedBox(height: 8),
 
+        // const SizedBox(height: 8),
         if (scheme.schemeType.toLowerCase() == "fixed") ...[
           const Text(
             "Next Due On",
@@ -205,8 +205,13 @@ class _TodayPaymentDetailsSectionState
             ),
           ),
           const SizedBox(height: 4),
+
+          //  Show date only if scheme not completed
           Text(
-            scheme.history.isNotEmpty
+            (scheme.status.toLowerCase() == "completed" ||
+                    scheme.status.toLowerCase() == "scheme completed")
+                ? "--"
+                : scheme.history.isNotEmpty
                 ? "Due: ${formatDate(_getNextDueDate(scheme))}"
                 : "-",
             style: const TextStyle(
@@ -231,7 +236,7 @@ class _TodayPaymentDetailsSectionState
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
-              value: progress,
+              value: progress.clamp(0.0, 1.0), // Limit between 0%–100%
               backgroundColor: Colors.grey.shade200,
               color: Colors.blue,
               minHeight: 6,
@@ -239,7 +244,7 @@ class _TodayPaymentDetailsSectionState
           ),
           const SizedBox(height: 6),
           Text(
-            "${(progress * 100).toStringAsFixed(0)}%",
+            "${(progress.clamp(0.0, 1.0) * 100).toStringAsFixed(0)}%",
             style: const TextStyle(fontSize: 12, color: Colors.black54),
           ),
 
@@ -286,7 +291,7 @@ class _TodayPaymentDetailsSectionState
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              "${formatGram(goldWithoutBenefits)} g",
+              "${formatGram(scheme.totalGoldWeight)} g",
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             ),
             Text(
@@ -329,26 +334,60 @@ class _TodayPaymentDetailsSectionState
               "Delivered: ${formatGram(scheme.deliveredGoldWeight)} g",
               style: const TextStyle(fontSize: 13, color: Colors.black87),
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color:
-                    scheme.goldDelivered
-                        ? Colors.green.shade50
-                        : Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                scheme.goldDelivered ? "Delivered" : "Not Delivered",
-                style: TextStyle(
-                  color:
-                      scheme.goldDelivered
-                          ? Colors.green.shade700
-                          : Colors.black54,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12,
-                ),
-              ),
+
+            //  Dynamic delivery badge
+            Builder(
+              builder: (context) {
+                final double delivered = scheme.deliveredGoldWeight;
+                final double? totalRequired = scheme.tottalbonusgoldweight;
+
+                String deliveryText;
+                IconData deliveryIcon;
+                Color deliveryColor;
+                Color bgColor;
+
+                if (delivered >= totalRequired! && totalRequired > 0) {
+                  deliveryText = "Delivered";
+                  deliveryIcon = Icons.check_circle;
+                  deliveryColor = Colors.green.shade700;
+                  bgColor = Colors.green.shade50;
+                } else if (delivered > 0 && delivered < totalRequired) {
+                  deliveryText = "Partially Delivered";
+                  deliveryIcon = Icons.hourglass_bottom;
+                  deliveryColor = Colors.orange.shade700;
+                  bgColor = Colors.orange.shade50;
+                } else {
+                  deliveryText = "Not Delivered";
+                  deliveryIcon = Icons.settings_outlined;
+                  deliveryColor = Colors.black54;
+                  bgColor = Colors.grey.shade200;
+                }
+
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: bgColor,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(deliveryIcon, size: 14, color: deliveryColor),
+                      const SizedBox(width: 4),
+                      Text(
+                        deliveryText,
+                        style: TextStyle(
+                          color: deliveryColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ],
         ),

@@ -78,13 +78,12 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 24),
+              TodayCustomerInfoSection(customer: currentScheme.customer),
 
               // Scheme Details
               TodaySchemeDetailsSection(scheme: currentScheme),
 
               // Customer Info
-              TodayCustomerInfoSection(customer: currentScheme.customer),
-
               TodayPaymentDetailsSection(scheme: currentScheme),
 
               // Payment History

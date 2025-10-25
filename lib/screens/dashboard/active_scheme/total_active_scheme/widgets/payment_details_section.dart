@@ -44,8 +44,11 @@ class _PaymentDetailsSectionState extends State<PaymentDetailsSection> {
                     shape: BoxShape.circle,
                   ),
                   padding: const EdgeInsets.all(8),
-                  child: const Icon(Icons.currency_rupee,
-                      color: Colors.blue, size: 20),
+                  child: const Icon(
+                    Icons.currency_rupee,
+                    color: Colors.blue,
+                    size: 20,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 const Expanded(
@@ -63,8 +66,7 @@ class _PaymentDetailsSectionState extends State<PaymentDetailsSection> {
                       SizedBox(height: 2),
                       Text(
                         "Clear summary of amounts & gold progress",
-                        style:
-                            TextStyle(fontSize: 13, color: Colors.black54),
+                        style: TextStyle(fontSize: 13, color: Colors.black54),
                       ),
                     ],
                   ),
@@ -73,8 +75,11 @@ class _PaymentDetailsSectionState extends State<PaymentDetailsSection> {
                   icon: AnimatedRotation(
                     turns: isExpanded ? 0.0 : 0.5,
                     duration: const Duration(milliseconds: 300),
-                    child: const Icon(Icons.keyboard_arrow_down,
-                        color: Colors.black54, size: 28),
+                    child: const Icon(
+                      Icons.keyboard_arrow_up,
+                      color: Colors.black54,
+                      size: 28,
+                    ),
                   ),
                   onPressed: () {
                     setState(() {
@@ -87,9 +92,10 @@ class _PaymentDetailsSectionState extends State<PaymentDetailsSection> {
 
             // Animated expand/collapse body
             AnimatedCrossFade(
-              crossFadeState: isExpanded
-                  ? CrossFadeState.showFirst
-                  : CrossFadeState.showSecond,
+              crossFadeState:
+                  isExpanded
+                      ? CrossFadeState.showFirst
+                      : CrossFadeState.showSecond,
               duration: const Duration(milliseconds: 300),
               firstChild: _buildContent(context, scheme, progress),
               secondChild: const SizedBox.shrink(),
@@ -101,7 +107,10 @@ class _PaymentDetailsSectionState extends State<PaymentDetailsSection> {
   }
 
   Widget _buildContent(
-      BuildContext context, TotalActiveScheme scheme, double progress) {
+    BuildContext context,
+    TotalActiveScheme scheme,
+    double progress,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(top: 20),
       child: LayoutBuilder(
@@ -112,21 +121,21 @@ class _PaymentDetailsSectionState extends State<PaymentDetailsSection> {
 
           return isWide
               ? Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(child: amountSection),
-                    const SizedBox(width: 16),
-                    Expanded(child: goldSection),
-                  ],
-                )
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: amountSection),
+                  const SizedBox(width: 16),
+                  Expanded(child: goldSection),
+                ],
+              )
               : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    amountSection,
-                    const SizedBox(height: 16),
-                    goldSection,
-                  ],
-                );
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  amountSection,
+                  const SizedBox(height: 16),
+                  goldSection,
+                ],
+              );
         },
       ),
     );
@@ -134,55 +143,82 @@ class _PaymentDetailsSectionState extends State<PaymentDetailsSection> {
 
   Widget _buildAmountSection(TotalActiveScheme scheme, double progress) {
     final isFixed = scheme.schemeType.toLowerCase() == "fixed";
-    // or get from scheme.status
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          isFixed ? "Total Amount" : "Paid Amount",
-          style: const TextStyle(
-            fontWeight: FontWeight.w500,
-            fontSize: 14,
-            color: Colors.black54,
-          ),
-        ),
-        const SizedBox(height: 4),
-
-        Text(
-          isFixed
-              ? "₹${scheme.totalAmount.toStringAsFixed(0)}"
-              : "₹${scheme.paidAmount.toStringAsFixed(0)}",
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
-            color: Colors.black,
-          ),
-        ),
-
-        const SizedBox(height: 6),
-        if (isFixed) // show paid row only for Fixed schemes
+        // 🔹 Header Row (labels)
+        if (isFixed)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
+            children: const [
+              Text(
+                "Total Amount",
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 14,
+                  color: Colors.black54,
+                ),
+              ),
+              Text(
                 "Paid",
-                style: TextStyle(fontSize: 13, color: Colors.black54),
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 14,
+                  color: Colors.black54,
+                ),
+              ),
+            ],
+          )
+        else
+          const Text(
+            "Paid Amount",
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
+              color: Colors.black54,
+            ),
+          ),
+        const SizedBox(height: 4),
+
+        // 🔹 Amount Row (values)
+        if (isFixed)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                "₹${scheme.totalAmount.toStringAsFixed(0)}",
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 22,
+                  color: Colors.black,
+                ),
               ),
               Text(
                 "₹${scheme.paidAmount.toStringAsFixed(0)}",
                 style: const TextStyle(
                   color: Colors.green,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
                 ),
               ),
             ],
+          )
+        else
+          Text(
+            "₹${scheme.paidAmount.toStringAsFixed(0)}",
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 22,
+              color: Colors.black,
+            ),
           ),
+
         const SizedBox(height: 8),
         const Divider(),
-        // const SizedBox(height: 8),
 
+        // 🔹 Next Due On Section
         if (scheme.schemeType.toLowerCase() == "fixed") ...[
           const Text(
             "Next Due On",
@@ -194,7 +230,10 @@ class _PaymentDetailsSectionState extends State<PaymentDetailsSection> {
           ),
           const SizedBox(height: 4),
           Text(
-            scheme.history.isNotEmpty
+            (scheme.status.toLowerCase() == "completed" ||
+                    scheme.status.toLowerCase() == "scheme completed")
+                ? "--"
+                : scheme.history.isNotEmpty
                 ? "Due: ${formatDate(_getNextDueDate(scheme))}"
                 : "-",
             style: const TextStyle(
@@ -219,15 +258,16 @@ class _PaymentDetailsSectionState extends State<PaymentDetailsSection> {
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
-              value: progress,
+              value: progress.clamp(0.0, 1.0), // Limit between 0%–100%
               backgroundColor: Colors.grey.shade200,
               color: Colors.blue,
               minHeight: 6,
             ),
           ),
+
           const SizedBox(height: 6),
           Text(
-            "${(progress * 100).toStringAsFixed(0)}%",
+            "${(progress.clamp(0.0, 1.0) * 100).toStringAsFixed(0)}%",
             style: const TextStyle(fontSize: 12, color: Colors.black54),
           ),
 
@@ -247,15 +287,19 @@ class _PaymentDetailsSectionState extends State<PaymentDetailsSection> {
             const Text(
               "Total Gold (without benefits)",
               style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black54),
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: Colors.black54,
+              ),
             ),
-            Text("Benefits",
-                style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.green.shade700)),
+            Text(
+              "Benefits",
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: Colors.green.shade700,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 6),
@@ -263,16 +307,16 @@ class _PaymentDetailsSectionState extends State<PaymentDetailsSection> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              "${formatGram(scheme.history.isNotEmpty ? scheme.history.first.goldWeight : 0.0)} g",
-              style:
-                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              "${formatGram(scheme.totalGoldWeight)} g",
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             ),
             Text(
               "+${formatGram(scheme.totalBenefitGram)} g",
               style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                  color: Colors.green),
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+                color: Colors.green,
+              ),
             ),
           ],
         ),
@@ -287,46 +331,83 @@ class _PaymentDetailsSectionState extends State<PaymentDetailsSection> {
               TextSpan(
                 text: "${formatGram(scheme.tottalbonusgoldweight)} g",
                 style: const TextStyle(
-                    color: Colors.blue, fontWeight: FontWeight.w600),
+                  color: Colors.blue,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
         ),
         const SizedBox(height: 6),
+
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
               "Delivered: ${formatGram(scheme.deliveredGoldWeight)} g",
-              style:
-                  const TextStyle(fontSize: 13, color: Colors.black87),
+              style: const TextStyle(fontSize: 13, color: Colors.black87),
             ),
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: scheme.goldDelivered > 0
-                    ? Colors.green.shade50
-                    : Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                scheme.goldDelivered > 0 ? "Delivered" : "Not Delivered",
-                style: TextStyle(
-                  color: scheme.goldDelivered > 0
-                      ? Colors.green.shade700
-                      : Colors.black54,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12,
-                ),
-              ),
+
+            //  Dynamic delivery badge
+            Builder(
+              builder: (context) {
+                final double delivered = scheme.deliveredGoldWeight;
+                final double? totalRequired = scheme.tottalbonusgoldweight;
+
+                String deliveryText;
+                IconData deliveryIcon;
+                Color deliveryColor;
+                Color bgColor;
+
+                if (delivered >= totalRequired! && totalRequired > 0) {
+                  deliveryText = "Delivered";
+                  deliveryIcon = Icons.check_circle;
+                  deliveryColor = Colors.green.shade700;
+                  bgColor = Colors.green.shade50;
+                } else if (delivered > 0 && delivered < totalRequired) {
+                  deliveryText = "Partially Delivered";
+                  deliveryIcon = Icons.hourglass_bottom;
+                  deliveryColor = Colors.orange.shade700;
+                  bgColor = Colors.orange.shade50;
+                } else {
+                  deliveryText = "Not Delivered";
+                  deliveryIcon = Icons.settings_outlined;
+                  deliveryColor = Colors.black54;
+                  bgColor = Colors.grey.shade200;
+                }
+
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: bgColor,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(deliveryIcon, size: 14, color: deliveryColor),
+                      const SizedBox(width: 4),
+                      Text(
+                        deliveryText,
+                        style: TextStyle(
+                          color: deliveryColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ],
         ),
       ],
     );
   }
-  
+
   String _getNextDueDate(TotalActiveScheme scheme) {
     final unpaidTx =
         scheme.history

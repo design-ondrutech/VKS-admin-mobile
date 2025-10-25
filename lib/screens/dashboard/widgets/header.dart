@@ -9,7 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:admin/utils/colors.dart';
 
 class DashboardTopHeader extends StatefulWidget {
-  final GlobalKey<ScaffoldState>? scaffoldKey; //  added
+  final GlobalKey<ScaffoldState>? scaffoldKey;
 
   const DashboardTopHeader({super.key, this.scaffoldKey});
 
@@ -24,10 +24,10 @@ class _DashboardTopHeaderState extends State<DashboardTopHeader> {
   void initState() {
     super.initState();
 
-    //  First fetch when screen loads
+    // Fetch once on load
     context.read<GoldPriceBloc>().add(const FetchGoldPriceEvent());
 
-    // Auto refresh every 30 sec
+    // Auto refresh every 30 seconds
     _autoRefreshTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
       context.read<GoldPriceBloc>().add(const FetchGoldPriceEvent());
     });
@@ -41,31 +41,27 @@ class _DashboardTopHeaderState extends State<DashboardTopHeader> {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        context.read<GoldPriceBloc>().add(const FetchGoldPriceEvent());
-        await Future.delayed(const Duration(milliseconds: 500));
-      },
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: const BorderRadius.vertical(
-              bottom: Radius.circular(20),
-            ),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          child: Row(
-            children: [
-              // Logo
-              Image.asset('assets/images/icon.jpg', height: 50),
-              const SizedBox(width: 16),
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.vertical(
+          bottom: Radius.circular(20),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      child: Row(
+        children: [
+          // Logo
+          Image.asset('assets/images/icon.jpg', height: 50),
+          const SizedBox(width: 16),
 
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header title with optional refresh button
+                Row(
                   children: [
                     const Text(
                       "Dashboard",
@@ -74,115 +70,113 @@ class _DashboardTopHeaderState extends State<DashboardTopHeader> {
                         fontSize: 20,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      "Welcome back, Admin",
-                      style: TextStyle(color: Colors.grey, fontSize: 14),
-                    ),
-                    const SizedBox(height: 6),
-
-                    //  Gold & Silver Prices Bloc
-                    BlocBuilder<GoldPriceBloc, GoldPriceState>(
-                      builder: (context, state) {
-                        if (state is GoldPriceLoading) {
-                          return const Text(
-                            "Loading prices...",
-                            style: TextStyle(fontSize: 12, color: Colors.grey),
-                          );
-                        }
-
-                        if (state is GoldPriceLoaded) {
-                          final today = DateTime.now();
-                          final todayStr =
-                              "${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}";
-
-                          GoldPrice? todayGold;
-                          if (state.goldRates.any(
-                            (rate) => rate.date == todayStr,
-                          )) {
-                            todayGold = state.goldRates.firstWhere(
-                              (rate) => rate.date == todayStr,
-                            );
-                          } else {
-                            todayGold = null;
-                          }
-
-                          GoldPrice? todaySilver;
-                          if (state.silverRates.any(
-                            (rate) => rate.date == todayStr,
-                          )) {
-                            todaySilver = state.silverRates.firstWhere(
-                              (rate) => rate.date == todayStr,
-                            );
-                          } else {
-                            todaySilver = null;
-                          }
-
-                          final goldPrice = todayGold?.price ?? "N/A";
-                          final silverPrice = todaySilver?.price ?? "N/A";
-
-                          return Row(
-                            children: [
-                              _priceTag(
-                                "Gold",
-                                " ${formatAmount(goldPrice)}",
-                                Colors.orange,
-                              ),
-                              const SizedBox(width: 12),
-                              _priceTag(
-                                "Silver",
-                                " ${formatAmount(silverPrice)}",
-                                Colors.blueGrey,
-                              ),
-                            ],
-                          );
-                        }
-
-                        if (state is GoldPriceError) {
-                          return Text(
-                            "Error: ${state.message}",
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.red,
-                            ),
-                          );
-                        }
-
-                        return const SizedBox();
-                      },
-                    ),
+                    const SizedBox(width: 8),             
                   ],
                 ),
-              ),
-
-              // Menu Icon
-              InkWell(
-                onTap: () {
-                  //  open the Drawer when menu icon tapped
-                  widget.scaffoldKey?.currentState?.openDrawer();
-                },
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Appcolors.buttoncolor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.menu,
-                    size: 28,
-                    color: Colors.black87,
-                  ),
+                const SizedBox(height: 4),
+                const Text(
+                  "Welcome back, Admin",
+                  style: TextStyle(color: Colors.grey, fontSize: 14),
                 ),
-              ),
-            ],
+                const SizedBox(height: 6),
+
+                BlocBuilder<GoldPriceBloc, GoldPriceState>(
+                  builder: (context, state) {
+                    if (state is GoldPriceLoading) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8.0),
+                        child: SizedBox(
+                          height: 16,
+                          width: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.purple,
+                          ),
+                        ),
+                      );
+                    }
+
+                    if (state is GoldPriceLoaded) {
+                      final today = DateTime.now();
+                      final todayStr =
+                          "${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}";
+
+                      GoldPrice? todayGold;
+                      if (state.goldRates.any((rate) => rate.date == todayStr)) {
+                        todayGold = state.goldRates.firstWhere(
+                          (rate) => rate.date == todayStr,
+                        );
+                      }
+
+                      GoldPrice? todaySilver;
+                      if (state.silverRates
+                          .any((rate) => rate.date == todayStr)) {
+                        todaySilver = state.silverRates.firstWhere(
+                          (rate) => rate.date == todayStr,
+                        );
+                      }
+
+                      final goldPrice = todayGold?.price ?? "N/A";
+                      final silverPrice = todaySilver?.price ?? "N/A";
+
+                      return Row(
+                        children: [
+                          _priceTag(
+                            "Gold",
+                            " ${formatAmount(goldPrice)}",
+                            Colors.orange,
+                          ),
+                          const SizedBox(width: 12),
+                          _priceTag(
+                            "Silver",
+                            " ${formatAmount(silverPrice)}",
+                            Colors.blueGrey,
+                          ),
+                        ],
+                      );
+                    }
+
+                    if (state is GoldPriceError) {
+                      return Text(
+                        "Error: ${state.message}",
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.red,
+                        ),
+                      );
+                    }
+
+                    return const SizedBox();
+                  },
+                ),
+              ],
+            ),
           ),
-        ),
+
+          // Menu Icon
+          InkWell(
+            onTap: () {
+              widget.scaffoldKey?.currentState?.openDrawer();
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Appcolors.buttoncolor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.menu,
+                size: 28,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  // Small reusable price tag widget
   Widget _priceTag(String title, dynamic value, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

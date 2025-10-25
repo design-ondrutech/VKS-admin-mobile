@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 class NetworkHelper {
-  /// Check if internet connection available
   static Future<bool> hasInternetConnection() async {
-    var connectivityResult = await Connectivity().checkConnectivity();
-    return connectivityResult != ConnectivityResult.none;
+    final result = await Connectivity().checkConnectivity();
+    return result != ConnectivityResult.none;
   }
 
-  /// Show popup message when no internet
   static void showNoInternetDialog(BuildContext context) {
+    // Prevent multiple dialogs stacking
+    if (ModalRoute.of(context)?.isCurrent != true) return;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

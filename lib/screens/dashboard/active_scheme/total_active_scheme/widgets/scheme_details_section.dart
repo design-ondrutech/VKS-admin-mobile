@@ -1,9 +1,6 @@
-import 'package:admin/data/repo/auth_repository.dart';
-import 'package:admin/screens/dashboard/active_scheme/SchemeCompletePopup.dart';
 import 'package:flutter/material.dart';
 import 'package:admin/data/models/TotalActiveScheme.dart';
 import 'package:admin/utils/style.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SchemeDetailsSection extends StatefulWidget {
   final TotalActiveScheme scheme;
@@ -74,7 +71,7 @@ class _SchemeDetailsSectionState extends State<SchemeDetailsSection> {
                     turns: isExpanded ? 0.0 : 0.5,
                     duration: const Duration(milliseconds: 300),
                     child: const Icon(
-                      Icons.keyboard_arrow_down,
+                      Icons.keyboard_arrow_up,
                       color: Colors.black54,
                       size: 28,
                     ),
@@ -188,7 +185,7 @@ class _SchemeDetailsSectionState extends State<SchemeDetailsSection> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-             _infoBlock(
+              _infoBlock(
                 scheme.schemeType.toLowerCase() == "fixed"
                     ? "Total Amount"
                     : "Paid Amount",
@@ -234,18 +231,19 @@ class _SchemeDetailsSectionState extends State<SchemeDetailsSection> {
   Widget _buildGoldSummary(TotalActiveScheme scheme) {
     double totalRequired = (scheme.tottalbonusgoldweight ?? 0);
     double delivered = scheme.deliveredGoldWeight;
-    double pending = scheme.pendingGoldWeight;
+
+    final double totalWithBonus = scheme.tottalbonusgoldweight ?? 0.0;
+    final double remaining = (totalWithBonus - delivered).clamp(
+      0.0,
+      double.infinity,
+    );
 
     //  Determine status
-    String displayStatus;
     if (scheme.status.toLowerCase() == "completed") {
       if (delivered >= totalRequired && totalRequired > 0) {
-        displayStatus = "Completed & Gold Delivered";
       } else {
-        displayStatus = "Completed (Awaiting Delivery)";
       }
     } else {
-      displayStatus = "Active";
     }
 
     return Column(
@@ -285,13 +283,15 @@ class _SchemeDetailsSectionState extends State<SchemeDetailsSection> {
           textColor: Colors.green.shade700,
         ),
         const SizedBox(height: 10),
+
         _goldCard(
           title: "Remaining",
-          value: formatGram(scheme.pendingGoldWeight),
+          value: formatGram(remaining),
           subtitle: "Remaining to reach total",
           color: Colors.grey.shade100,
           textColor: Colors.grey.shade700,
         ),
+
         const SizedBox(height: 16),
         // --- Delivered Status Row ---
         Row(
@@ -352,87 +352,86 @@ class _SchemeDetailsSectionState extends State<SchemeDetailsSection> {
             ),
 
             //  Only show button if status = "Completed (Awaiting Delivery)"
-            if (displayStatus == "Completed (Awaiting Delivery)")
-              ElevatedButton.icon(
-                onPressed: () async {
-                  final addedGoldGram = await showDialog<double>(
-                    context: context,
-                    builder:
-                        (context) => SchemeCompletePopup(
-                          totalGoldRequired: totalRequired,
-                          alreadyDelivered: delivered,
-                          remainingGold: pending,
-                        ),
-                  );
+            // if (displayStatus == "Completed (Awaiting Delivery)")
+            //   ElevatedButton.icon(
+            //     onPressed: () async {
+            //       final addedGoldGram = await showDialog<double>(
+            //         context: context,
+            //         builder:
+            //             (context) => SchemeCompletePopup(
+            //               totalGoldRequired: totalRequired,
+            //               alreadyDelivered: delivered,
+            //               remainingGold: pending,
+            //             ),
+            //       );
 
-                  if (addedGoldGram != null && addedGoldGram > 0) {
-                    setState(() {
-                      _currentScheme = _currentScheme.copyWith(
-                        deliveredGoldWeight:
-                            _currentScheme.deliveredGoldWeight + addedGoldGram,
-                        pendingGoldWeight: (_currentScheme.pendingGoldWeight -
-                                addedGoldGram)
-                            .clamp(0.0, double.infinity),
-                      );
-                    });
-                    //  After UI updates, also update in backend
-                    final success = await context
-                        .read<TotalActiveSchemesRepository>()
-                        .updateDeliveredGold(
-                          savingId: _currentScheme.savingId,
-                          deliveredGold: _currentScheme.deliveredGoldWeight,
-                        );
-                  
+            //       if (addedGoldGram != null && addedGoldGram > 0) {
+            //         setState(() {
+            //           _currentScheme = _currentScheme.copyWith(
+            //             deliveredGoldWeight:
+            //                 _currentScheme.deliveredGoldWeight + addedGoldGram,
+            //             pendingGoldWeight: (_currentScheme.pendingGoldWeight -
+            //                     addedGoldGram)
+            //                 .clamp(0.0, double.infinity),
+            //           );
+            //         });
+            //         //  After UI updates, also update in backend
+            //         final success = await context
+            //             .read<TotalActiveSchemesRepository>()
+            //             .updateDeliveredGold(
+            //               savingId: _currentScheme.savingId,
+            //               deliveredGold: _currentScheme.deliveredGoldWeight,
+            //             );
 
-                    if (!success) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text(
-                            "⚠️ Failed to sync with server",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          backgroundColor: Colors.redAccent,
-                        ),
-                      );
-                    }
+            //         if (!success) {
+            //           ScaffoldMessenger.of(context).showSnackBar(
+            //             SnackBar(
+            //               content: const Text(
+            //                 "⚠️ Failed to sync with server",
+            //                 style: TextStyle(color: Colors.white),
+            //               ),
+            //               backgroundColor: Colors.redAccent,
+            //             ),
+            //           );
+            //         }
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          "✅ ${addedGoldGram.toStringAsFixed(4)} g added to Delivered Gold",
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                        backgroundColor: Colors.green.shade600,
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                  }
-                },
+            //         ScaffoldMessenger.of(context).showSnackBar(
+            //           SnackBar(
+            //             content: Text(
+            //               "✅ ${addedGoldGram.toStringAsFixed(4)} g added to Delivered Gold",
+            //               style: const TextStyle(color: Colors.white),
+            //             ),
+            //             backgroundColor: Colors.green.shade600,
+            //             duration: const Duration(seconds: 2),
+            //           ),
+            //         );
+            //       }
+            //     },
 
-                icon: const Icon(
-                  Icons.upload_rounded,
-                  color: Colors.white,
-                  size: 18,
-                ),
-                label: const Text(
-                  "Update Gold Delivered",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 1,
-                    vertical: 10,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
+            //     icon: const Icon(
+            //       Icons.upload_rounded,
+            //       color: Colors.white,
+            //       size: 18,
+            //     ),
+            //     label: const Text(
+            //       "Update Gold Delivered",
+            //       style: TextStyle(
+            //         color: Colors.white,
+            //         fontWeight: FontWeight.w600,
+            //         fontSize: 13,
+            //       ),
+            //     ),
+            //     style: ElevatedButton.styleFrom(
+            //       backgroundColor: Colors.blue,
+            //       padding: const EdgeInsets.symmetric(
+            //         horizontal: 1,
+            //         vertical: 10,
+            //       ),
+            //       shape: RoundedRectangleBorder(
+            //         borderRadius: BorderRadius.circular(8),
+            //       ),
+            //     ),
+            //   ),
           ],
         ),
       ],

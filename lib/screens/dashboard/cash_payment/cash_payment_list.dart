@@ -33,17 +33,23 @@ class _CashPaymentScreenState extends State<CashPaymentScreen> {
   }
 
   // ---------- Helper Functions ----------
-  String _formatDate(String? date) {
-    if (date == null) return "N/A";
-    try {
-      final parsed = DateTime.tryParse(date);
-      if (parsed != null) {
-        return DateFormat("dd MMM yyyy, hh:mm a").format(parsed);
-      }
-    } catch (_) {}
-    return date;
-  }
+String _formatDate(String? date) {
+  if (date == null || date.isEmpty) return "N/A";
+  try {
+    final parsed = DateTime.tryParse(date);
+    if (parsed != null) {
+      // Only show date (no time)
+      return DateFormat("dd MMM yyyy").format(parsed);
+    }
+  } catch (_) {}
+  return date;
+}
 
+  String formatGoldGram(dynamic value) {
+    if (value == null) return '0.0000';
+    double numValue = double.tryParse(value.toString()) ?? 0;
+    return numValue.toStringAsFixed(4); // always 4 decimals
+  }
   String _statusString(dynamic status) {
     if (status == 2 || status == '2') return "paid";
     if (status == 1 || status == '1') return "unpaid";
@@ -255,10 +261,11 @@ class _CashPaymentScreenState extends State<CashPaymentScreen> {
                                                 size: 18, color: Colors.grey),
                                             const SizedBox(width: 4),
                                             Text(
-                                              "${payment.transactionGoldGram.toStringAsFixed(2)} gm",
+                                              "${formatGoldGram(payment.transactionGoldGram)} gm",
                                               style: const TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w600),
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w600,
+                                              ),
                                             ),
                                           ],
                                         ),

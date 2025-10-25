@@ -94,17 +94,18 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
     if (status == 3 || status == '3') return "failed";
     return "unknown";
   }
+String _formatDate(String? date) {
+  if (date == null || date.isEmpty) return "N/A";
+  try {
+    final parsed = DateTime.tryParse(date);
+    if (parsed != null) {
+      // Only show date (no time)
+      return DateFormat("dd MMM yyyy").format(parsed);
+    }
+  } catch (_) {}
+  return date;
+}
 
-  String _formatDate(String? date) {
-    if (date == null || date.isEmpty) return "N/A";
-    try {
-      final parsed = DateTime.tryParse(date);
-      if (parsed != null) {
-        return DateFormat("dd MMM yyyy, hh:mm a").format(parsed);
-      }
-    } catch (_) {}
-    return date;
-  }
 
   Widget _infoRow(IconData icon, String text) {
     return Padding(

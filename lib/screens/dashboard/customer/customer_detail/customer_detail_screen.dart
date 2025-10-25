@@ -347,13 +347,13 @@ class _ExpandableSavingCardState extends State<_ExpandableSavingCard> {
     String label;
 
     if (normalized == 'completed' || normalized == 'complete') {
-      color = Colors.green;
-      icon = Icons.check_circle;
+      color = Colors.red.shade800;
+      icon = Icons.check_circle;   
       label = 'Completed';
     } else if (normalized == 'active') {
-      color = Colors.orange;
+      color = Colors.green.shade800;
       icon = Icons.timelapse;
-      label = 'Active';
+      label = ' progress ';
     } else {
       color = Colors.grey;
       icon = Icons.help_outline;

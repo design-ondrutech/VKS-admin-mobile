@@ -13,6 +13,13 @@ class TodaySchemeDetailsSection extends StatefulWidget {
 
 class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
   bool isExpanded = true;
+  late TodayActiveScheme _currentScheme;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentScheme = widget.scheme;
+  }
 
   String formatGram(double? value, {int digits = 4}) {
     if (value == null) return "0.0000";
@@ -21,7 +28,7 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = widget.scheme;
+    final scheme = _currentScheme;
 
     return Card(
       elevation: 3,
@@ -64,7 +71,7 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
                     turns: isExpanded ? 0.0 : 0.5,
                     duration: const Duration(milliseconds: 300),
                     child: const Icon(
-                      Icons.keyboard_arrow_down,
+                      Icons.keyboard_arrow_up,
                       color: Colors.black54,
                       size: 28,
                     ),
@@ -77,10 +84,8 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
                 ),
               ],
             ),
-
             const SizedBox(height: 8),
 
-            //  Expandable Content
             AnimatedCrossFade(
               crossFadeState:
                   isExpanded
@@ -96,7 +101,6 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
     );
   }
 
-  //  Main Layout
   Widget _buildContent(TodayActiveScheme scheme) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -121,7 +125,6 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
     );
   }
 
-  //  Left Section (Scheme Info)
   Widget _buildLeftSection(TodayActiveScheme scheme) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,7 +149,7 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
             ],
           ),
         ),
-        const SizedBox(width: 80),
+        const SizedBox(width: 60),
 
         // RIGHT COLUMN
         Expanded(
@@ -162,10 +165,7 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
                     : "₹${scheme.paidAmount.toStringAsFixed(0)}",
                 highlight: true,
                 fontSize: 20,
-                color: Colors.black,
-                valueColor: Colors.black87,
               ),
-
               const SizedBox(height: 16),
               _infoBlock(
                 "Scheme Type",
@@ -196,8 +196,24 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
     );
   }
 
-  //  Right Section (Gold Summary)
   Widget _buildGoldSummary(TodayActiveScheme scheme) {
+    double totalRequired = (scheme.tottalbonusgoldweight ?? 0);
+    double delivered = scheme.deliveredGoldWeight;
+
+    final double totalWithBonus = scheme.tottalbonusgoldweight ?? 0.0;
+    final double remaining = (totalWithBonus - delivered).clamp(
+      0.0,
+      double.infinity,
+    );
+
+    // Determine display status
+    if (scheme.status.toLowerCase() == "completed") {
+      if (delivered >= totalRequired && totalRequired > 0) {
+      } else {
+      }
+    } else {
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -210,6 +226,7 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
           ),
         ),
         const SizedBox(height: 12),
+
         _goldCard(
           title: "Total Gold (incl. benefits)",
           value: formatGram(scheme.tottalbonusgoldweight),
@@ -218,6 +235,7 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
           textColor: Colors.blue.shade700,
         ),
         const SizedBox(height: 10),
+
         _goldCard(
           title: "Total Gold (without benefits)",
           value: formatGram(scheme.totalGoldWeight),
@@ -226,6 +244,7 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
           textColor: Colors.orange.shade700,
         ),
         const SizedBox(height: 10),
+
         _goldCard(
           title: "Delivered (stored)",
           value: formatGram(scheme.deliveredGoldWeight),
@@ -234,57 +253,157 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
           textColor: Colors.green.shade700,
         ),
         const SizedBox(height: 10),
+
         _goldCard(
           title: "Remaining",
-          value: formatGram(scheme.pendingGoldWeight),
+          value: formatGram(remaining),
           subtitle: "Remaining to reach total",
           color: Colors.grey.shade100,
           textColor: Colors.grey.shade700,
         ),
-        const SizedBox(height: 10),
+
+        const SizedBox(height: 16),
+
+        // 🔹 Delivered Status + Button
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            // Status Label
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Row(
-                children: [
-                  Icon(
-                    scheme.goldDelivered ? Icons.check_circle : Icons.settings,
-                    size: 16,
-                    color: scheme.goldDelivered ? Colors.green : Colors.black54,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    scheme.goldDelivered ? "Delivered" : "Not Delivered",
-                    style: TextStyle(
-                      color:
-                          scheme.goldDelivered
-                              ? Colors.green.shade800
-                              : Colors.black54,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
+              child: Builder(
+                builder: (context) {
+                  String deliveryText;
+                  IconData deliveryIcon;
+                  Color deliveryColor;
+
+                  if (delivered >= totalRequired && totalRequired > 0) {
+                    deliveryText = "Delivered";
+                    deliveryIcon = Icons.check_circle;
+                    deliveryColor = Colors.green.shade700;
+                  } else if (delivered > 0 && delivered < totalRequired) {
+                    deliveryText = "Partially Delivered";
+                    deliveryIcon = Icons.hourglass_bottom;
+                    deliveryColor = Colors.orange.shade700;
+                  } else {
+                    deliveryText = "Not Delivered";
+                    deliveryIcon = Icons.settings_outlined;
+                    deliveryColor = Colors.black54;
+                  }
+
+                  return Row(
+                    children: [
+                      Icon(deliveryIcon, size: 16, color: deliveryColor),
+                      const SizedBox(width: 6),
+                      Text(
+                        deliveryText,
+                        style: TextStyle(
+                          color: deliveryColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
+
+            //  Update Gold Delivered Button (only if awaiting delivery)
+            // if (displayStatus == "Completed (Awaiting Delivery)")
+            //   ElevatedButton.icon(
+            //     onPressed: () async {
+            //       final addedGoldGram = await showDialog<double>(
+            //         context: context,
+            //         builder:
+            //             (context) => SchemeCompletePopup(
+            //               totalGoldRequired: totalRequired,
+            //               alreadyDelivered: delivered,
+            //               remainingGold: pending,
+            //             ),
+            //       );
+
+            //       if (addedGoldGram != null && addedGoldGram > 0) {
+            //         setState(() {
+            //           _currentScheme = _currentScheme.copyWith(
+            //             deliveredGoldWeight:
+            //                 _currentScheme.deliveredGoldWeight + addedGoldGram,
+            //             pendingGoldWeight: (_currentScheme.pendingGoldWeight -
+            //                     addedGoldGram)
+            //                 .clamp(0.0, double.infinity),
+            //           );
+            //         });
+
+            //         final success = await context
+            //             .read<TodayActiveSchemeRepository>()
+            //             .updateDeliveredGold(
+            //               savingId: _currentScheme.savingId,
+            //               deliveredGold: _currentScheme.deliveredGoldWeight,
+            //             );
+
+            //         if (!success) {
+            //           ScaffoldMessenger.of(context).showSnackBar(
+            //             SnackBar(
+            //               content: const Text(
+            //                 "⚠️ Failed to sync with server",
+            //                 style: TextStyle(color: Colors.white),
+            //               ),
+            //               backgroundColor: Colors.redAccent,
+            //             ),
+            //           );
+            //         } else {
+            //           ScaffoldMessenger.of(context).showSnackBar(
+            //             SnackBar(
+            //               content: Text(
+            //                 "✅ ${addedGoldGram.toStringAsFixed(4)} g added to Delivered Gold",
+            //                 style: const TextStyle(color: Colors.white),
+            //               ),
+            //               backgroundColor: Colors.green.shade600,
+            //               duration: const Duration(seconds: 2),
+            //             ),
+            //           );
+            //         }
+            //       }
+            //     },
+            //     icon: const Icon(
+            //       Icons.upload_rounded,
+            //       color: Colors.white,
+            //       size: 18,
+            //     ),
+            //     label: const Text(
+            //       "Update Gold Delivered",
+            //       style: TextStyle(
+            //         color: Colors.white,
+            //         fontWeight: FontWeight.w600,
+            //         fontSize: 13,
+            //       ),
+            //     ),
+            //     style: ElevatedButton.styleFrom(
+            //       backgroundColor: Colors.blue,
+            //       padding: const EdgeInsets.symmetric(
+            //         horizontal: 1,
+            //         vertical: 10,
+            //       ),
+            //       shape: RoundedRectangleBorder(
+            //         borderRadius: BorderRadius.circular(8),
+            //       ),
+            //     ),
+            //   ),
           ],
         ),
       ],
     );
   }
 
-  //  Info Block (Label + Value / Badge)
   Widget _infoBlock(
     String label,
     String value, {
     bool highlight = false,
     double fontSize = 15,
-    Color? color,
     Color? valueColor,
     Color? badgeColor,
     Color? badgeTextColor,
@@ -333,7 +452,6 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
     );
   }
 
-  //  Gold Summary Card
   Widget _goldCard({
     required String title,
     required String value,

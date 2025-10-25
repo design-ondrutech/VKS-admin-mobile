@@ -38,13 +38,13 @@ class TodayActiveSchemeResponse {
     final int limit = json['limit'] ?? 0;
     final int totalCount = json['totalCount'] ?? 0;
     final int page = json['page'] ?? 1;
-
     final int totalPages = (limit > 0) ? (totalCount / limit).ceil() : 1;
 
     return TodayActiveSchemeResponse(
-      data: (json['data'] as List<dynamic>? ?? [])
-          .map((e) => TodayActiveScheme.fromJson(e))
-          .toList(),
+      data:
+          (json['data'] as List<dynamic>? ?? [])
+              .map((e) => TodayActiveScheme.fromJson(e))
+              .toList(),
       limit: limit,
       page: page,
       totalCount: totalCount,
@@ -79,7 +79,6 @@ class TodayActiveSchemeResponse {
     );
   }
 
-  /// Combine pages (useful for infinite scroll)
   TodayActiveSchemeResponse mergeWith(TodayActiveSchemeResponse newPage) {
     return TodayActiveSchemeResponse(
       data: [...data, ...newPage.data],
@@ -173,9 +172,10 @@ class TodayActiveScheme {
       totalBenefitGram: (json['total_benefit_gram'] as num?)?.toDouble(),
       tottalbonusgoldweight:
           (json['tottalbonusgoldweight'] as num?)?.toDouble(),
-      history: (json['history'] as List<dynamic>? ?? [])
-          .map((e) => PaymentHistory.fromJson(e))
-          .toList(),
+      history:
+          (json['history'] as List<dynamic>? ?? [])
+              .map((e) => PaymentHistory.fromJson(e))
+              .toList(),
     );
   }
 
@@ -205,6 +205,60 @@ class TodayActiveScheme {
       'tottalbonusgoldweight': tottalbonusgoldweight,
       'history': history.map((e) => e.toJson()).toList(),
     };
+  }
+
+  /// ✅ copyWith method
+  TodayActiveScheme copyWith({
+    String? savingId,
+    double? paidAmount,
+    Customer? customer,
+    String? schemeType,
+    String? schemeId,
+    String? startDate,
+    String? endDate,
+    String? status,
+    double? totalGoldWeight,
+    String? lastUpdated,
+    String? schemePurpose,
+    String? schemeName,
+    bool? isKyc,
+    bool? isCompleted,
+    double? percentage,
+    double? totalAmount,
+    bool? goldDelivered,
+    double? deliveredGoldWeight,
+    double? pendingGoldWeight,
+    double? pendingAmount,
+    double? totalBenefitGram,
+    double? tottalbonusgoldweight,
+    List<PaymentHistory>? history,
+  }) {
+    return TodayActiveScheme(
+      savingId: savingId ?? this.savingId,
+      paidAmount: paidAmount ?? this.paidAmount,
+      customer: customer ?? this.customer,
+      schemeType: schemeType ?? this.schemeType,
+      schemeId: schemeId ?? this.schemeId,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      status: status ?? this.status,
+      totalGoldWeight: totalGoldWeight ?? this.totalGoldWeight,
+      lastUpdated: lastUpdated ?? this.lastUpdated,
+      schemePurpose: schemePurpose ?? this.schemePurpose,
+      schemeName: schemeName ?? this.schemeName,
+      isKyc: isKyc ?? this.isKyc,
+      isCompleted: isCompleted ?? this.isCompleted,
+      percentage: percentage ?? this.percentage,
+      totalAmount: totalAmount ?? this.totalAmount,
+      goldDelivered: goldDelivered ?? this.goldDelivered,
+      deliveredGoldWeight: deliveredGoldWeight ?? this.deliveredGoldWeight,
+      pendingGoldWeight: pendingGoldWeight ?? this.pendingGoldWeight,
+      pendingAmount: pendingAmount ?? this.pendingAmount,
+      totalBenefitGram: totalBenefitGram ?? this.totalBenefitGram,
+      tottalbonusgoldweight:
+          tottalbonusgoldweight ?? this.tottalbonusgoldweight,
+      history: history ?? this.history,
+    );
   }
 }
 
@@ -254,4 +308,3 @@ class PaymentHistory {
     };
   }
 }
-

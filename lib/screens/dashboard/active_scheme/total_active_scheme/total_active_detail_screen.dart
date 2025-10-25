@@ -71,12 +71,11 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 24),
-
+              CustomerInfoSection(customer: currentScheme.customer),
               // Scheme Details
               SchemeDetailsSection(scheme: currentScheme),
 
               // Customer Info
-              CustomerInfoSection(customer: currentScheme.customer),
 
               // Payment Details
               PaymentDetailsSection(scheme: currentScheme),

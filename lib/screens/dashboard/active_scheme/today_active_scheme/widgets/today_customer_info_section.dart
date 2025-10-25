@@ -29,7 +29,6 @@ class _TodayCustomerInfoSectionState extends State<TodayCustomerInfoSection> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🔹 Header Row (Avatar + Name + Toggle)
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -78,7 +77,7 @@ class _TodayCustomerInfoSectionState extends State<TodayCustomerInfoSection> {
                     turns: isExpanded ? 0.0 : 0.5,
                     duration: const Duration(milliseconds: 300),
                     child: const Icon(
-                      Icons.keyboard_arrow_down,
+                      Icons.keyboard_arrow_up,
                       color: Colors.black54,
                       size: 28,
                     ),
@@ -92,7 +91,6 @@ class _TodayCustomerInfoSectionState extends State<TodayCustomerInfoSection> {
               ],
             ),
 
-            // 🔸 Animated Expand / Collapse
             AnimatedCrossFade(
               crossFadeState: isExpanded
                   ? CrossFadeState.showFirst
@@ -107,7 +105,6 @@ class _TodayCustomerInfoSectionState extends State<TodayCustomerInfoSection> {
     );
   }
 
-  /// 🟢 Customer Details Section
   Widget _buildCustomerDetails(Customer customer) {
     return Padding(
       padding: const EdgeInsets.only(top: 20),
@@ -139,7 +136,6 @@ class _TodayCustomerInfoSectionState extends State<TodayCustomerInfoSection> {
     );
   }
 
-  /// 🟣 Info Card Box (Same rounded inner style)
   Widget _infoCard(
       IconData icon, String label, String value, Color color) {
     return Container(

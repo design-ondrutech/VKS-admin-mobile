@@ -37,9 +37,8 @@ void _increase() {
   double newValue = currentValue + 0.0001;
 
   if (newValue > widget.remainingGold) {
-    //  Prevent going above max limit
     newValue = widget.remainingGold;
-    _isMaxLimit = false; //  don't show message if just reached limit
+    _isMaxLimit = false; 
   } else {
     _isMaxLimit = false;
   }
@@ -54,7 +53,6 @@ void _increase() {
   setState(() {});
 }
 
-
   void _decrease() {
     double currentValue = double.tryParse(_controller.text) ?? 0.0;
     double newValue = currentValue - 0.0001;
@@ -67,11 +65,8 @@ void _increase() {
         TextPosition(offset: _controller.text.length),
       );
     });
-
     setState(() {});
   }
-
-  //  Determine Status Texts Dynamically
   String get currentStatus {
     if (widget.alreadyDelivered == 0) {
       return "Not Delivered";
@@ -102,7 +97,7 @@ void _increase() {
     final bool isInputValid =
         _inputValue > 0 && _inputValue <= widget.remainingGold;
     final bool isFullDelivery =
-        (_inputValue >= widget.remainingGold - 0.00005); // tolerance
+        (_inputValue >= widget.remainingGold - 0.00005); 
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),

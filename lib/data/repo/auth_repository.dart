@@ -17,22 +17,28 @@ import 'dart:developer';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 
+import 'dart:io';
+
 class AuthRepository {
   final GraphQLClient client;
 
   AuthRepository(this.client);
 
   Future<Map<String, dynamic>> adminLogin(
-    BuildContext context, //  add context parameter (needed for popup)
+    BuildContext context,
     String mobile,
     String password,
   ) async {
+    //  Step 1: Check internet before making API call
     bool hasConnection = await NetworkHelper.hasInternetConnection();
     if (!hasConnection) {
-      NetworkHelper.showNoInternetDialog(context);
-      throw Exception("No Internet Connection"); // stop further execution
+      if (context.mounted) {
+        NetworkHelper.showNoInternetDialog(context);
+      }
+      throw Exception("No Internet Connection");
     }
 
+    //  Step 2: GraphQL Mutation
     const String query = r'''
       mutation AdminLogin($tenantUuid: String!, $password: String!, $mobileno: String!) {
         adminLogin(tenant_uuid: $tenantUuid, password: $password, mobileno: $mobileno) {
@@ -53,7 +59,6 @@ class AuthRepository {
 
     const String defaultTenantUuid = "7a551e1b-d39f-4a2b-bad0-74fd753cea4e";
 
-    //  Create a new client without token (for login only)
     final HttpLink httpLink = HttpLink(
       'http://api-vkskumaran-0env-env.eba-jpagnpin.ap-south-1.elasticbeanstalk.com/graphql/admin',
     );
@@ -75,34 +80,74 @@ class AuthRepository {
     try {
       final result = await unauthenticatedClient.mutate(options);
 
+      //  Step 3: Handle GraphQL / network errors
       if (result.hasException) {
-        print('❌ GraphQL Login Error: ${result.exception.toString()}');
-        throw Exception(
-          result.exception?.graphqlErrors.isNotEmpty == true
-              ? result.exception!.graphqlErrors.first.message
-              : result.exception.toString(),
-        );
+        final exception = result.exception;
+
+        //  Network errors (SocketException)
+        if (exception?.linkException != null &&
+            exception!.linkException.toString().contains("SocketException")) {
+          if (context.mounted) {
+            NetworkHelper.showNoInternetDialog(context);
+          }
+          throw Exception("No Internet Connection");
+        }
+
+        //  GraphQL errors
+        final graphQLErrorMessage = (exception?.graphqlErrors.isNotEmpty ?? false)
+            ? exception?.graphqlErrors.first.message
+            : "Something went wrong while logging in.";
+
+        debugPrint('❌ GraphQL Login Error: ${exception.toString()}');
+        throw Exception(graphQLErrorMessage);
       }
 
+      //  Step 4: Parse data
       final loginData = result.data?['adminLogin'];
       if (loginData == null) {
         throw Exception("Invalid login response from server.");
       }
 
+      //  Step 5: Save tokens locally
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('accessToken', loginData['accessToken'] ?? '');
       await prefs.setString('refreshToken', loginData['refreshToken'] ?? '');
-      await prefs.setString('tenant_uuid', loginData['user']?['tenant_uuid'] ?? '');
+      await prefs.setString(
+          'tenant_uuid', loginData['user']?['tenant_uuid'] ?? '');
 
-      print("✅ Tenant UUID saved: ${loginData['user']?['tenant_uuid']}");
+      debugPrint("✅ Tenant UUID saved: ${loginData['user']?['tenant_uuid']}");
 
       return loginData;
+    } on SocketException catch (_) {
+      //  Step 6: Handle sudden network drop
+      if (context.mounted) {
+        NetworkHelper.showNoInternetDialog(context);
+      }
+      throw Exception("No Internet Connection");
     } catch (e) {
-      debugPrint('Error: $e');
-      throw Exception("Something went wrong while logging in.");
+      //  Step 7: Show friendly error
+      debugPrint('❌ Caught Exception: $e');
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              e.toString().contains("No Internet")
+                  ? "No Internet Connection. Please check your network."
+                  : "Something went wrong while logging in.",
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+
+      throw Exception("Handled gracefully");
     }
   }
 }
+
+
 
 
 // Dashboard Repository
@@ -776,13 +821,11 @@ class TotalActiveSchemesRepository {
 }
 
 // Today Active Scheme Repository
-
 class TodayActiveSchemeRepository {
   final GraphQLClient client;
 
   TodayActiveSchemeRepository(this.client);
 
-  /// Fetch paginated today active schemes
   Future<TodayActiveSchemeResponse> fetchTodayActiveSchemes({
     String? startDate,
     String? savingId,
@@ -862,14 +905,14 @@ class TodayActiveSchemeRepository {
       );
 
       if (result.hasException) {
-        log("❌ GraphQL Exception: ${result.exception}", name: "TodayActiveRepo");
+        log("❌ GraphQL Exception: ${result.exception}",
+            name: "TodayActiveRepo");
         throw Exception(result.exception.toString());
       }
 
       final data = result.data?['getTodayActiveSchemes'];
       if (data == null) throw Exception("No data received from backend");
 
-      // ✅ Convert to response model
       final response =
           TodayActiveSchemeResponse.fromJson(Map<String, dynamic>.from(data));
 
@@ -883,7 +926,6 @@ class TodayActiveSchemeRepository {
     }
   }
 
-  ///  Add cash payment — disable cache to avoid stale updates
   Future<Map<String, dynamic>> addCashCustomerSavings({
     required String savingId,
     required double amount,
@@ -916,7 +958,6 @@ class TodayActiveSchemeRepository {
       MutationOptions(
         document: gql(mutation),
         variables: variables,
-        //  Prevent GraphQL mutation cache
         fetchPolicy: FetchPolicy.noCache,
       ),
     );
@@ -927,7 +968,47 @@ class TodayActiveSchemeRepository {
 
     return Map<String, dynamic>.from(result.data!['addCashCustomerSavings']);
   }
+
+  /// 🔹 Update Delivered Gold Mutation
+  Future<bool> updateDeliveredGold({
+    required String savingId,
+    required double deliveredGold,
+  }) async {
+    const String mutation = r'''
+      mutation UpdateDeliveredGold($savingId: ID!, $deliveredGold: Float!) {
+        updateDeliveredGold(savingId: $savingId, deliveredGold: $deliveredGold) {
+          success
+          message
+        }
+      }
+    ''';
+
+    try {
+      final result = await client.mutate(
+        MutationOptions(
+          document: gql(mutation),
+          variables: {
+            "savingId": savingId,
+            "deliveredGold": deliveredGold,
+          },
+          fetchPolicy: FetchPolicy.noCache,
+        ),
+      );
+
+      if (result.hasException) {
+        log("❌ GraphQL Error: ${result.exception.toString()}",
+            name: "TodayActiveRepo");
+        return false;
+      }
+
+      return result.data?['updateDeliveredGold']?['success'] ?? false;
+    } catch (e) {
+      log("⚠️ Repository Exception: $e", name: "TodayActiveRepo");
+      return false;
+    }
+  }
 }
+
 
 // Online Payment Repository
 

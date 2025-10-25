@@ -20,6 +20,11 @@ class _CustomersScreenState extends State<CustomersScreen> {
   int page = 1;
   final int limit = 10;
 
+  String _getJoinedDate() {
+    final now = DateTime.now();
+    return "${now.day}/${now.month}/${now.year}";
+  }
+
   @override
   void initState() {
     super.initState();
@@ -60,8 +65,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 Expanded(
                   child: ListView.separated(
                     itemCount: state.customers.length,
-                    separatorBuilder: (context, index) =>
-                        const Divider(height: 1, thickness: 0.6),
+                    separatorBuilder:
+                        (context, index) =>
+                            const Divider(height: 1, thickness: 0.6),
                     itemBuilder: (context, index) {
                       final Customer customer = state.customers[index];
 
@@ -70,35 +76,42 @@ class _CustomersScreenState extends State<CustomersScreen> {
                           showDialog(
                             context: context,
                             barrierDismissible: false,
-                            builder: (_) =>
-                                const Center(child: CircularProgressIndicator()),
+                            builder:
+                                (_) => const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
                           );
 
                           try {
                             final client = GraphQLProvider.of(context).value;
-                            final details = await CustomerDetailsRepository(client)
-                                .fetchCustomerDetails(customer.id);
+                            final details = await CustomerDetailsRepository(
+                              client,
+                            ).fetchCustomerDetails(customer.id);
 
                             if (!mounted) return;
                             Navigator.pop(context);
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => CustomerDetailScreen(
-                                  details: details,
-                                ),
+                                builder:
+                                    (_) =>
+                                        CustomerDetailScreen(details: details),
                               ),
                             );
                           } catch (e) {
                             if (!mounted) return;
                             Navigator.pop(context);
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Failed to load details: $e')),
+                              SnackBar(
+                                content: Text('Failed to load details: $e'),
+                              ),
                             );
                           }
                         },
                         contentPadding: const EdgeInsets.symmetric(
-                            vertical: 12, horizontal: 16),
+                          vertical: 12,
+                          horizontal: 16,
+                        ),
                         leading: CircleAvatar(
                           backgroundColor: Colors.teal.shade100,
                           radius: 26,
@@ -116,7 +129,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
                         title: Text(
                           customer.name,
                           style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,17 +139,25 @@ class _CustomersScreenState extends State<CustomersScreen> {
                             const SizedBox(height: 4),
                             Row(
                               children: [
-                                Icon(Icons.phone,
-                                    size: 16, color: Colors.grey.shade600),
+                                Icon(
+                                  Icons.phone,
+                                  size: 16,
+                                  color: Colors.grey.shade600,
+                                ),
                                 const SizedBox(width: 4),
-                                Text(customer.phoneNumber,
-                                    style: const TextStyle(fontSize: 13)),
+                                Text(
+                                  customer.phoneNumber,
+                                  style: const TextStyle(fontSize: 13),
+                                ),
                               ],
                             ),
                             Row(
                               children: [
-                                Icon(Icons.email,
-                                    size: 16, color: Colors.grey.shade600),
+                                Icon(
+                                  Icons.email,
+                                  size: 16,
+                                  color: Colors.grey.shade600,
+                                ),
                                 const SizedBox(width: 4),
                                 Expanded(
                                   child: Text(
@@ -145,10 +168,31 @@ class _CustomersScreenState extends State<CustomersScreen> {
                                 ),
                               ],
                             ),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.calendar_today,
+                                  size: 16,
+                                  color: Colors.grey.shade600,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  "Joined: ${_getJoinedDate()}",
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
-                        trailing: const Icon(Icons.chevron_right,
-                            color: Colors.grey, size: 24),
+
+                        trailing: const Icon(
+                          Icons.chevron_right,
+                          color: Colors.grey,
+                          size: 24,
+                        ),
                       );
                     },
                   ),
@@ -156,7 +200,10 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
                 //  Pagination Footer
                 Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 16,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     border: const Border(
@@ -172,11 +219,17 @@ class _CustomersScreenState extends State<CustomersScreen> {
                       ),
                       Row(
                         children: [
-                          _pageButton("Previous", state.currentPage > 1,
-                              () => _loadPage(state.currentPage - 1)),
+                          _pageButton(
+                            "Previous",
+                            state.currentPage > 1,
+                            () => _loadPage(state.currentPage - 1),
+                          ),
                           const SizedBox(width: 8),
-                          _pageButton("Next", state.currentPage < state.totalPages,
-                              () => _loadPage(state.currentPage + 1)),
+                          _pageButton(
+                            "Next",
+                            state.currentPage < state.totalPages,
+                            () => _loadPage(state.currentPage + 1),
+                          ),
                         ],
                       ),
                     ],
@@ -189,7 +242,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
               child: Text(
                 state.message,
                 style: const TextStyle(
-                    color: Colors.red, fontWeight: FontWeight.bold),
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             );
           }
@@ -203,15 +258,14 @@ class _CustomersScreenState extends State<CustomersScreen> {
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
         side: BorderSide(
-            color: enabled ? Appcolors.buttoncolor : Colors.grey.shade300),
+          color: enabled ? Appcolors.buttoncolor : Colors.grey.shade300,
+        ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       onPressed: enabled ? onTap : null,
       child: Text(
         label,
-        style: TextStyle(
-          color: enabled ? Appcolors.buttoncolor : Colors.grey,
-        ),
+        style: TextStyle(color: enabled ? Appcolors.buttoncolor : Colors.grey),
       ),
     );
   }
