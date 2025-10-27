@@ -144,57 +144,81 @@ class _TodayPaymentDetailsSectionState
   }
 
   //  LEFT SECTION — Amount Details
-  Widget _buildAmountSection(TodayActiveScheme scheme, double progress) {
+   Widget _buildAmountSection(TodayActiveScheme scheme, double progress) {
     final isFixed = scheme.schemeType.toLowerCase() == "fixed";
-    // or get from scheme.status
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          isFixed ? "Total Amount" : "Paid Amount",
-          style: const TextStyle(
-            fontWeight: FontWeight.w500,
-            fontSize: 14,
-            color: Colors.black54,
-          ),
-        ),
-        const SizedBox(height: 4),
-
-        Text(
-          isFixed
-              ? "₹${scheme.totalAmount.toStringAsFixed(0)}"
-              : "₹${scheme.paidAmount.toStringAsFixed(0)}",
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
-            color: Colors.black,
-          ),
-        ),
-
-        const SizedBox(height: 6),
-        if (isFixed) // show paid row only for Fixed schemes
+        if (isFixed)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
+            children: const [
+              Text(
+                "Total Amount",
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 14,
+                  color: Colors.black54,
+                ),
+              ),
+              Text(
                 "Paid",
-                style: TextStyle(fontSize: 13, color: Colors.black54),
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 14,
+                  color: Colors.black54,
+                ),
+              ),
+            ],
+          )
+        else
+          const Text(
+            "Paid Amount",
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
+              color: Colors.black54,
+            ),
+          ),
+        const SizedBox(height: 4),
+
+        if (isFixed)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                "₹${scheme.totalAmount.toStringAsFixed(0)}",
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 22,
+                  color: Colors.black,
+                ),
               ),
               Text(
                 "₹${scheme.paidAmount.toStringAsFixed(0)}",
                 style: const TextStyle(
                   color: Colors.green,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
                 ),
               ),
             ],
+          )
+        else
+          Text(
+            "₹${scheme.paidAmount.toStringAsFixed(0)}",
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 22,
+              color: Colors.black,
+            ),
           ),
+
         const SizedBox(height: 8),
         const Divider(),
 
-        // const SizedBox(height: 8),
         if (scheme.schemeType.toLowerCase() == "fixed") ...[
           const Text(
             "Next Due On",
@@ -205,8 +229,6 @@ class _TodayPaymentDetailsSectionState
             ),
           ),
           const SizedBox(height: 4),
-
-          //  Show date only if scheme not completed
           Text(
             (scheme.status.toLowerCase() == "completed" ||
                     scheme.status.toLowerCase() == "scheme completed")
@@ -242,6 +264,7 @@ class _TodayPaymentDetailsSectionState
               minHeight: 6,
             ),
           ),
+
           const SizedBox(height: 6),
           Text(
             "${(progress.clamp(0.0, 1.0) * 100).toStringAsFixed(0)}%",
@@ -256,8 +279,6 @@ class _TodayPaymentDetailsSectionState
 
   //  RIGHT SECTION — Gold Summary
   Widget _buildGoldSection(TodayActiveScheme scheme) {
-    final double goldWithoutBenefits =
-        scheme.history.isNotEmpty ? scheme.history.first.goldWeight : 0.0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

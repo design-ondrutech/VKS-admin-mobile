@@ -13,25 +13,41 @@ class TodayActiveSchemeBloc
     on<FetchTodayActiveSchemes>((event, emit) async {
       emit(TodayActiveSchemeLoading());
       try {
-        // Call repository to fetch backend paginated data
         final response = await repository.fetchTodayActiveSchemes(
           startDate: event.startDate,
           savingId: event.savingId,
-          page: event.page,
-          limit: event.limit,
+          page: 1, // Always fetch full list
+          limit: 9999,
         );
 
-        //  If no schemes found
         if (response.data.isEmpty) {
           emit(TodayActiveSchemeError("No active schemes found for today."));
           return;
         }
 
-      
+        final totalItems = response.data.length;
+        final totalPages = (totalItems / event.limit).ceil();
+
+        final startIndex = (event.page - 1) * event.limit;
+        final endIndex =
+            (startIndex + event.limit) > totalItems ? totalItems : (startIndex + event.limit);
+
+        final paginatedData = response.data.sublist(startIndex, endIndex);
+
+        final localResponse = response.copyWith(
+          data: paginatedData,
+          currentPage: event.page,
+          totalPages: totalPages,
+          limit: event.limit,
+        );
+
+        log("📄 Local Pagination → Showing page ${event.page} of $totalPages | Items ${startIndex + 1}–$endIndex",
+            name: "TodayActiveSchemeBloc");
+
         emit(TodayActiveSchemeLoaded(
-          response: response,
-          currentPage: response.currentPage,
-          totalPages: response.totalPages,
+          response: localResponse,
+          currentPage: event.page,
+          totalPages: totalPages,
         ));
       } catch (e, s) {
         log("❌ Error while fetching today active schemes: $e\n$s",

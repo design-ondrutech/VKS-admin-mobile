@@ -6,7 +6,6 @@ abstract class TotalActiveEvent extends Equatable {
   List<Object> get props => [];
 }
 
-// ✅ Updated to support pagination
 class FetchTotalActiveSchemes extends TotalActiveEvent {
   final int page;
   final int limit;
@@ -20,7 +19,6 @@ class FetchTotalActiveSchemes extends TotalActiveEvent {
   List<Object> get props => [page, limit];
 }
 
-// ✅ Existing event for adding cash payment
 class AddCashPayment extends TotalActiveEvent {
   final String savingId;
   final double amount;
@@ -34,7 +32,6 @@ class AddCashPayment extends TotalActiveEvent {
   List<Object> get props => [savingId, amount];
 }
 
-// ✅ Existing event for delivered gold update
 class UpdateDeliveredGoldEvent extends TotalActiveEvent {
   final String savingId;
   final double deliveredGold;

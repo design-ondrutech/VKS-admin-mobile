@@ -19,7 +19,6 @@ import 'package:admin/blocs/total_active_scheme/total_active_bloc.dart';
 import 'package:admin/blocs/total_active_scheme/total_active_event.dart';
 import 'package:admin/screens/dashboard/gold_price/add_gold_price/bloc/add_gld_bloc.dart';
 import 'package:admin/utils/colors.dart';
-import 'package:admin/widgets/network_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -45,21 +44,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final phone = TextEditingController();
   final password = TextEditingController();
   bool _obscurePassword = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkInternetOnStart();
-  }
-
-  Future<void> _checkInternetOnStart() async {
-    bool hasInternet = await NetworkHelper.hasInternetConnection();
-    if (!hasInternet) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        NetworkHelper.showNoInternetDialog(context);
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {

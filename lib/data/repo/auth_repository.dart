@@ -10,7 +10,6 @@ import 'package:admin/data/models/TodayActiveScheme.dart';
 import 'package:admin/data/models/TotalActiveScheme.dart';
 import 'package:admin/screens/dashboard/customer/customer_detail/model/customer_details_model.dart';
 import 'package:admin/screens/dashboard/gold_price/add_gold_price/add_gold_price.dart';
-import 'package:admin/widgets/network_helper.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'dart:developer';
 
@@ -29,15 +28,6 @@ class AuthRepository {
     String mobile,
     String password,
   ) async {
-    //  Step 1: Check internet before making API call
-    bool hasConnection = await NetworkHelper.hasInternetConnection();
-    if (!hasConnection) {
-      if (context.mounted) {
-        NetworkHelper.showNoInternetDialog(context);
-      }
-      throw Exception("No Internet Connection");
-    }
-
     //  Step 2: GraphQL Mutation
     const String query = r'''
       mutation AdminLogin($tenantUuid: String!, $password: String!, $mobileno: String!) {
@@ -87,16 +77,14 @@ class AuthRepository {
         //  Network errors (SocketException)
         if (exception?.linkException != null &&
             exception!.linkException.toString().contains("SocketException")) {
-          if (context.mounted) {
-            NetworkHelper.showNoInternetDialog(context);
-          }
           throw Exception("No Internet Connection");
         }
 
         //  GraphQL errors
-        final graphQLErrorMessage = (exception?.graphqlErrors.isNotEmpty ?? false)
-            ? exception?.graphqlErrors.first.message
-            : "Something went wrong while logging in.";
+        final graphQLErrorMessage =
+            (exception?.graphqlErrors.isNotEmpty ?? false)
+                ? exception?.graphqlErrors.first.message
+                : "Something went wrong while logging in.";
 
         debugPrint('❌ GraphQL Login Error: ${exception.toString()}');
         throw Exception(graphQLErrorMessage);
@@ -113,42 +101,20 @@ class AuthRepository {
       await prefs.setString('accessToken', loginData['accessToken'] ?? '');
       await prefs.setString('refreshToken', loginData['refreshToken'] ?? '');
       await prefs.setString(
-          'tenant_uuid', loginData['user']?['tenant_uuid'] ?? '');
+        'tenant_uuid',
+        loginData['user']?['tenant_uuid'] ?? '',
+      );
 
       debugPrint("✅ Tenant UUID saved: ${loginData['user']?['tenant_uuid']}");
 
       return loginData;
     } on SocketException catch (_) {
       //  Step 6: Handle sudden network drop
-      if (context.mounted) {
-        NetworkHelper.showNoInternetDialog(context);
-      }
-      throw Exception("No Internet Connection");
-    } catch (e) {
-      //  Step 7: Show friendly error
-      debugPrint('❌ Caught Exception: $e');
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              e.toString().contains("No Internet")
-                  ? "No Internet Connection. Please check your network."
-                  : "Something went wrong while logging in.",
-            ),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
 
       throw Exception("Handled gracefully");
     }
   }
 }
-
-
-
 
 // Dashboard Repository
 
@@ -712,15 +678,19 @@ class TotalActiveSchemesRepository {
         QueryOptions(
           document: gql(query),
           variables: {
-            "page": page,
-            "limit": limit,
+            "page": page.toInt(), //  Force integer
+            "limit": limit.toInt(),
           },
+
           fetchPolicy: FetchPolicy.noCache,
         ),
       );
 
       if (result.hasException) {
-        log("❌ GraphQL Exception: ${result.exception}", name: "TotalActiveRepo");
+        log(
+          "❌ GraphQL Exception: ${result.exception}",
+          name: "TotalActiveRepo",
+        );
         throw Exception(result.exception.toString());
       }
 
@@ -733,8 +703,10 @@ class TotalActiveSchemesRepository {
         Map<String, dynamic>.from(data),
       );
 
-      log("📄 Loaded Page ${response.currentPage} of ${response.totalPages}",
-          name: "TotalActiveRepo");
+      log(
+        "📄 Loaded Page ${response.currentPage} of ${response.totalPages}",
+        name: "TotalActiveRepo",
+      );
 
       return response;
     } catch (e) {
@@ -742,9 +714,6 @@ class TotalActiveSchemesRepository {
       rethrow;
     }
   }
-
-
-
 
   ///  MUTATION: Add cash payment — force no cache
   Future<Map<String, dynamic>> addCashCustomerSavings({
@@ -905,19 +874,24 @@ class TodayActiveSchemeRepository {
       );
 
       if (result.hasException) {
-        log("❌ GraphQL Exception: ${result.exception}",
-            name: "TodayActiveRepo");
+        log(
+          "❌ GraphQL Exception: ${result.exception}",
+          name: "TodayActiveRepo",
+        );
         throw Exception(result.exception.toString());
       }
 
       final data = result.data?['getTodayActiveSchemes'];
       if (data == null) throw Exception("No data received from backend");
 
-      final response =
-          TodayActiveSchemeResponse.fromJson(Map<String, dynamic>.from(data));
+      final response = TodayActiveSchemeResponse.fromJson(
+        Map<String, dynamic>.from(data),
+      );
 
-      log("📄 Loaded Page ${response.currentPage} of ${response.totalPages}",
-          name: "TodayActiveRepo");
+      log(
+        "📄 Loaded Page ${response.currentPage} of ${response.totalPages}",
+        name: "TodayActiveRepo",
+      );
 
       return response;
     } catch (e) {
@@ -987,17 +961,16 @@ class TodayActiveSchemeRepository {
       final result = await client.mutate(
         MutationOptions(
           document: gql(mutation),
-          variables: {
-            "savingId": savingId,
-            "deliveredGold": deliveredGold,
-          },
+          variables: {"savingId": savingId, "deliveredGold": deliveredGold},
           fetchPolicy: FetchPolicy.noCache,
         ),
       );
 
       if (result.hasException) {
-        log("❌ GraphQL Error: ${result.exception.toString()}",
-            name: "TodayActiveRepo");
+        log(
+          "❌ GraphQL Error: ${result.exception.toString()}",
+          name: "TodayActiveRepo",
+        );
         return false;
       }
 
@@ -1009,9 +982,7 @@ class TodayActiveSchemeRepository {
   }
 }
 
-
 // Online Payment Repository
-
 
 class OnlinePaymentRepository {
   final GraphQLClient client;
@@ -1067,8 +1038,10 @@ class OnlinePaymentRepository {
       );
 
       if (result.hasException) {
-        log("OnlinePaymentRepo Error: ${result.exception}",
-            name: "OnlinePaymentRepo");
+        log(
+          "OnlinePaymentRepo Error: ${result.exception}",
+          name: "OnlinePaymentRepo",
+        );
         throw Exception("Unable to fetch online payments. Please try again.");
       }
 
@@ -1077,10 +1050,14 @@ class OnlinePaymentRepository {
         throw Exception("No online payments found");
       }
 
-      log("Response Page: ${responseData['currentPage']}", name: "OnlinePaymentRepo");
+      log(
+        "Response Page: ${responseData['currentPage']}",
+        name: "OnlinePaymentRepo",
+      );
 
-      final Map<String, dynamic> safeResponse =
-          Map<String, dynamic>.from(responseData);
+      final Map<String, dynamic> safeResponse = Map<String, dynamic>.from(
+        responseData,
+      );
       return OnlinePaymentResponse.fromJson(safeResponse);
     } catch (e) {
       log("Repository Exception: $e", name: "OnlinePaymentRepo");
@@ -1088,9 +1065,6 @@ class OnlinePaymentRepository {
     }
   }
 }
-
-
-
 
 class CashPaymentRepository {
   final GraphQLClient client;
@@ -1131,7 +1105,10 @@ class CashPaymentRepository {
     ''';
 
     try {
-      log("Fetching Cash Payments → Page: $page, Limit: $limit", name: "CashPaymentRepo");
+      log(
+        "Fetching Cash Payments → Page: $page, Limit: $limit",
+        name: "CashPaymentRepo",
+      );
 
       final result = await client.query(
         QueryOptions(
@@ -1146,21 +1123,25 @@ class CashPaymentRepository {
       );
 
       if (result.hasException) {
-        log("CashPaymentRepo Error: ${result.exception}", name: "CashPaymentRepo");
+        log(
+          "CashPaymentRepo Error: ${result.exception}",
+          name: "CashPaymentRepo",
+        );
         throw Exception("Unable to fetch cash payments. Please try again.");
       }
 
       final responseData = result.data?['GetOnlinCashTransaction'];
       if (responseData == null) throw Exception("No cash payments found");
 
-      return CashPaymentResponse.fromJson(Map<String, dynamic>.from(responseData));
+      return CashPaymentResponse.fromJson(
+        Map<String, dynamic>.from(responseData),
+      );
     } catch (e) {
       log("Repository Exception: $e", name: "CashPaymentRepo");
       rethrow;
     }
   }
 }
-
 
 // Notification Repository
 class NotificationRepository {

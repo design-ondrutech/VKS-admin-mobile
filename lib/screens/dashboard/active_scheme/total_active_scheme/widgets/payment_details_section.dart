@@ -147,7 +147,6 @@ class _PaymentDetailsSectionState extends State<PaymentDetailsSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 🔹 Header Row (labels)
         if (isFixed)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -181,7 +180,6 @@ class _PaymentDetailsSectionState extends State<PaymentDetailsSection> {
           ),
         const SizedBox(height: 4),
 
-        // 🔹 Amount Row (values)
         if (isFixed)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -218,7 +216,6 @@ class _PaymentDetailsSectionState extends State<PaymentDetailsSection> {
         const SizedBox(height: 8),
         const Divider(),
 
-        // 🔹 Next Due On Section
         if (scheme.schemeType.toLowerCase() == "fixed") ...[
           const Text(
             "Next Due On",

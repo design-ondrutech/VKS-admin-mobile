@@ -53,9 +53,9 @@ class TotalActiveSchemesScreen extends StatelessWidget {
             if (schemes.isEmpty) {
               return const Center(
                 child: Text(
-                  "Error: No active schemes found.",
+                  " No active schemes found.",
                   style: TextStyle(
-                    color: Colors.red,
+                    color: Colors.grey,
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                   ),
@@ -266,7 +266,7 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                       Text(
                         "Page ${state.response.currentPage} of ${state.response.totalPages}",
                         style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
+                      ), 
                       Row(
                         children: [
                           ElevatedButton(

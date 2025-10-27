@@ -1,27 +1,27 @@
-import 'package:admin/screens/login_screen.dart';
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:admin/main.dart'; //  for navigatorKey
+import 'package:admin/main.dart'; // for navigatorKey
 
+/// Interceptor that checks for GraphQL errors such as token expiry
 class GraphQLErrorInterceptor extends Link {
-  bool _dialogShown = false; // prevent multiple dialogs
-
   @override
   Stream<Response> request(Request request, [NextLink? forward]) {
-    return forward!(request).map((response) {
-      final errors = response.errors;
-      if (errors != null && errors.isNotEmpty) {
-        for (final error in errors) {
-          //  Add your debug log here
-          print(" GraphQL Error: ${error.message}");
+    if (forward == null) {
+      throw Exception("NextLink not found for GraphQLErrorInterceptor");
+    }
 
-          final message = error.message.toLowerCase();
-          if (message.contains("access token expired")) {
-            //  Add your debug log here
-            print(" Token Expired Detected – showing dialog...");
-            _handleTokenExpiry();
-            break;
+    return forward(request).map((response) {
+      // Check for GraphQL errors
+      if (response.errors != null && response.errors!.isNotEmpty) {
+        for (final error in response.errors!) {
+          log("🟡 GraphQL Error: ${error.message}");
+
+          // Detect token expiry
+          if (error.message.toLowerCase().contains("access token expired")) {
+            log("🔴 Token expired detected — showing dialog...");
+            _handleTokenExpired();
           }
         }
       }
@@ -29,40 +29,50 @@ class GraphQLErrorInterceptor extends Link {
     });
   }
 
-  void _handleTokenExpiry() async {
-    if (_dialogShown) return;
-    _dialogShown = true;
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('accessToken');
-    await prefs.remove('refreshToken');
-
+  /// 🧠 Handles token expiration UI and logout
+  void _handleTokenExpired() async {
     final context = navigatorKey.currentContext;
-    if (context != null && context.mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => AlertDialog(
-          title: const Text("Session Expired"),
-          content: const Text("Your session has expired. Please login again."),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  (route) => false,
-                );
-                _dialogShown = false;
-              },
-              child: const Text("OK"),
-            ),
-          ],
-        ),
-      );
-    } else {
-      await prefs.clear();
-      _dialogShown = false;
+    if (context == null) {
+      log("⚠️ navigatorKey context is null — cannot show dialog");
+      return;
     }
+
+    // Avoid showing multiple dialogs if already shown
+    if (ModalRoute.of(context)?.isCurrent != true) return;
+
+    Future.delayed(Duration.zero, () async {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('accessToken'); // remove token only
+
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            title: const Text(
+              "Session Expired",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            content: const Text(
+              "Your session has expired. Please login again to continue.",
+            ),
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  // Clear everything
+                  await prefs.clear();
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                  Navigator.pushReplacementNamed(context, '/login');
+                },
+                child: const Text(
+                  "Login Again",
+                  style: TextStyle(color: Colors.deepPurple),
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+    });
   }
 }

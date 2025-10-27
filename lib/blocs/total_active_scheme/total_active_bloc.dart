@@ -13,39 +13,42 @@ class TotalActiveBloc extends Bloc<TotalActiveEvent, TotalActiveState> {
 
   TotalActiveBloc({required this.repository}) : super(TotalActiveInitial()) {
     // Fetch all active schemes
-    on<FetchTotalActiveSchemes>((event, emit) async {
-      if (isFetching) return;
-      isFetching = true;
+on<FetchTotalActiveSchemes>((event, emit) async {
+  if (isFetching) return;
+  isFetching = true;
 
-      try {
-        emit(TotalActiveLoading());
+  try {
+    emit(TotalActiveLoading());
 
-        final response = await repository.getTotalActiveSchemes(
-          page: 1,
-          limit: 10,
-        );
+    final response = await repository.getTotalActiveSchemes(
+      page: 1,
+      limit: 9999, // Fetch all
+    );
 
-        // Save pagination data (if available)
-        currentPage = response.page;
-        totalPages = (response.totalCount / response.limit).ceil();
+    final totalPages = (response.data.length / event.limit).ceil();
+    final startIndex = (event.page - 1) * event.limit;
+    final endIndex = (startIndex + event.limit).clamp(0, response.data.length);
+    final paginatedData = response.data.sublist(startIndex, endIndex);
 
-        if (response.data.isEmpty) {
-          emit(TotalActiveEmpty());
-          return;
-        }
+    final localResponse = response.copyWith(
+      data: paginatedData,
+      currentPage: event.page,
+      totalPages: totalPages,
+      limit: event.limit,
+    );
 
-        emit(TotalActiveLoaded(response: response));
-      } catch (e) {
-        log("TotalActiveBloc Error: $e", name: "TotalActiveBloc");
-        emit(
-          TotalActiveError(
-            message: "Unable to load total active schemes. Please try again.",
-          ),
-        );
-      } finally {
-        isFetching = false;
-      }
-    });
+    emit(TotalActiveLoaded(response: localResponse));
+  } catch (e, s) {
+    log("TotalActiveBloc Error: $e\n$s", name: "TotalActiveBloc");
+    emit(TotalActiveError(
+      message: "Unable to load total active schemes. Please try again.",
+    ));
+  } finally {
+    isFetching = false;
+  }
+});
+
+
 
     // Add Cash Payment
     on<AddCashPayment>((event, emit) async {

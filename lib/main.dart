@@ -1,74 +1,78 @@
-import 'package:admin/widgets/network_helper.dart';
+import 'package:admin/data/repo/auth_repository.dart';
+import 'package:admin/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:admin/screens/splash_screen.dart';
+import 'package:admin/screens/dashboard/dashboard_screen.dart';
 import 'package:admin/data/graphql_config.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
-
+import 'package:admin/services/network_service.dart';
+import 'package:admin/widgets/offline_overlay.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize GraphQL Client
   final graphQLClient = await getGraphQLClient();
+
+  // Initialize Network Listener
+  NetworkService();
 
   runApp(
     GraphQLProvider(
       client: ValueNotifier(graphQLClient),
-      child: const MyApp(),
+      child: MyApp(graphQLClient: graphQLClient), //  pass client down
     ),
   );
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  final GraphQLClient graphQLClient; //  receive client
+
+  const MyApp({super.key, required this.graphQLClient});
 
   @override
   State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
-  late final Connectivity _connectivity;
-  ConnectivityResult? _previousStatus;
-
-  @override
-  void initState() {
-    super.initState();
-    _connectivity = Connectivity();
-
-    _connectivity.onConnectivityChanged.listen((List<ConnectivityResult> results) {
-      final current = results.isNotEmpty ? results.first : ConnectivityResult.none;
-
-      if (current == ConnectivityResult.none &&
-          _previousStatus != ConnectivityResult.none) {
-        // Internet disconnected
-        NetworkHelper.showNoInternetDialog(context);
-      } else if (_previousStatus == ConnectivityResult.none &&
-          current != ConnectivityResult.none) {
-        // Internet reconnected
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Back Online"),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-
-      _previousStatus = current;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
+    final networkStream = NetworkService().onStatusChange;
+
     return MaterialApp(
-     navigatorKey: navigatorKey,
+      navigatorKey: navigatorKey,
       title: 'VKS Admin',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(primarySwatch: Colors.deepPurple),
-      home: const SplashScreen(),
+
+      //  Routes
+      routes: {
+        '/login': (context) => const LoginScreen(),
+        '/dashboard': (context) => DashboardScreen(
+              repository: CardRepository(widget.graphQLClient), 
+            ),
+      },
+
+      //  Home with network listener
+      home: StreamBuilder<bool>(
+        stream: networkStream,
+        initialData: true,
+        builder: (context, snapshot) {
+          final online = snapshot.data ?? true;
+
+          return Stack(
+            children: [
+              const SplashScreen(),
+              if (!online)
+                OfflineOverlay(
+                  onRetry: () => NetworkService().checkNow(),
+                ),
+            ],
+          );
+        },
+      ),
     );
   }
 }
