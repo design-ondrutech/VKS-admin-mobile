@@ -407,9 +407,9 @@ class _ExpandableSavingCardState extends State<_ExpandableSavingCard> {
   Widget _stripedTable(List<Transaction> transactions) {
     return Table(
       columnWidths: const {
-        0: FlexColumnWidth(1.3),
+        0: FlexColumnWidth(1.4),
         1: FlexColumnWidth(1.2),
-        2: FlexColumnWidth(1.1),
+        2: FlexColumnWidth(1.2),
         3: FlexColumnWidth(1),
       },
       border: TableBorder.all(color: Colors.grey.shade300, width: 1),

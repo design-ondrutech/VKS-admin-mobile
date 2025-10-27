@@ -1,5 +1,6 @@
 
 import 'package:admin/widgets/auth_interceptor.dart';
+import 'package:admin/widgets/network_error_interceptor.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -35,8 +36,11 @@ Future<GraphQLClient> getGraphQLClient() async {
 
   final HttpLink httpLink = HttpLink(endpoint);
 
-  final Link finalLink =
-      authLink.concat(tenantLink).concat(httpLink).concat(GraphQLErrorInterceptor());
+final Link finalLink = authLink
+    .concat(tenantLink)
+    .concat(httpLink)
+    .concat(NetworkErrorInterceptor()) 
+    .concat(GraphQLErrorInterceptor()); 
 
   print("🧩 GraphQL Client initialized with token + tenant headers + interceptor");
 

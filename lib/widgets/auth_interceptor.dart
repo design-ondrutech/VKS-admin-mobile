@@ -29,7 +29,6 @@ class GraphQLErrorInterceptor extends Link {
     });
   }
 
-  /// 🧠 Handles token expiration UI and logout
   void _handleTokenExpired() async {
     final context = navigatorKey.currentContext;
     if (context == null) {
