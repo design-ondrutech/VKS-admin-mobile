@@ -5,6 +5,7 @@ import 'package:admin/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:admin/blocs/total_active_scheme/total_active_bloc.dart';
+import 'package:admin/blocs/total_active_scheme/total_active_event.dart';
 import 'package:admin/blocs/total_active_scheme/total_active_state.dart';
 
 // --- Imported new widgets ---
@@ -25,6 +26,7 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
         ),
         centerTitle: true,
         backgroundColor: Appcolors.headerbackground,
+       
       ),
       body: BlocBuilder<TotalActiveBloc, TotalActiveState>(
         builder: (context, state) {
@@ -39,50 +41,52 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
             } catch (_) {}
           }
 
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: _summaryCard(
-                      title:
-                          currentScheme.schemeType.toLowerCase() == "fixed"
-                              ? "Total Amount"
-                              : "Paid Amount",
-                      value:
-                          currentScheme.schemeType.toLowerCase() == "fixed"
-                              ? "₹${currentScheme.totalAmount.toStringAsFixed(0)}"
-                              : "₹${currentScheme.paidAmount.toStringAsFixed(0)}",
-                      color: Colors.green[400]!,
-                      icon: Icons.account_balance_wallet,
+          return RefreshIndicator(
+            onRefresh: () async {
+              // Pull-to-refresh reload
+              context.read<TotalActiveBloc>().add(
+                    FetchTotalActiveSchemes(page: 1, limit: 10),
+                  );
+            },
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _summaryCard(
+                        title:
+                            currentScheme.schemeType.toLowerCase() == "fixed"
+                                ? "Total Amount"
+                                : "Paid Amount",
+                        value:
+                            currentScheme.schemeType.toLowerCase() == "fixed"
+                                ? "₹${currentScheme.totalAmount.toStringAsFixed(0)}"
+                                : "₹${currentScheme.paidAmount.toStringAsFixed(0)}",
+                        color: Colors.green[400]!,
+                        icon: Icons.account_balance_wallet,
+                      ),
                     ),
-                  ),
-
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _summaryCard(
-                      title: "Total Gold Weight",
-                      value: "${_formatGram(currentScheme.totalGoldWeight)} g",
-                      color: Colors.amber[700]!,
-                      icon: Icons.scale,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _summaryCard(
+                        title: "Total Gold Weight",
+                        value:
+                            "${_formatGram(currentScheme.totalGoldWeight)} g",
+                        color: Colors.amber[700]!,
+                        icon: Icons.scale,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              CustomerInfoSection(customer: currentScheme.customer),
-              // Scheme Details
-              SchemeDetailsSection(scheme: currentScheme),
-
-              // Customer Info
-
-              // Payment Details
-              PaymentDetailsSection(scheme: currentScheme),
-
-              // Payment History
-              PaymentHistorySection(scheme: currentScheme),
-            ],
+                  ],
+                ),
+                const SizedBox(height: 24),
+                CustomerInfoSection(customer: currentScheme.customer),
+                SchemeDetailsSection(scheme: currentScheme),
+                PaymentDetailsSection(scheme: currentScheme),
+                PaymentHistorySection(scheme: currentScheme),
+              ],
+            ),
           );
         },
       ),

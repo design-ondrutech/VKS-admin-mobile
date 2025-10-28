@@ -37,6 +37,11 @@ class _TodayActiveSchemesScreenState extends State<TodayActiveSchemesScreen> {
     );
   }
 
+  
+  String _formatGram(double? value, {int digits = 4}) {
+    if (value == null) return "0.0000";
+    return value.toStringAsFixed(digits);
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -189,6 +194,10 @@ class _TodayActiveSchemesScreenState extends State<TodayActiveSchemesScreen> {
                                           color:
                                               scheme.status.toLowerCase() ==
                                                       "active"
+                                                  ? Colors.yellow.shade100
+                                                  : scheme.status
+                                                          .toLowerCase() ==
+                                                      "completed"
                                                   ? Colors.green.shade100
                                                   : Colors.red.shade100,
                                           borderRadius: BorderRadius.circular(
@@ -201,6 +210,10 @@ class _TodayActiveSchemesScreenState extends State<TodayActiveSchemesScreen> {
                                             color:
                                                 scheme.status.toLowerCase() ==
                                                         "active"
+                                                    ? Colors.orange.shade800
+                                                    : scheme.status
+                                                            .toLowerCase() ==
+                                                        "completed"
                                                     ? Colors.green.shade800
                                                     : Colors.red.shade800,
                                             fontWeight: FontWeight.w600,
@@ -225,10 +238,8 @@ class _TodayActiveSchemesScreenState extends State<TodayActiveSchemesScreen> {
                                     Icons.work_outline,
                                     "Purpose: ${scheme.schemePurpose}",
                                   ),
-                                  _infoRow(
-                                    Icons.scale,
-                                    "Total Gold: ${scheme.totalGoldWeight} gm",
-                                  ),
+                                    _infoRow(Icons.scale,
+                                        "Gold: ${_formatGram(scheme.totalGoldWeight)} gm"),
                                   _infoRow(
                                     Icons.currency_rupee,
                                     "Amount: ₹${formatAmount(scheme.totalAmount)}",

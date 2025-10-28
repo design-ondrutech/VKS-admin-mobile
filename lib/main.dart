@@ -6,7 +6,6 @@ import 'package:admin/screens/splash_screen.dart';
 import 'package:admin/screens/dashboard/dashboard_screen.dart';
 import 'package:admin/data/graphql_config.dart';
 import 'package:admin/services/network_service.dart';
-import 'package:admin/widgets/offline_overlay.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -19,17 +18,11 @@ void main() async {
   // Initialize Network Listener
   NetworkService();
 
-  runApp(
-    GraphQLProvider(
-      client: ValueNotifier(graphQLClient),
-      child: MyApp(graphQLClient: graphQLClient), //  pass client down
-    ),
-  );
+  runApp(MyApp(graphQLClient: graphQLClient));
 }
 
 class MyApp extends StatefulWidget {
-  final GraphQLClient graphQLClient; //  receive client
-
+  final GraphQLClient graphQLClient;
   const MyApp({super.key, required this.graphQLClient});
 
   @override
@@ -37,41 +30,73 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  ScaffoldFeatureController<SnackBar, SnackBarClosedReason>? _snackbarController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    //  Listen to network status changes
+    NetworkService().onStatusChange.listen((online) {
+      final context = navigatorKey.currentContext;
+      if (context == null) return;
+
+      if (!online) {
+        //  Show offline snackbar (if not already visible)
+        _snackbarController ??= ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                "You’re offline. Please check your connection.",
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+              ),
+              backgroundColor: Colors.redAccent,
+              behavior: SnackBarBehavior.floating,
+              duration: Duration(days: 1),
+            ),
+          );
+      } else {
+        //  Hide offline snackbar
+        _snackbarController?.close();
+        _snackbarController = null;
+
+        //  Show back online message
+        _showOnlineSnackbar(context);
+      }
+    });
+  }
+
+  // ---------------- SNACKBAR HANDLERS ----------------
+
+  void _showOnlineSnackbar(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          "Back online ✅",
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+        ),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final networkStream = NetworkService().onStatusChange;
-
-    return MaterialApp(
-      navigatorKey: navigatorKey,
-      title: 'VKS Admin',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.deepPurple),
-
-      //  Routes
-      routes: {
-        '/login': (context) => const LoginScreen(),
-        '/dashboard': (context) => DashboardScreen(
-              repository: CardRepository(widget.graphQLClient), 
-            ),
-      },
-
-      //  Home with network listener
-      home: StreamBuilder<bool>(
-        stream: networkStream,
-        initialData: true,
-        builder: (context, snapshot) {
-          final online = snapshot.data ?? true;
-
-          return Stack(
-            children: [
-              const SplashScreen(),
-              if (!online)
-                OfflineOverlay(
-                  onRetry: () => NetworkService().checkNow(),
-                ),
-            ],
-          );
+    return GraphQLProvider(
+      client: ValueNotifier(widget.graphQLClient),
+      child: MaterialApp(
+        navigatorKey: navigatorKey,
+        title: 'VKS Admin',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(primarySwatch: Colors.deepPurple),
+        routes: {
+          '/login': (context) => const LoginScreen(),
+          '/dashboard': (context) => DashboardScreen(
+                repository: CardRepository(widget.graphQLClient),
+              ),
         },
+        home: const SplashScreen(),
       ),
     );
   }

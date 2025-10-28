@@ -3,6 +3,7 @@ import 'package:admin/blocs/gold_price/gold_bloc.dart';
 import 'package:admin/blocs/gold_price/gold_event.dart';
 import 'package:admin/blocs/gold_price/gold_state.dart';
 import 'package:admin/data/models/gold_rate.dart';
+import 'package:admin/utils/error_helper.dart';
 import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -45,9 +46,7 @@ class _DashboardTopHeaderState extends State<DashboardTopHeader> {
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: const BorderRadius.vertical(
-          bottom: Radius.circular(20),
-        ),
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       child: Row(
@@ -70,7 +69,7 @@ class _DashboardTopHeaderState extends State<DashboardTopHeader> {
                         fontSize: 20,
                       ),
                     ),
-                    const SizedBox(width: 8),             
+                    const SizedBox(width: 8),
                   ],
                 ),
                 const SizedBox(height: 4),
@@ -102,15 +101,18 @@ class _DashboardTopHeaderState extends State<DashboardTopHeader> {
                           "${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}";
 
                       GoldPrice? todayGold;
-                      if (state.goldRates.any((rate) => rate.date == todayStr)) {
+                      if (state.goldRates.any(
+                        (rate) => rate.date == todayStr,
+                      )) {
                         todayGold = state.goldRates.firstWhere(
                           (rate) => rate.date == todayStr,
                         );
                       }
 
                       GoldPrice? todaySilver;
-                      if (state.silverRates
-                          .any((rate) => rate.date == todayStr)) {
+                      if (state.silverRates.any(
+                        (rate) => rate.date == todayStr,
+                      )) {
                         todaySilver = state.silverRates.firstWhere(
                           (rate) => rate.date == todayStr,
                         );
@@ -137,11 +139,18 @@ class _DashboardTopHeaderState extends State<DashboardTopHeader> {
                     }
 
                     if (state is GoldPriceError) {
+                      // hide text if it’s just a network issue
+                      if (ErrorHelper.isNetworkError(state.message)) {
+                        return const SizedBox(); // snackbar handles it globally
+                      }
+
+                      // otherwise show clean error text
                       return Text(
-                        "Error: ${state.message}",
+                        state.message,
                         style: const TextStyle(
                           fontSize: 12,
-                          color: Colors.red,
+                          color: Colors.redAccent,
+                          fontWeight: FontWeight.w600,
                         ),
                       );
                     }
@@ -165,11 +174,7 @@ class _DashboardTopHeaderState extends State<DashboardTopHeader> {
                 color: Appcolors.buttoncolor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(
-                Icons.menu,
-                size: 28,
-                color: Colors.black87,
-              ),
+              child: const Icon(Icons.menu, size: 28, color: Colors.black87),
             ),
           ),
         ],

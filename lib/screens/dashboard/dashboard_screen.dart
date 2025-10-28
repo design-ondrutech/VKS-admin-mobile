@@ -224,11 +224,10 @@ class _DashboardHeaderState extends State<DashboardHeader> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder:
-                          (_) => BlocProvider.value(
-                            value: context.read<CustomerBloc>(),
-                            child: const CustomersScreen(),
-                          ),
+                      builder: (_) => BlocProvider.value(
+                        value: context.read<CustomerBloc>(),
+                        child: const CustomersScreen(),
+                      ),
                     ),
                   );
                 },
@@ -243,11 +242,10 @@ class _DashboardHeaderState extends State<DashboardHeader> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder:
-                          (_) => BlocProvider.value(
-                            value: context.read<TotalActiveBloc>(),
-                            child: const TotalActiveSchemesScreen(),
-                          ),
+                      builder: (_) => BlocProvider.value(
+                        value: context.read<TotalActiveBloc>(),
+                        child: const TotalActiveSchemesScreen(),
+                      ),
                     ),
                   );
                 },
@@ -262,11 +260,10 @@ class _DashboardHeaderState extends State<DashboardHeader> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder:
-                          (_) => BlocProvider.value(
-                            value: context.read<TodayActiveSchemeBloc>(),
-                            child: const TodayActiveSchemesScreen(),
-                          ),
+                      builder: (_) => BlocProvider.value(
+                        value: context.read<TodayActiveSchemeBloc>(),
+                        child: const TodayActiveSchemesScreen(),
+                      ),
                     ),
                   );
                 },
@@ -281,11 +278,10 @@ class _DashboardHeaderState extends State<DashboardHeader> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder:
-                          (_) => BlocProvider.value(
-                            value: context.read<OnlinePaymentBloc>(),
-                            child: const OnlinePaymentScreen(),
-                          ),
+                      builder: (_) => BlocProvider.value(
+                        value: context.read<OnlinePaymentBloc>(),
+                        child: const OnlinePaymentScreen(),
+                      ),
                     ),
                   );
                 },
@@ -300,11 +296,10 @@ class _DashboardHeaderState extends State<DashboardHeader> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder:
-                          (_) => BlocProvider.value(
-                            value: context.read<CashPaymentBloc>(),
-                            child: const CashPaymentScreen(),
-                          ),
+                      builder: (_) => BlocProvider.value(
+                        value: context.read<CashPaymentBloc>(),
+                        child: const CashPaymentScreen(),
+                      ),
                     ),
                   );
                 },
@@ -312,7 +307,21 @@ class _DashboardHeaderState extends State<DashboardHeader> {
             ],
           );
         } else if (state is CardError) {
-          return Center(child: Text(state.message));
+          //  Don’t show exception text for network issues
+          if (state.message.contains("Network Error")) {
+            return const SizedBox(); // Snackbar handles it
+          }
+
+          //  Show other errors normally
+          return Center(
+            child: Text(
+              state.message,
+              style: const TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          );
         }
         return const SizedBox();
       },

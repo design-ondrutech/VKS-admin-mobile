@@ -34,3 +34,5 @@ String formatAmount(dynamic amount) {
   if (parsed == null) return amount.toString();
   return parsed % 1 == 0 ? parsed.toInt().toString() : parsed.toStringAsFixed(2);
 }
+
+

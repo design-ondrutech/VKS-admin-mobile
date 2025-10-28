@@ -39,7 +39,7 @@ class _FlexiblePaymentHistoryWidgetState
             SnackBar(
               backgroundColor: Colors.green[700],
               content: Text(
-                "Payment Successful (Total: ₹${state.totalAmount})",
+                "Payment Successful ",
                 style: const TextStyle(color: Colors.white),
               ),
             ),

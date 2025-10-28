@@ -24,7 +24,9 @@ class _AddUpdateSchemeDialogState extends State<AddUpdateSchemeDialog> {
       maxCtrl,
       incrementCtrl,
       thresholdCtrl,
-      bonusCtrl;
+      bonusCtrl,
+      benefitsCtrl; //  Properly typed
+
   late String selectedType, selectedDurationType;
 
   @override
@@ -32,36 +34,42 @@ class _AddUpdateSchemeDialogState extends State<AddUpdateSchemeDialog> {
     super.initState();
     final s = widget.initialScheme;
 
-   nameCtrl = TextEditingController(text: s?.schemeName ?? "");
-durationCtrl = TextEditingController(text: s?.duration.toString() ?? "");
-minCtrl = TextEditingController(
-  text: (s?.minAmount != null && s!.minAmount % 1 == 0)
-      ? s.minAmount.toInt().toString()
-      : s?.minAmount.toString() ?? "",
-);
-maxCtrl = TextEditingController(
-  text: (s?.maxAmount != null && s!.maxAmount! % 1 == 0)
-      ? s.maxAmount!.toInt().toString()
-      : s?.maxAmount?.toString() ?? "",
-);
-incrementCtrl = TextEditingController(
-  text: (s?.incrementAmount != null && s!.incrementAmount! % 1 == 0)
-      ? s.incrementAmount!.toInt().toString()
-      : s?.incrementAmount?.toString() ?? "",
-);
-thresholdCtrl = TextEditingController(
-  text: (s?.threshold != null && s!.threshold! % 1 == 0)
-      ? s.threshold!.toInt().toString()
-      : s?.threshold?.toString() ?? "",
-);
-bonusCtrl = TextEditingController(
-  text: (s?.bonus != null && s!.bonus! % 1 == 0)
-      ? s.bonus!.toInt().toString()
-      : s?.bonus?.toString() ?? "",
-);
+    nameCtrl = TextEditingController(text: s?.schemeName ?? "");
+    durationCtrl = TextEditingController(text: s?.duration.toString() ?? "");
+    minCtrl = TextEditingController(
+      text:
+          (s?.minAmount != null && s!.minAmount % 1 == 0)
+              ? s.minAmount.toInt().toString()
+              : s?.minAmount.toString() ?? "",
+    );
+    maxCtrl = TextEditingController(
+      text:
+          (s?.maxAmount != null && s!.maxAmount! % 1 == 0)
+              ? s.maxAmount!.toInt().toString()
+              : s?.maxAmount?.toString() ?? "",
+    );
+    incrementCtrl = TextEditingController(
+      text:
+          (s?.incrementAmount != null && s!.incrementAmount! % 1 == 0)
+              ? s.incrementAmount!.toInt().toString()
+              : s?.incrementAmount?.toString() ?? "",
+    );
+    thresholdCtrl = TextEditingController(
+      text:
+          (s?.threshold != null && s!.threshold! % 1 == 0)
+              ? s.threshold!.toInt().toString()
+              : s?.threshold?.toString() ?? "",
+    );
+    bonusCtrl = TextEditingController(
+      text:
+          (s?.bonus != null && s!.bonus! % 1 == 0)
+              ? s.bonus!.toInt().toString()
+              : s?.bonus?.toString() ?? "",
+    );
 
     selectedType = s?.schemeType ?? "fixed";
     selectedDurationType = s?.durationType ?? "Monthly";
+    benefitsCtrl = TextEditingController(text: s?.benefits ?? "");
   }
 
   @override
@@ -133,63 +141,78 @@ bonusCtrl = TextEditingController(
                       decoration: _dropdownDecoration("Duration Type"),
                     ),
                     const SizedBox(height: 12),
+                    _buildTextField("Benefits", benefitsCtrl),
+                    const SizedBox(height: 12),
 
-TextFormField(
-  controller: durationCtrl,
-  keyboardType: TextInputType.number,
-  inputFormatters: [
-    FilteringTextInputFormatter.digitsOnly, // only numbers
-  ],
-  decoration: InputDecoration(
-    labelText: "Duration",
-    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-    suffixIcon: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // 🔼 Up arrow
-        InkWell(
-          onTap: () {
-            int current = int.tryParse(durationCtrl.text) ?? 0;
-            if (current < 20) {
-              durationCtrl.text = (current + 1).toString();
-            }
-          },
-          child: const Icon(Icons.arrow_drop_up, size: 20),
-        ),
-        // 🔽 Down arrow
-        InkWell(
-          onTap: () {
-            int current = int.tryParse(durationCtrl.text) ?? 0;
-            if (current > 0) {
-              durationCtrl.text = (current - 1).toString();
-            }
-          },
-          child: const Icon(Icons.arrow_drop_down, size: 20),
-        ),
-      ],
-    ),
-    counterText: "", // hide 0/20 counter
-  ),
-  onChanged: (value) {
-    if (value.isNotEmpty) {
-      int val = int.tryParse(value) ?? 0;
-      if (val > 20) {
-        // If user types > 20, set it back to 20
-        durationCtrl.text = '20';
-        durationCtrl.selection = TextSelection.fromPosition(
-          TextPosition(offset: durationCtrl.text.length),
-        );
-      }
-    }
-  },
-  validator: (val) =>
-      val == null || val.trim().isEmpty ? "Duration is required" : null,
-),
+                    TextFormField(
+                      controller: durationCtrl,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly, // only numbers
+                      ],
+                      decoration: InputDecoration(
+                        labelText: "Duration",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        suffixIcon: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            //  Up arrow
+                            InkWell(
+                              onTap: () {
+                                int current =
+                                    int.tryParse(durationCtrl.text) ?? 0;
+                                if (current < 20) {
+                                  durationCtrl.text = (current + 1).toString();
+                                }
+                              },
+                              child: const Icon(Icons.arrow_drop_up, size: 20),
+                            ),
+                            //  Down arrow
+                            InkWell(
+                              onTap: () {
+                                int current =
+                                    int.tryParse(durationCtrl.text) ?? 0;
+                                if (current > 0) {
+                                  durationCtrl.text = (current - 1).toString();
+                                }
+                              },
+                              child: const Icon(
+                                Icons.arrow_drop_down,
+                                size: 20,
+                              ),
+                            ),
+                          ],
+                        ),
+                        counterText: "", // hide 0/20 counter
+                      ),
+                      onChanged: (value) {
+                        if (value.isNotEmpty) {
+                          int val = int.tryParse(value) ?? 0;
+                          if (val > 20) {
+                            // If user types > 20, set it back to 20
+                            durationCtrl.text = '20';
+                            durationCtrl.selection = TextSelection.fromPosition(
+                              TextPosition(offset: durationCtrl.text.length),
+                            );
+                          }
+                        }
+                      },
+                      validator:
+                          (val) =>
+                              val == null || val.trim().isEmpty
+                                  ? "Duration is required"
+                                  : null,
+                    ),
 
                     const SizedBox(height: 12),
                     _buildTextField("Min Amount", minCtrl, isNumber: true),
                     const SizedBox(height: 12),
-                    _buildTextField("Max Amount", maxCtrl, isNumber: true),
+                    if (selectedType == "fixed") ...[
+                      const SizedBox(height: 12),
+                      _buildTextField("Max Amount", maxCtrl, isNumber: true),
+                    ],
                     const SizedBox(height: 12),
                     _buildTextField(
                       "Increment Amount",
@@ -264,6 +287,7 @@ TextFormField(
       isActive: true,
       threshold: double.tryParse(thresholdCtrl.text) ?? 0,
       bonus: double.tryParse(bonusCtrl.text) ?? 0,
+      benefits: benefitsCtrl.text.trim(),
     );
 
     final bloc = context.read<SchemesBloc>();
@@ -274,29 +298,32 @@ TextFormField(
     }
   }
 
-Widget _buildTextField(
-  String label,
-  TextEditingController controller, {
-  bool isNumber = false,
-  int? maxLength,
-}) {
-  return TextFormField(
-    controller: controller,
-    keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-    inputFormatters: isNumber
-        ? [FilteringTextInputFormatter.digitsOnly] // only numbers
-        : [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))], // only letters & spaces
-    maxLength: maxLength,
-    decoration: InputDecoration(
-      labelText: label,
-      counterText: "",
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-    ),
-    validator: (val) =>
-        val == null || val.trim().isEmpty ? "$label is required" : null,
-  );
-}
-
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    bool isNumber = false,
+    int? maxLength,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+      inputFormatters:
+          isNumber
+              ? [FilteringTextInputFormatter.digitsOnly] // only numbers
+              : [
+                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+              ], // only letters & spaces
+      maxLength: maxLength,
+      decoration: InputDecoration(
+        labelText: label,
+        counterText: "",
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      validator:
+          (val) =>
+              val == null || val.trim().isEmpty ? "$label is required" : null,
+    );
+  }
 
   InputDecoration _dropdownDecoration(String label) {
     return InputDecoration(

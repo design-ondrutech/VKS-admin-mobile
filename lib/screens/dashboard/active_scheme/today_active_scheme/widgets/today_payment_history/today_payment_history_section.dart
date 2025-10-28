@@ -62,7 +62,7 @@ class _TodayPaymentHistorySectionState
                     turns: isExpanded ? 0 : 0.5,
                     duration: const Duration(milliseconds: 300),
                     child: const Icon(
-                      Icons.keyboard_arrow_down_rounded,
+                      Icons.keyboard_arrow_up_rounded,
                       color: Colors.black54,
                       size: 28,
                     ),

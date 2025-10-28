@@ -1,8 +1,5 @@
 import 'dart:developer';
-import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:admin/main.dart';
-import 'package:admin/widgets/offline_overlay.dart';
 import 'package:admin/services/network_service.dart';
 
 class NetworkErrorInterceptor extends Link {
@@ -15,23 +12,19 @@ class NetworkErrorInterceptor extends Link {
     return forward(request).handleError((error, stackTrace) async {
       log("🛑 GraphQL Network Error: $error");
 
+      // Detect offline-like errors
       if (error.toString().contains("SocketException") ||
           error.toString().contains("Failed host lookup") ||
-          error.toString().contains("Network is unreachable")) {
-        final context = navigatorKey.currentContext;
-        if (context != null) {
-          Future.delayed(Duration.zero, () {
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (_) => const OfflineOverlay(),
-            );
-          });
-        }
+          error.toString().contains("Network is unreachable") ||
+          error.toString().contains("UnknownException") ||
+          error.toString().contains("Bad state: No element")) {
+
+        // Just trigger a network check — main.dart will handle snackbar
         await NetworkService().checkNow();
       }
 
-      throw error;
+      // Return an empty stream to stop propagation
+      return const Stream.empty();
     });
   }
 }

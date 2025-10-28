@@ -5,6 +5,7 @@ import 'package:admin/data/models/customer.dart';
 import 'package:admin/data/repo/auth_repository.dart';
 import 'package:admin/screens/dashboard/customer/customer_detail/customer_detail_screen.dart';
 import 'package:admin/utils/colors.dart';
+import 'package:admin/utils/error_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -238,16 +239,23 @@ class _CustomersScreenState extends State<CustomersScreen> {
               ],
             );
           } else if (state is CustomerError) {
+            // Hide text if it’s just a network issue (snackbar will handle it)
+            if (ErrorHelper.isNetworkError(state.message)) {
+              return const SizedBox();
+            }
+
+            // Show clean error message for all other cases
             return Center(
               child: Text(
                 state.message,
                 style: const TextStyle(
-                  color: Colors.red,
-                  fontWeight: FontWeight.bold,
+                  color: Colors.redAccent,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             );
           }
+
           return const SizedBox.shrink();
         },
       ),

@@ -1,5 +1,6 @@
 import 'package:admin/blocs/schemes/schemes_event.dart';
 import 'package:admin/screens/dashboard/scheme/add_scheme/create_scheme.dart';
+import 'package:admin/utils/error_helper.dart';
 import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -74,10 +75,19 @@ class SchemesTab extends StatelessWidget {
     if (state is SchemeLoading) {
       return const Center(child: CircularProgressIndicator());
     } else if (state is SchemeError) {
+      // Hide network-related errors (snackbar will handle it)
+      if (ErrorHelper.isNetworkError(state.error)) {
+        return const SizedBox();
+      }
+
+      // Show other errors normally
       return Center(
         child: Text(
-          "Error: ${state.error}",
-          style: const TextStyle(color: Colors.red),
+          state.error,
+          style: const TextStyle(
+            color: Colors.redAccent,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       );
     } else if (state is SchemeLoaded) {
@@ -177,6 +187,17 @@ class SchemesTab extends StatelessWidget {
                   _detailItem("Max", "₹${formatAmount(scheme.maxAmount)}"),
               ],
             ),
+            if (scheme.benefits != null && scheme.benefits!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                "Benefits: ${scheme.benefits}",
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Colors.teal,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ],
         ),
       ),

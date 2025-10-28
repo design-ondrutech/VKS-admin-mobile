@@ -346,19 +346,20 @@ class _ExpandableSavingCardState extends State<_ExpandableSavingCard> {
     IconData icon;
     String label;
 
-    if (normalized == 'completed' || normalized == 'complete') {
-      color = Colors.red.shade800;
-      icon = Icons.check_circle;   
-      label = 'Completed';
-    } else if (normalized == 'active') {
-      color = Colors.green.shade800;
-      icon = Icons.timelapse;
-      label = ' progress ';
-    } else {
-      color = Colors.grey;
-      icon = Icons.help_outline;
-      label = status;
-    }
+ if (normalized == 'completed' || normalized == 'complete') {
+  color = Colors.green.shade800; //  green for completed
+  icon = Icons.check_circle;
+  label = 'Completed';
+} else if (normalized == 'active' || normalized == 'progress') {
+  color = Colors.amber.shade800; // yellow for progress
+  icon = Icons.timelapse;
+  label = 'Progress';
+} else {
+  color = Colors.grey;
+  icon = Icons.help_outline;
+  label = status;
+}
+
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

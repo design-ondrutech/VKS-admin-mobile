@@ -118,12 +118,13 @@ class AuthRepository {
 
 // Dashboard Repository
 
+
 class CardRepository {
   final GraphQLClient client;
 
   CardRepository(this.client);
 
-  ///  Fetch Dashboard Summary — Always fetch fresh data
+  /// Fetch Dashboard Summary — Always fetch fresh data
   Future<DashboardSummary> fetchSummary() async {
     const String query = r'''
       query GetDashboardSummary {
@@ -137,28 +138,48 @@ class CardRepository {
       }
     ''';
 
-    final result = await client.query(
-      QueryOptions(
-        document: gql(query),
-        //  Always get fresh data from backend (no cache)
-        fetchPolicy: FetchPolicy.networkOnly,
-      ),
-    );
+    try {
+      final result = await client.query(
+        QueryOptions(
+          document: gql(query),
+          fetchPolicy: FetchPolicy.networkOnly,
+        ),
+      );
 
-    if (result.hasException) {
-      throw Exception(result.exception.toString());
+      if (result.hasException) {
+        final message = result.exception.toString();
+
+        if (message.contains("SocketException") ||
+            message.contains("Failed host lookup") ||
+            message.contains("Network is unreachable") ||
+            message.contains("Bad state: No element") ||
+            message.contains("UnknownException")) {
+          throw Exception("Network Error – Please check your connection.");
+        }
+
+        if (message.contains("TokenExpiredError") ||
+            message.contains("jwt expired") ||
+            message.contains("Invalid token") ||
+            message.contains("Unauthorized")) {
+          throw Exception("Session expired. Please log in again.");
+        }
+
+        throw Exception("Something went wrong. Please try again.");
+      }
+
+      final data = result.data?['getDashboardSummary'];
+      if (data == null) {
+        throw Exception("No data found.");
+      }
+
+      return DashboardSummary.fromJson(Map<String, dynamic>.from(data));
+    } catch (e) {
+      print("🟥 CardRepository Error: $e");
+      throw Exception(e.toString().replaceAll("Exception: ", ""));
     }
-
-    final data = result.data?['getDashboardSummary'];
-
-    if (data == null) {
-      throw Exception('No data found');
-    }
-
-    //  Always return new object (avoid stale UI)
-    return DashboardSummary.fromJson(Map<String, dynamic>.from(data));
   }
 }
+
 
 // Scheme Repository
 
@@ -182,6 +203,7 @@ class SchemeRepository {
             increment_amount
             is_active
             amount_benefits
+            benefits
             
           }
         }
@@ -218,6 +240,7 @@ class SchemeRepository {
           min_amount
           max_amount
           increment_amount
+           benefits
         }
       }
     ''';
@@ -251,6 +274,7 @@ class SchemeRepository {
           min_amount
           max_amount
           increment_amount
+          benefits
         }
       }
     ''';

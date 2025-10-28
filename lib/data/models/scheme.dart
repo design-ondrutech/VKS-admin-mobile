@@ -12,6 +12,9 @@ class Scheme {
   final bool isActive;
   final double? threshold;
   final double? bonus;
+  final String? benefits; 
+
+  
 
 
   Scheme({
@@ -26,6 +29,7 @@ class Scheme {
     required this.isActive,
     this.threshold,
     this.bonus,
+     this.benefits,
 
   });
 
@@ -51,6 +55,7 @@ factory Scheme.fromJson(Map<String, dynamic> json) {
     isActive: json['is_active'] == true,
     threshold: threshold,
     bonus: bonus,
+    benefits: json['benefits']?.toString(),
 
   );
 }
@@ -69,6 +74,7 @@ factory Scheme.fromJson(Map<String, dynamic> json) {
       "threshold": threshold ?? 0.0,
       "bonus": bonus ?? 0.0,
     }, 
+     "benefits": benefits ?? "",
     };
   }
 
@@ -86,6 +92,7 @@ factory Scheme.fromJson(Map<String, dynamic> json) {
         "threshold": threshold ?? 0.0,
         "bonus": bonus ?? 0.0,
       },
+      "benefits": benefits ?? "",
     };
   }
 }

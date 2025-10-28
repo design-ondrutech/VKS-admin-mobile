@@ -7,6 +7,7 @@ import 'package:admin/screens/dashboard/gold_price/add_gold_price/bloc/add_gold_
 import 'package:admin/screens/dashboard/gold_price/add_gold_price/bloc/add_gold_state.dart';
 import 'package:admin/screens/dashboard/gold_price/add_gold_price/gold_add_popup.dart';
 import 'package:admin/utils/colors.dart';
+import 'package:admin/utils/error_helper.dart';
 import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -156,7 +157,22 @@ class _GoldPriceScreenState extends State<GoldPriceScreen> {
                   ),
                 );
               } else if (state is GoldPriceError) {
-                return Center(child: Text("Error: ${state.message}"));
+                // Hide UI text for network-related errors (handled by snackbar)
+                if (ErrorHelper.isNetworkError(state.message)) {
+                  return const SizedBox();
+                }
+
+                // Show other (valid) errors nicely
+                return Center(
+                  child: Text(
+                    state.message,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.redAccent,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                );
               } else {
                 return const Center(child: Text("No data"));
               }
