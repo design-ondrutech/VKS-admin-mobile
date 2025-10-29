@@ -21,11 +21,6 @@ class _SchemeDetailsSectionState extends State<SchemeDetailsSection> {
     _currentScheme = widget.scheme; // copy the scheme to local variable
   }
 
-  String formatGram(double? value, {int digits = 4}) {
-    if (value == null) return "0.0000";
-    return value.toStringAsFixed(digits);
-  }
-
   @override
   Widget build(BuildContext context) {
     final scheme = _currentScheme;
@@ -190,13 +185,14 @@ class _SchemeDetailsSectionState extends State<SchemeDetailsSection> {
                     ? "Total Amount"
                     : "Paid Amount",
                 scheme.schemeType.toLowerCase() == "fixed"
-                    ? "₹${scheme.totalAmount.toStringAsFixed(0)}"
-                    : "₹${scheme.paidAmount.toStringAsFixed(0)}",
+                    ? "₹${formatAmount(scheme.totalAmount)}"
+                    : "₹${formatAmount(scheme.paidAmount)}",
                 highlight: true,
                 fontSize: 20,
                 color: Colors.black,
                 valueColor: Colors.black87,
               ),
+
               const SizedBox(height: 16),
               _infoBlock(
                 "Scheme Type",
@@ -241,10 +237,8 @@ class _SchemeDetailsSectionState extends State<SchemeDetailsSection> {
     //  Determine status
     if (scheme.status.toLowerCase() == "completed") {
       if (delivered >= totalRequired && totalRequired > 0) {
-      } else {
-      }
-    } else {
-    }
+      } else {}
+    } else {}
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

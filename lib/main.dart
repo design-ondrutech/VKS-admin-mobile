@@ -71,7 +71,7 @@ class _MyAppState extends State<MyApp> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text(
-          "Back online ✅",
+          "Back online ",
           style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
         ),
         backgroundColor: Colors.green,

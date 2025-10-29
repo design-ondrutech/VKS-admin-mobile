@@ -13,11 +13,6 @@ class PaymentDetailsSection extends StatefulWidget {
 class _PaymentDetailsSectionState extends State<PaymentDetailsSection> {
   bool isExpanded = true; // initial open
 
-  String formatGram(double? value, {int digits = 4}) {
-    if (value == null) return "0.0000";
-    return value.toStringAsFixed(digits);
-  }
-
   @override
   Widget build(BuildContext context) {
     final scheme = widget.scheme;
@@ -186,7 +181,7 @@ class _PaymentDetailsSectionState extends State<PaymentDetailsSection> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                "₹${scheme.totalAmount.toStringAsFixed(0)}",
+                "₹${formatAmount(scheme.totalAmount)}",
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 22,
@@ -194,7 +189,7 @@ class _PaymentDetailsSectionState extends State<PaymentDetailsSection> {
                 ),
               ),
               Text(
-                "₹${scheme.paidAmount.toStringAsFixed(0)}",
+                "₹${formatAmount(scheme.paidAmount)}",
                 style: const TextStyle(
                   color: Colors.green,
                   fontWeight: FontWeight.bold,

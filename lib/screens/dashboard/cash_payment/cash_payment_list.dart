@@ -4,10 +4,10 @@ import 'package:admin/blocs/cash_payment/cash_payment_state.dart';
 import 'package:admin/data/models/cash_payment.dart';
 import 'package:admin/data/repo/auth_repository.dart';
 import 'package:admin/utils/colors.dart';
+import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:intl/intl.dart';
 
 class CashPaymentScreen extends StatefulWidget {
   const CashPaymentScreen({super.key});
@@ -32,24 +32,8 @@ class _CashPaymentScreenState extends State<CashPaymentScreen> {
     }
   }
 
-  // ---------- Helper Functions ----------
-String _formatDate(String? date) {
-  if (date == null || date.isEmpty) return "N/A";
-  try {
-    final parsed = DateTime.tryParse(date);
-    if (parsed != null) {
-      // Only show date (no time)
-      return DateFormat("dd MMM yyyy").format(parsed);
-    }
-  } catch (_) {}
-  return date;
-}
 
-  String formatGoldGram(dynamic value) {
-    if (value == null) return '0.0000';
-    double numValue = double.tryParse(value.toString()) ?? 0;
-    return numValue.toStringAsFixed(4); // always 4 decimals
-  }
+
   String _statusString(dynamic status) {
     if (status == 2 || status == '2') return "paid";
     if (status == 1 || status == '1') return "unpaid";
@@ -246,13 +230,15 @@ String _formatDate(String? date) {
                                             const Icon(Icons.currency_rupee,
                                                 size: 18, color: Colors.grey),
                                             const SizedBox(width: 4),
-                                            Text(
-                                              payment.transactionAmount
-                                                  .toStringAsFixed(2),
-                                              style: const TextStyle(
+                                             Text(
+                                                formatAmount(
+                                                  payment.transactionAmount,
+                                                ),
+                                                style: const TextStyle(
                                                   fontSize: 14,
-                                                  fontWeight: FontWeight.w600),
-                                            ),
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
                                           ],
                                         ),
                                         Row(
@@ -261,7 +247,7 @@ String _formatDate(String? date) {
                                                 size: 18, color: Colors.grey),
                                             const SizedBox(width: 4),
                                             Text(
-                                              "${formatGoldGram(payment.transactionGoldGram)} gm",
+                                              "${formatGram(payment.transactionGoldGram)} gm",
                                               style: const TextStyle(
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.w600,
@@ -277,7 +263,7 @@ String _formatDate(String? date) {
                                         const Icon(Icons.calendar_today,
                                             size: 18, color: Colors.grey),
                                         const SizedBox(width: 4),
-                                        Text(_formatDate(
+                                        Text(formatDate(
                                             payment.transactionDate)),
                                       ],
                                     ),

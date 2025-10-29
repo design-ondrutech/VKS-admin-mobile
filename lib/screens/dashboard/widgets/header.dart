@@ -29,7 +29,7 @@ class _DashboardTopHeaderState extends State<DashboardTopHeader> {
     context.read<GoldPriceBloc>().add(const FetchGoldPriceEvent());
 
     // Auto refresh every 30 seconds
-    _autoRefreshTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+    _autoRefreshTimer = Timer.periodic(const Duration(seconds: 130), (timer) {
       context.read<GoldPriceBloc>().add(const FetchGoldPriceEvent());
     });
   }
@@ -125,13 +125,13 @@ class _DashboardTopHeaderState extends State<DashboardTopHeader> {
                         children: [
                           _priceTag(
                             "Gold",
-                            " ${formatAmount(goldPrice)}",
+                            " ${formatAmount(goldPrice)}g",
                             Colors.orange,
                           ),
                           const SizedBox(width: 12),
                           _priceTag(
                             "Silver",
-                            " ${formatAmount(silverPrice)}",
+                            " ${formatAmount(silverPrice)}g",
                             Colors.blueGrey,
                           ),
                         ],

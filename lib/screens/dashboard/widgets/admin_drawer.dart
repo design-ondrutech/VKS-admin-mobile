@@ -168,7 +168,6 @@ class AdminDrawer extends StatelessWidget {
                 height: 10,
               ),
 
-              // Logout Button (✅ Still Visible)
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 14),

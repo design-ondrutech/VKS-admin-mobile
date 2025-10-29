@@ -37,11 +37,6 @@ class _TodayActiveSchemesScreenState extends State<TodayActiveSchemesScreen> {
     );
   }
 
-  
-  String _formatGram(double? value, {int digits = 4}) {
-    if (value == null) return "0.0000";
-    return value.toStringAsFixed(digits);
-  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -238,12 +233,18 @@ class _TodayActiveSchemesScreenState extends State<TodayActiveSchemesScreen> {
                                     Icons.work_outline,
                                     "Purpose: ${scheme.schemePurpose}",
                                   ),
-                                    _infoRow(Icons.scale,
-                                        "Gold: ${_formatGram(scheme.totalGoldWeight)} gm"),
                                   _infoRow(
-                                    Icons.currency_rupee,
-                                    "Amount: ₹${formatAmount(scheme.totalAmount)}",
+                                    Icons.scale,
+                                    "Gold: ${formatGram(scheme.totalGoldWeight)} gm",
                                   ),
+                                  if (scheme.schemeType.toLowerCase() ==
+                                      "fixed") ...[
+                                    _infoRow(
+                                      Icons.currency_rupee,
+                                      "Amount: ₹${formatAmount(scheme.totalAmount)}",
+                                    ),
+                                  ],
+
                                   _infoRow(
                                     Icons.check_circle,
                                     "Paid: ₹${formatAmount(scheme.paidAmount)}",
@@ -350,12 +351,5 @@ class _TodayActiveSchemesScreenState extends State<TodayActiveSchemesScreen> {
     );
   }
 
-  String formatDate(String? date) {
-    if (date == null || date.isEmpty) return "-";
-    try {
-      return DateFormat('dd MMM yyyy').format(DateTime.parse(date));
-    } catch (_) {
-      return date;
-    }
-  }
+ 
 }

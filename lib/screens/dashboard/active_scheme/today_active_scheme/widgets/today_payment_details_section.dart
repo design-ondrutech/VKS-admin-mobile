@@ -144,7 +144,7 @@ class _TodayPaymentDetailsSectionState
   }
 
   //  LEFT SECTION — Amount Details
-   Widget _buildAmountSection(TodayActiveScheme scheme, double progress) {
+  Widget _buildAmountSection(TodayActiveScheme scheme, double progress) {
     final isFixed = scheme.schemeType.toLowerCase() == "fixed";
 
     return Column(
@@ -189,7 +189,7 @@ class _TodayPaymentDetailsSectionState
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                "₹${scheme.totalAmount.toStringAsFixed(0)}",
+                "₹${formatAmount(scheme.totalAmount)}",
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 22,
@@ -197,7 +197,7 @@ class _TodayPaymentDetailsSectionState
                 ),
               ),
               Text(
-                "₹${scheme.paidAmount.toStringAsFixed(0)}",
+                "₹${formatAmount(scheme.paidAmount)}",
                 style: const TextStyle(
                   color: Colors.green,
                   fontWeight: FontWeight.bold,
@@ -279,7 +279,6 @@ class _TodayPaymentDetailsSectionState
 
   //  RIGHT SECTION — Gold Summary
   Widget _buildGoldSection(TodayActiveScheme scheme) {
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

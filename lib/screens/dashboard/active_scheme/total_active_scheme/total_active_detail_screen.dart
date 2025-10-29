@@ -2,6 +2,7 @@ import 'package:admin/data/models/TotalActiveScheme.dart';
 import 'package:admin/screens/dashboard/active_scheme/total_active_scheme/widgets/payment_details_section.dart';
 import 'package:admin/screens/dashboard/active_scheme/total_active_scheme/widgets/payment_history/payment_history_section.dart';
 import 'package:admin/utils/colors.dart';
+import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:admin/blocs/total_active_scheme/total_active_bloc.dart';
@@ -26,7 +27,6 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
         ),
         centerTitle: true,
         backgroundColor: Appcolors.headerbackground,
-       
       ),
       body: BlocBuilder<TotalActiveBloc, TotalActiveState>(
         builder: (context, state) {
@@ -45,8 +45,8 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
             onRefresh: () async {
               // Pull-to-refresh reload
               context.read<TotalActiveBloc>().add(
-                    FetchTotalActiveSchemes(page: 1, limit: 10),
-                  );
+                FetchTotalActiveSchemes(page: 1, limit: 10),
+              );
             },
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -62,8 +62,8 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
                                 : "Paid Amount",
                         value:
                             currentScheme.schemeType.toLowerCase() == "fixed"
-                                ? "₹${currentScheme.totalAmount.toStringAsFixed(0)}"
-                                : "₹${currentScheme.paidAmount.toStringAsFixed(0)}",
+                                ? "₹${formatAmount(currentScheme.totalAmount)}"
+                                : "₹${formatAmount(currentScheme.paidAmount)}",
                         color: Colors.green[400]!,
                         icon: Icons.account_balance_wallet,
                       ),
@@ -72,8 +72,7 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
                     Expanded(
                       child: _summaryCard(
                         title: "Total Gold Weight",
-                        value:
-                            "${_formatGram(currentScheme.totalGoldWeight)} g",
+                        value: "${formatGram(currentScheme.totalGoldWeight)} g",
                         color: Colors.amber[700]!,
                         icon: Icons.scale,
                       ),
@@ -91,11 +90,6 @@ class TotalActiveSchemeDetailScreen extends StatelessWidget {
         },
       ),
     );
-  }
-
-  String _formatGram(double? value, {int digits = 4}) {
-    if (value == null) return "0.0000";
-    return value.toStringAsFixed(digits);
   }
 
   Widget _summaryCard({

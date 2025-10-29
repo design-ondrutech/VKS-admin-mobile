@@ -32,10 +32,13 @@ class _TodayFixedPaymentWidgetState extends State<TodayFixedPaymentWidget> {
       return const Center(child: Text("No Payment History Found"));
     }
 
-    final double fixedAmount = widget.history.firstWhere(
-      (tx) => (tx.amount) > 0,
-      orElse: () => widget.history.first,
-    ).amount;
+    final double fixedAmount =
+        widget.history
+            .firstWhere(
+              (tx) => (tx.amount) > 0,
+              orElse: () => widget.history.first,
+            )
+            .amount;
 
     final int firstUnpaidIndex = widget.history.indexWhere(
       (t) => t.status.toLowerCase() != "paid",
@@ -55,12 +58,8 @@ class _TodayFixedPaymentWidgetState extends State<TodayFixedPaymentWidget> {
 
           final today = DateTime.now().toIso8601String().split('T').first;
           context.read<TodayActiveSchemeBloc>().add(
-                FetchTodayActiveSchemes(
-                  startDate: today,
-                  page: 1,
-                  limit: 10,
-                ),
-              );
+            FetchTodayActiveSchemes(startDate: today, page: 1, limit: 10),
+          );
 
           setState(() {
             currentPayingId = null;
@@ -86,170 +85,188 @@ class _TodayFixedPaymentWidgetState extends State<TodayFixedPaymentWidget> {
         }
       },
       builder: (context, state) {
-
         return AnimatedSwitcher(
           duration: const Duration(milliseconds: 400),
           child: Column(
             key: ValueKey(DateTime.now().millisecondsSinceEpoch),
-            children: widget.history.asMap().entries.map((entry) {
-              final idx = entry.key;
-              final tx = entry.value;
+            children:
+                widget.history.asMap().entries.map((entry) {
+                  final idx = entry.key;
+                  final tx = entry.value;
 
-              bool isPaid = tx.status.toLowerCase() == "paid";
-              bool isNextDue = !isPaid && idx == firstUnpaidIndex;
+                  bool isPaid = tx.status.toLowerCase() == "paid";
+                  bool isNextDue = !isPaid && idx == firstUnpaidIndex;
 
-              return Card(
-                elevation: 3,
-                margin: const EdgeInsets.symmetric(vertical: 6),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-                color: isPaid
-                    ? Colors.green[50]
-                    : isNextDue
-                        ? Colors.yellow[50]
-                        : Colors.grey[100],
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Amount + Button
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  return Card(
+                    elevation: 3,
+                    margin: const EdgeInsets.symmetric(vertical: 6),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    color:
+                        isPaid
+                            ? Colors.green[50]
+                            : isNextDue
+                            ? Colors.yellow[50]
+                            : Colors.grey[100],
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            "₹${fixedAmount.toStringAsFixed(0)}",
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-                          InkWell(
-                            onTap: isNextDue && !isButtonLocked
-                                ? () async {
-                                    final confirm =
-                                        await _showConfirmDialog(
-                                            context, fixedAmount);
-                                    if (confirm == true) {
-                                      context
-                                          .read<TodayActiveSchemeBloc>()
-                                          .add(AddCashCustomerSavingEvent(
-                                            savingId: widget.savingId,
-                                            amount: fixedAmount,
-                                          ));
+                          // Amount + Button
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "₹${formatAmount(fixedAmount)}",
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
 
-                                      setState(() {
-                                        isButtonLocked = true;
-                                      });
-                                    }
-                                  }
-                                : null,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: isPaid
-                                    ? Colors.green[100]
-                                    : isNextDue
-                                        ? Colors.blue[50]
-                                        : Colors.grey[300],
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 6,
-                                horizontal: 12,
-                              ),
-                              child: (isButtonLocked && isNextDue)
-                                  ? Row(
-                                      children: const [
-                                        SizedBox(
-                                          height: 16,
-                                          width: 16,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                          ),
-                                        ),
-                                        SizedBox(width: 6),
-                                        Text(
-                                          "Processing...",
-                                          style: TextStyle(
-                                            color: Colors.blue,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        )
-                                      ],
-                                    )
-                                  : Text(
-                                      isPaid
-                                          ? "PAID"
-                                          : isNextDue
-                                              ? "Pay Now"
-                                              : "Pending",
-                                      style: TextStyle(
-                                        color: isPaid
-                                            ? Colors.green
+                              InkWell(
+                                onTap:
+                                    isNextDue && !isButtonLocked
+                                        ? () async {
+                                          final confirm =
+                                              await _showConfirmDialog(
+                                                context,
+                                                fixedAmount,
+                                              );
+                                          if (confirm == true) {
+                                            context
+                                                .read<TodayActiveSchemeBloc>()
+                                                .add(
+                                                  AddCashCustomerSavingEvent(
+                                                    savingId: widget.savingId,
+                                                    amount: fixedAmount,
+                                                  ),
+                                                );
+
+                                            setState(() {
+                                              isButtonLocked = true;
+                                            });
+                                          }
+                                        }
+                                        : null,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color:
+                                        isPaid
+                                            ? Colors.green[100]
                                             : isNextDue
-                                                ? Colors.blue
-                                                : Colors.grey[700],
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                            ),
+                                            ? Colors.blue[50]
+                                            : Colors.grey[300],
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 6,
+                                    horizontal: 12,
+                                  ),
+                                  child:
+                                      (isButtonLocked && isNextDue)
+                                          ? Row(
+                                            children: const [
+                                              SizedBox(
+                                                height: 16,
+                                                width: 16,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                    ),
+                                              ),
+                                              SizedBox(width: 6),
+                                              Text(
+                                                "Processing...",
+                                                style: TextStyle(
+                                                  color: Colors.blue,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          )
+                                          : Text(
+                                            isPaid
+                                                ? "PAID"
+                                                : isNextDue
+                                                ? "Pay Now"
+                                                : "Pending",
+                                            style: TextStyle(
+                                              color:
+                                                  isPaid
+                                                      ? Colors.green
+                                                      : isNextDue
+                                                      ? Colors.blue
+                                                      : Colors.grey[700],
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                ),
+                              ),
+                            ],
                           ),
+                          const SizedBox(height: 6),
+                          Text("Due: ${formatDate(tx.dueDate)}"),
+                          Text(
+                            "Paid: ${tx.paidDate.isNotEmpty ? formatDate(tx.paidDate) : '-'}",
+                          ),
+                          Text("Mode: ${tx.paymentMode}"),
                         ],
                       ),
-                      const SizedBox(height: 6),
-                      Text("Due: ${formatDate(tx.dueDate)}"),
-                      Text(
-                          "Paid: ${tx.paidDate.isNotEmpty ? formatDate(tx.paidDate) : '-'}"),
-                      Text("Mode: ${tx.paymentMode}"),
-                    ],
-                  ),
-                ),
-              );
-            }).toList(),
+                    ),
+                  );
+                }).toList(),
           ),
         );
       },
     );
   }
 
-  Future<bool?> _showConfirmDialog(
-      BuildContext context, double amount) async {
+  Future<bool?> _showConfirmDialog(BuildContext context, double amount) async {
     return showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: const Text(
-          "Confirm Payment",
-          style: TextStyle(
-              color: Colors.blue, fontWeight: FontWeight.bold),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text("You are about to pay:"),
-            const SizedBox(height: 8),
-            Text(
-              "₹${amount.toStringAsFixed(0)}",
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
+      builder:
+          (_) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text("Cancel")),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-                backgroundColor: Appcolors.buttoncolor),
-            child: const Text("Confirm", style: TextStyle(color: Colors.white)),
+            title: const Text(
+              "Confirm Payment",
+              style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text("You are about to pay:"),
+                const SizedBox(height: 8),
+                Text(
+                  "₹${amount.toStringAsFixed(0)}",
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text("Cancel"),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Appcolors.buttoncolor,
+                ),
+                child: const Text(
+                  "Confirm",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 }

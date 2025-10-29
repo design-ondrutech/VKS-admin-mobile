@@ -1,5 +1,6 @@
 import 'package:admin/screens/dashboard/active_scheme/today_active_scheme/widgets/today_payment_details_section.dart';
 import 'package:admin/screens/dashboard/active_scheme/today_active_scheme/widgets/today_payment_history/today_payment_history_section.dart';
+import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:admin/blocs/today_active_scheme/today_active_bloc.dart';
@@ -14,11 +15,6 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
   final TodayActiveScheme scheme;
 
   const TodayActiveSchemeDetailScreen({super.key, required this.scheme});
-
-  String formatGram(double? value, {int digits = 4}) {
-    if (value == null) return "0.0000";
-    return value.toStringAsFixed(digits);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,8 +55,8 @@ class TodayActiveSchemeDetailScreen extends StatelessWidget {
                               : "Paid Amount",
                       value:
                           currentScheme.schemeType.toLowerCase() == "fixed"
-                              ? "₹${currentScheme.totalAmount.toStringAsFixed(0)}"
-                              : "₹${currentScheme.paidAmount.toStringAsFixed(0)}",
+                              ? "₹${formatAmount(currentScheme.totalAmount)}"
+                              : "₹${formatAmount(currentScheme.paidAmount)}",
                       color: Colors.green[400]!,
                       icon: Icons.account_balance_wallet,
                     ),

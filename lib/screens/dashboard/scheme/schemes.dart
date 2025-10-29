@@ -183,7 +183,8 @@ class SchemesTab extends StatelessWidget {
                   "${scheme.duration} ${scheme.durationType}",
                 ),
                 _detailItem("Min", "₹${formatAmount(scheme.minAmount)}"),
-                if (scheme.maxAmount != null)
+                if (scheme.schemeType.toLowerCase() == "fixed" &&
+                    scheme.maxAmount != null)
                   _detailItem("Max", "₹${formatAmount(scheme.maxAmount)}"),
               ],
             ),

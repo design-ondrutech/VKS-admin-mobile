@@ -6,6 +6,7 @@ import 'package:admin/data/repo/auth_repository.dart';
 import 'package:admin/screens/dashboard/customer/customer_detail/customer_detail_screen.dart';
 import 'package:admin/utils/colors.dart';
 import 'package:admin/utils/error_helper.dart';
+import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
@@ -20,11 +21,6 @@ class CustomersScreen extends StatefulWidget {
 class _CustomersScreenState extends State<CustomersScreen> {
   int page = 1;
   final int limit = 10;
-
-  String _getJoinedDate() {
-    final now = DateTime.now();
-    return "${now.day}/${now.month}/${now.year}";
-  }
 
   @override
   void initState() {
@@ -178,7 +174,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  "Joined: ${_getJoinedDate()}",
+                                  "Joined: ${formatDate(getJoinedDate())}",
                                   style: const TextStyle(
                                     fontSize: 13,
                                     color: Colors.black87,

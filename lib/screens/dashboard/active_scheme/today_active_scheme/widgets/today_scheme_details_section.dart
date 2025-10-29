@@ -161,11 +161,14 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
                     ? "Total Amount"
                     : "Paid Amount",
                 scheme.schemeType.toLowerCase() == "fixed"
-                    ? "₹${scheme.totalAmount.toStringAsFixed(0)}"
-                    : "₹${scheme.paidAmount.toStringAsFixed(0)}",
+                    ? "₹${formatAmount(scheme.totalAmount)}"
+                    : "₹${formatAmount(scheme.paidAmount)}",
                 highlight: true,
                 fontSize: 20,
+                color: Colors.black,
+                valueColor: Colors.black87,
               ),
+
               const SizedBox(height: 16),
               _infoBlock(
                 "Scheme Type",
@@ -209,10 +212,8 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
     // Determine display status
     if (scheme.status.toLowerCase() == "completed") {
       if (delivered >= totalRequired && totalRequired > 0) {
-      } else {
-      }
-    } else {
-    }
+      } else {}
+    } else {}
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -264,7 +265,6 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
 
         const SizedBox(height: 16),
 
-        // 🔹 Delivered Status + Button
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -404,6 +404,7 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
     String value, {
     bool highlight = false,
     double fontSize = 15,
+    Color? color,
     Color? valueColor,
     Color? badgeColor,
     Color? badgeTextColor,

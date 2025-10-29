@@ -3,6 +3,7 @@ import 'package:admin/blocs/total_active_scheme/total_active_event.dart';
 import 'package:admin/blocs/total_active_scheme/total_active_state.dart';
 import 'package:admin/screens/dashboard/active_scheme/total_active_scheme/Total_active_detail_screen.dart';
 import 'package:admin/utils/colors.dart';
+import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -10,31 +11,6 @@ import 'package:intl/intl.dart';
 class TotalActiveSchemesScreen extends StatelessWidget {
   const TotalActiveSchemesScreen({super.key});
 
-  String formatDate(String? date) {
-    if (date == null) return "N/A";
-    try {
-      final parsed = DateTime.tryParse(date);
-      return parsed == null ? "N/A" : DateFormat("dd MMM yyyy").format(parsed);
-    } catch (_) {
-      return "N/A";
-    }
-  }
-
-  String formatAmount(dynamic value) {
-    if (value == null) return "0";
-    try {
-      final num amount = num.tryParse(value.toString()) ?? 0;
-      final formatter = NumberFormat('#,##0');
-      return formatter.format(amount);
-    } catch (_) {
-      return "0";
-    }
-  }
-  
-  String _formatGram(double? value, {int digits = 4}) {
-    if (value == null) return "0.0000";
-    return value.toStringAsFixed(digits);
-  }
 
 
   @override
@@ -247,11 +223,14 @@ class TotalActiveSchemesScreen extends StatelessWidget {
                                     _infoRow(Icons.work_outline,
                                         "Purpose: ${scheme.schemePurpose}"),
                                     _infoRow(Icons.scale,
-                                        "Gold: ${_formatGram(scheme.totalGoldWeight)} gm"),
+                                        "Gold: ${formatGram(scheme.totalGoldWeight)} gm"),
+                                    if (scheme.schemeType.toLowerCase() ==
+                                      "fixed") ...[
                                     _infoRow(
                                       Icons.currency_rupee,
                                       "Amount: ₹${formatAmount(scheme.totalAmount)}",
                                     ),
+                                  ],
                                     _infoRow(
                                       Icons.check_circle,
                                       "Paid: ₹${formatAmount(scheme.paidAmount)}",

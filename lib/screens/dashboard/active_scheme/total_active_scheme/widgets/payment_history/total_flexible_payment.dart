@@ -49,7 +49,9 @@ class _FlexiblePaymentHistoryWidgetState
 
           // Delay slightly to allow animation, then refresh data
           await Future.delayed(const Duration(milliseconds: 500));
-          context.read<TotalActiveBloc>().add(FetchTotalActiveSchemes(page: 1, limit: 10));
+          context.read<TotalActiveBloc>().add(
+            FetchTotalActiveSchemes(page: 1, limit: 10),
+          );
         } else if (state is CashPaymentFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -109,68 +111,74 @@ class _FlexiblePaymentHistoryWidgetState
                       ),
                       const SizedBox(width: 10),
                       ElevatedButton(
-                        onPressed: isProcessing
-                            ? null
-                            : () async {
-                                final entered = _amountController.text.trim();
+                        onPressed:
+                            isProcessing
+                                ? null
+                                : () async {
+                                  final entered = _amountController.text.trim();
 
-                                if (entered.isEmpty) {
-                                  _showAlert(
+                                  if (entered.isEmpty) {
+                                    _showAlert(
+                                      context,
+                                      "Invalid Amount",
+                                      "Please enter a valid amount before proceeding.",
+                                    );
+                                    return;
+                                  }
+
+                                  final amount = double.tryParse(entered);
+
+                                  if (amount == null || amount <= 0) {
+                                    _showAlert(
+                                      context,
+                                      "Invalid Amount",
+                                      "Please enter a valid numeric amount greater than zero.",
+                                    );
+                                    return;
+                                  }
+
+                                  final confirm = await _showConfirmDialog(
                                     context,
-                                    "Invalid Amount",
-                                    "Please enter a valid amount before proceeding.",
+                                    amount,
                                   );
-                                  return;
-                                }
-
-                                final amount = double.tryParse(entered);
-
-                                if (amount == null || amount <= 0) {
-                                  _showAlert(
-                                    context,
-                                    "Invalid Amount",
-                                    "Please enter a valid numeric amount greater than zero.",
-                                  );
-                                  return;
-                                }
-
-                                final confirm =
-                                    await _showConfirmDialog(context, amount);
-                                if (confirm == true) {
-                                  context.read<TotalActiveBloc>().add(
-                                        AddCashPayment(
-                                          savingId: widget.savingId,
-                                          amount: amount,
-                                        ),
-                                      );
-                                }
-                              },
+                                  if (confirm == true) {
+                                    context.read<TotalActiveBloc>().add(
+                                      AddCashPayment(
+                                        savingId: widget.savingId,
+                                        amount: amount,
+                                      ),
+                                    );
+                                  }
+                                },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Appcolors.buttoncolor,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: isProcessing
-                            ? Row(
-                                children: const [
-                                  SizedBox(
-                                    height: 18,
-                                    width: 18,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
+                        child:
+                            isProcessing
+                                ? Row(
+                                  children: const [
+                                    SizedBox(
+                                      height: 18,
+                                      width: 18,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
                                     ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text("Processing...",
-                                      style: TextStyle(color: Colors.white)),
-                                ],
-                              )
-                            : const Text(
-                                "Pay Now",
-                                style: TextStyle(color: Colors.white),
-                              ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      "Processing...",
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ],
+                                )
+                                : const Text(
+                                  "Pay Now",
+                                  style: TextStyle(color: Colors.white),
+                                ),
                       ),
                     ],
                   ),
@@ -179,67 +187,70 @@ class _FlexiblePaymentHistoryWidgetState
 
               const SizedBox(height: 12),
 
-              // 📜 Payment History List
               if (validPayments.isNotEmpty)
                 Column(
-                  children: validPayments.map((tx) {
-                    bool isPaid = tx.status.toLowerCase() == "paid";
-                    return Card(
-                      color: isPaid ? Colors.green[50] : Colors.orange[50],
-                      elevation: 2,
-                      margin: const EdgeInsets.symmetric(vertical: 6),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                  children:
+                      validPayments.map((tx) {
+                        bool isPaid = tx.status.toLowerCase() == "paid";
+                        return Card(
+                          color: isPaid ? Colors.green[50] : Colors.orange[50],
+                          elevation: 2,
+                          margin: const EdgeInsets.symmetric(vertical: 6),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  "₹${tx.amount.toStringAsFixed(0)}",
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "₹${formatAmount(tx.amount)}",
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+
+                                    const SizedBox(height: 4),
+                                    Text("Due: ${formatDate(tx.dueDate)}"),
+                                    Text(
+                                      "Paid: ${tx.paidDate.isNotEmpty ? formatDate(tx.paidDate) : '-'}",
+                                    ),
+                                    Text("Mode: ${tx.paymentMode}"),
+                                  ],
+                                ),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color:
+                                        isPaid
+                                            ? Colors.green[200]
+                                            : Colors.orange[200],
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 6,
+                                    horizontal: 12,
+                                  ),
+                                  child: Text(
+                                    isPaid ? "PAID" : "Pending",
+                                    style: TextStyle(
+                                      color:
+                                          isPaid
+                                              ? Colors.green[800]
+                                              : Colors.orange[900],
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
-                                const SizedBox(height: 4),
-                                Text("Due: ${formatDate(tx.dueDate)}"),
-                                Text(
-                                  "Paid: ${tx.paidDate.isNotEmpty ? formatDate(tx.paidDate) : '-'}",
-                                ),
-                                Text("Mode: ${tx.paymentMode}"),
                               ],
                             ),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: isPaid
-                                    ? Colors.green[200]
-                                    : Colors.orange[200],
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 6,
-                                horizontal: 12,
-                              ),
-                              child: Text(
-                                isPaid ? "PAID" : "Pending",
-                                style: TextStyle(
-                                  color: isPaid
-                                      ? Colors.green[800]
-                                      : Colors.orange[900],
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                          ),
+                        );
+                      }).toList(),
                 )
               else
                 const Center(
@@ -259,20 +270,23 @@ class _FlexiblePaymentHistoryWidgetState
   void _showAlert(BuildContext context, String title, String message) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          title,
-          style: const TextStyle(
-              fontWeight: FontWeight.bold, color: Colors.redAccent),
-        ),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text("OK"),
-          )
-        ],
-      ),
+      builder:
+          (context) => AlertDialog(
+            title: Text(
+              title,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.redAccent,
+              ),
+            ),
+            content: Text(message),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text("OK"),
+              ),
+            ],
+          ),
     );
   }
 
@@ -292,7 +306,10 @@ class _FlexiblePaymentHistoryWidgetState
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text("You are about to pay:", style: TextStyle(fontSize: 16)),
+              const Text(
+                "You are about to pay:",
+                style: TextStyle(fontSize: 16),
+              ),
               const SizedBox(height: 8),
               Text(
                 "₹${amount.toStringAsFixed(0)}",
@@ -322,7 +339,10 @@ class _FlexiblePaymentHistoryWidgetState
                 ),
               ),
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text("Confirm", style: TextStyle(color: Colors.white)),
+              child: const Text(
+                "Confirm",
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         );

@@ -16,29 +16,23 @@ import 'package:admin/blocs/gold_price/gold_event.dart';
 import 'package:admin/blocs/notification/notification_bloc.dart';
 import 'package:admin/blocs/notification/notification_event.dart';
 import 'package:admin/screens/dashboard/gold_price/add_gold_price/bloc/add_gld_bloc.dart';
+import 'package:admin/screens/dashboard/overview/overview_content.dart';
 import 'package:admin/screens/dashboard/widgets/admin_drawer.dart';
-import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:admin/blocs/card/card_bloc.dart';
 import 'package:admin/blocs/card/card_event.dart';
-import 'package:admin/blocs/card/card_state.dart';
 import 'package:admin/data/repo/auth_repository.dart';
 import 'package:admin/data/graphql_config.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:admin/screens/dashboard/active_scheme/total_active_scheme/total_active_list.dart';
-import 'package:admin/screens/dashboard/active_scheme/today_active_scheme/today_active_list.dart';
-import 'package:admin/screens/dashboard/cash_payment/cash_payment_list.dart';
-import 'package:admin/screens/dashboard/customer/customer_list.dart';
 import 'package:admin/screens/dashboard/gold_price/goldrate.dart';
 import 'package:admin/screens/dashboard/notification/notification.dart';
-import 'package:admin/screens/dashboard/online_payment/online_payment_list.dart';
 import 'package:admin/screens/dashboard/scheme/schemes.dart';
 import 'package:admin/screens/dashboard/widgets/header.dart';
 import 'package:admin/blocs/dashboard/dashboard_bloc.dart';
 import 'package:admin/blocs/dashboard/dashboard_event.dart';
 import 'package:admin/blocs/dashboard/dashboard_state.dart';
-import 'package:admin/widgets/bottom_navigation.dart';
+import 'package:admin/screens/dashboard/widgets/bottom_navigation.dart';
 import 'package:admin/widgets/global_refresh.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -174,10 +168,18 @@ class _DashboardHeaderState extends State<DashboardHeader> {
   Widget _getSelectedTab(BuildContext context, String selectedTab) {
     // ---------- OVERVIEW ----------
     if (selectedTab == "Overview") {
-      return SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
-        child: _overviewContent(context),
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: const OverviewContent(),
+
+            ),
+          );
+        },
       );
     }
     // ---------- SCHEMES ----------
@@ -205,203 +207,4 @@ class _DashboardHeaderState extends State<DashboardHeader> {
     }
   }
 
-  Widget _overviewContent(BuildContext context) {
-    return BlocBuilder<CardBloc, CardState>(
-      builder: (context, state) {
-        if (state is CardLoading) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (state is CardLoaded) {
-          final summary = state.summary;
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _iconCard(
-                "Customers",
-                "${summary.totalCustomers}",
-                Icons.group,
-                Colors.blue,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => BlocProvider.value(
-                        value: context.read<CustomerBloc>(),
-                        child: const CustomersScreen(),
-                      ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 16),
-              _iconCard(
-                "Total Active",
-                "${summary.totalActiveSchemes}",
-                Icons.layers,
-                Colors.orange,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => BlocProvider.value(
-                        value: context.read<TotalActiveBloc>(),
-                        child: const TotalActiveSchemesScreen(),
-                      ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 16),
-              _iconCard(
-                "Today Active",
-                "${summary.todayActiveSchemes}",
-                Icons.layers,
-                const Color.fromARGB(255, 86, 136, 211),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => BlocProvider.value(
-                        value: context.read<TodayActiveSchemeBloc>(),
-                        child: const TodayActiveSchemesScreen(),
-                      ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 16),
-              _iconCard(
-                "Online Payment",
-                "₹${formatAmount(summary.totalOnlinePayment)}",
-                Icons.account_balance_wallet,
-                Colors.teal,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => BlocProvider.value(
-                        value: context.read<OnlinePaymentBloc>(),
-                        child: const OnlinePaymentScreen(),
-                      ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 16),
-              _iconCard(
-                "Cash Payment",
-                "₹${formatAmount(summary.totalCashPayment)}",
-                Icons.monetization_on,
-                Colors.purple,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => BlocProvider.value(
-                        value: context.read<CashPaymentBloc>(),
-                        child: const CashPaymentScreen(),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ],
-          );
-        } else if (state is CardError) {
-          //  Don’t show exception text for network issues
-          if (state.message.contains("Network Error")) {
-            return const SizedBox(); // Snackbar handles it
-          }
-
-          //  Show other errors normally
-          return Center(
-            child: Text(
-              state.message,
-              style: const TextStyle(
-                color: Colors.redAccent,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          );
-        }
-        return const SizedBox();
-      },
-    );
-  }
-
-  Widget _iconCard(
-    String title,
-    String value,
-    IconData icon,
-    Color color, {
-    VoidCallback? onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        margin: const EdgeInsets.only(bottom: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [color.withOpacity(0.7), color],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: color.withOpacity(0.4),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Icon(icon, color: Colors.white, size: 28),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    value,
-                    style: const TextStyle(
-                      color: Colors.black87,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
-          ],
-        ),
-      ),
-    );
-  }
 }

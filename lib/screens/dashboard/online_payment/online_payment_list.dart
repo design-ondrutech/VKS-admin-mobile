@@ -1,4 +1,5 @@
 import 'package:admin/data/repo/auth_repository.dart';
+import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:admin/blocs/online_payment/online_payment_bloc.dart';
@@ -7,7 +8,6 @@ import 'package:admin/blocs/online_payment/online_payment_state.dart';
 import 'package:admin/data/models/online_payment.dart';
 import 'package:admin/utils/colors.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:intl/intl.dart';
 
 class OnlinePaymentScreen extends StatefulWidget {
   const OnlinePaymentScreen({super.key});
@@ -32,22 +32,6 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
     }
   }
 
-  // ---------- Helper Functions ----------
-  String formatAmount(dynamic value) {
-    if (value == null) return '0';
-    double numValue = double.tryParse(value.toString()) ?? 0;
-    if (numValue == numValue.roundToDouble()) {
-      return numValue.toInt().toString(); // remove .0
-    } else {
-      return numValue.toStringAsFixed(2); // keep 2 decimals if needed
-    }
-  }
-
-  String formatGoldGram(dynamic value) {
-    if (value == null) return '0.0000';
-    double numValue = double.tryParse(value.toString()) ?? 0;
-    return numValue.toStringAsFixed(4); // always 4 decimals
-  }
 
   Color _statusColor(String status) {
     switch (status.toLowerCase()) {
@@ -94,17 +78,7 @@ class _OnlinePaymentScreenState extends State<OnlinePaymentScreen> {
     if (status == 3 || status == '3') return "failed";
     return "unknown";
   }
-String _formatDate(String? date) {
-  if (date == null || date.isEmpty) return "N/A";
-  try {
-    final parsed = DateTime.tryParse(date);
-    if (parsed != null) {
-      // Only show date (no time)
-      return DateFormat("dd MMM yyyy").format(parsed);
-    }
-  } catch (_) {}
-  return date;
-}
+
 
 
   Widget _infoRow(IconData icon, String text) {
@@ -281,7 +255,7 @@ String _formatDate(String? date) {
                                   children: [
                                     _infoRow(
                                       Icons.calendar_today,
-                                      _formatDate(payment.transactionDate),
+                                      formatDate(payment.transactionDate),
                                     ),
                                     const Divider(height: 24),
 
@@ -320,7 +294,7 @@ String _formatDate(String? date) {
                                             ),
                                             const SizedBox(width: 4),
                                             Text(
-                                              "${formatGoldGram(payment.transactionGoldGram)} gm",
+                                              "${formatGram(payment.transactionGoldGram)} gm",
                                               style: const TextStyle(
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.w600,

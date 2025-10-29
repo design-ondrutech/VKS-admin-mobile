@@ -1,18 +1,11 @@
 import 'package:admin/screens/dashboard/customer/customer_detail/model/customer_details_model.dart';
+import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class CustomerDetailScreen extends StatelessWidget {
   final CustomerDetails details;
   const CustomerDetailScreen({super.key, required this.details});
-
-  String formatDate(String apiDate) {
-    try {
-      return DateFormat('dd-MM-yyyy').format(DateTime.parse(apiDate));
-    } catch (e) {
-      return apiDate;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,25 +53,26 @@ class CustomerDetailScreen extends StatelessWidget {
                 children: [
                   _summaryItem(
                     "Total Paid",
-                    "₹${(details.summary?.totalPaidAmount ?? 0).toStringAsFixed(0)}",
+                    "₹${formatAmount(details.summary?.totalPaidAmount)}",
                     Icons.account_balance_wallet,
                     Colors.green,
                   ),
+
                   _summaryItem(
                     "Gold Weight",
-                    "${(details.summary?.totalPaidGoldWeight ?? 0)} g",
+                    "${formatGram(details.summary?.totalPaidGoldWeight)} g",
                     Icons.scale,
                     Colors.orange,
                   ),
                   _summaryItem(
                     "Benefit Gold",
-                    "${details.summary?.totalBenefitGram ?? 0} g",
+                    "${formatGram(details.summary?.totalBenefitGram)} g",
                     Icons.trending_up,
                     Colors.blue,
                   ),
                   _summaryItem(
                     "Bonus Gold",
-                    "${details.summary?.totalBonusGoldWeight ?? 0} g",
+                    "${formatGram(details.summary?.totalBonusGoldWeight)} g",
                     Icons.card_giftcard,
                     Colors.purple,
                   ),
@@ -302,28 +296,31 @@ class _ExpandableSavingCardState extends State<_ExpandableSavingCard> {
                 _infoRow(
                   Icons.wallet,
                   "Total Amount",
-                  "₹${saving.totalAmount.toStringAsFixed(0)}",
+                  "₹${formatAmount(saving.totalAmount)}",
                 ),
+
                 _infoRow(
                   Icons.workspace_premium,
                   "Total Gold (with Benefit)",
-                  "${(saving.totalBonusGoldWeight).toStringAsFixed(4)} g",
+                  "${formatGram(saving.totalBonusGoldWeight)} g",
                 ),
                 _infoRow(
                   Icons.scale,
                   "Total Gold (Without Benefit)",
-                  "${saving.totalGoldWeight} g",
+                  "${formatGram(saving.totalGoldWeight)} g",
                 ),
+
                 _infoRow(
                   Icons.date_range,
                   "Start Date",
-                  widget.formatDate(saving.startDate),
+                  formatDate(saving.startDate),
                 ),
                 _infoRow(
                   Icons.date_range,
                   "End Date",
-                  widget.formatDate(saving.endDate),
+                  formatDate(saving.endDate),
                 ),
+
                 const SizedBox(height: 12),
                 if (saving.transactions.isNotEmpty)
                   _stripedTable(saving.transactions)
@@ -346,20 +343,19 @@ class _ExpandableSavingCardState extends State<_ExpandableSavingCard> {
     IconData icon;
     String label;
 
- if (normalized == 'completed' || normalized == 'complete') {
-  color = Colors.green.shade800; //  green for completed
-  icon = Icons.check_circle;
-  label = 'Completed';
-} else if (normalized == 'active' || normalized == 'progress') {
-  color = Colors.amber.shade800; // yellow for progress
-  icon = Icons.timelapse;
-  label = 'Progress';
-} else {
-  color = Colors.grey;
-  icon = Icons.help_outline;
-  label = status;
-}
-
+    if (normalized == 'completed' || normalized == 'complete') {
+      color = Colors.green.shade800; //  green for completed
+      icon = Icons.check_circle;
+      label = 'Completed';
+    } else if (normalized == 'active' || normalized == 'progress') {
+      color = Colors.amber.shade800; // yellow for progress
+      icon = Icons.timelapse;
+      label = 'Progress';
+    } else {
+      color = Colors.grey;
+      icon = Icons.help_outline;
+      label = status;
+    }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -408,9 +404,9 @@ class _ExpandableSavingCardState extends State<_ExpandableSavingCard> {
   Widget _stripedTable(List<Transaction> transactions) {
     return Table(
       columnWidths: const {
-        0: FlexColumnWidth(1.4),
+        0: FlexColumnWidth(1.5),
         1: FlexColumnWidth(1.2),
-        2: FlexColumnWidth(1.2),
+        2: FlexColumnWidth(1.5),
         3: FlexColumnWidth(1),
       },
       border: TableBorder.all(color: Colors.grey.shade300, width: 1),
@@ -458,16 +454,17 @@ class _ExpandableSavingCardState extends State<_ExpandableSavingCard> {
             children: [
               Padding(
                 padding: const EdgeInsets.all(8),
-                child: Text(widget.formatDate(tx.transactionDate)),
+                child: Text(formatDate(tx.transactionDate)),
               ),
               Padding(
                 padding: const EdgeInsets.all(8),
-                child: Text("₹${tx.transactionAmount.toStringAsFixed(0)}"),
+                child: Text("₹${formatAmount(tx.transactionAmount)}"),
               ),
               Padding(
                 padding: const EdgeInsets.all(8),
-                child: Text("${tx.transactionGoldGram} g"),
+                child: Text("${formatGram(tx.transactionGoldGram)} g"),
               ),
+
               Padding(
                 padding: const EdgeInsets.all(8),
                 child: Text(tx.transactionType),

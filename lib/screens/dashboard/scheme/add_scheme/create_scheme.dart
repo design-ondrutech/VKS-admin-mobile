@@ -191,7 +191,6 @@ class _AddUpdateSchemeDialogState extends State<AddUpdateSchemeDialog> {
                         if (value.isNotEmpty) {
                           int val = int.tryParse(value) ?? 0;
                           if (val > 20) {
-                            // If user types > 20, set it back to 20
                             durationCtrl.text = '20';
                             durationCtrl.selection = TextSelection.fromPosition(
                               TextPosition(offset: durationCtrl.text.length),

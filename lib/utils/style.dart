@@ -8,6 +8,7 @@ class ThemeText {
     fontWeight: FontWeight.bold,
   );
 }
+
 // Helper function to format date strings
 String formatDate(String dateStr) {
   try {
@@ -21,18 +22,27 @@ String formatDate(String dateStr) {
 
 String formatAmount(dynamic amount) {
   if (amount == null) return "0";
+
+  final formatter = NumberFormat('#,##,##0.##', 'en_IN'); 
+
   if (amount is num) {
-    // remove trailing .0 if it's an integer
-    if (amount % 1 == 0) {
-      return amount.toInt().toString();
-    } else {
-      return amount.toStringAsFixed(2); // keep 2 decimals if needed
-    }
+    return formatter.format(amount);
   }
-  // handle string case
+
   final parsed = double.tryParse(amount.toString());
   if (parsed == null) return amount.toString();
-  return parsed % 1 == 0 ? parsed.toInt().toString() : parsed.toStringAsFixed(2);
+
+  return formatter.format(parsed);
 }
 
 
+  String formatGram(double? value, {int digits = 4}) {
+    if (value == null) return "0.0000";
+    return value.toStringAsFixed(digits);
+  }
+
+  
+  String getJoinedDate() {
+    final now = DateTime.now();
+    return "${now.day}-${now.month}-${now.year}";
+  }
