@@ -6,7 +6,6 @@ import 'package:admin/utils/colors.dart';
 import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 
 class TotalActiveSchemesScreen extends StatelessWidget {
   const TotalActiveSchemesScreen({super.key});

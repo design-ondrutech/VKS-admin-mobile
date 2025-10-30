@@ -8,6 +8,8 @@ import 'package:admin/data/graphql_config.dart';
 import 'package:admin/services/network_service.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
+    GlobalKey<ScaffoldMessengerState>(); //  Global messenger
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,40 +40,38 @@ class _MyAppState extends State<MyApp> {
 
     //  Listen to network status changes
     NetworkService().onStatusChange.listen((online) {
-      final context = navigatorKey.currentContext;
-      if (context == null) return;
+      final messenger = scaffoldMessengerKey.currentState;
+      if (messenger == null) return;
 
       if (!online) {
-        //  Show offline snackbar (if not already visible)
-        _snackbarController ??= ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                "You’re offline. Please check your connection.",
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-              ),
-              backgroundColor: Colors.redAccent,
-              behavior: SnackBarBehavior.floating,
-              duration: Duration(days: 1),
+        _snackbarController ??= messenger.showSnackBar(
+          const SnackBar(
+            content: Text(
+              "You’re offline. Please check your connection.",
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
             ),
-          );
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(days: 1),
+          ),
+        );
       } else {
-        //  Hide offline snackbar
         _snackbarController?.close();
         _snackbarController = null;
 
         //  Show back online message
-        _showOnlineSnackbar(context);
+        _showOnlineSnackbar(messenger);
       }
     });
   }
 
   // ---------------- SNACKBAR HANDLERS ----------------
 
-  void _showOnlineSnackbar(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
+  void _showOnlineSnackbar(ScaffoldMessengerState messenger) {
+    messenger.showSnackBar(
       const SnackBar(
         content: Text(
-          "Back online ",
+          "Back online",
           style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
         ),
         backgroundColor: Colors.green,
@@ -87,6 +87,8 @@ class _MyAppState extends State<MyApp> {
       client: ValueNotifier(widget.graphQLClient),
       child: MaterialApp(
         navigatorKey: navigatorKey,
+        scaffoldMessengerKey:
+            scaffoldMessengerKey, // global messenger registered here
         title: 'VKS Admin',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(primarySwatch: Colors.deepPurple),

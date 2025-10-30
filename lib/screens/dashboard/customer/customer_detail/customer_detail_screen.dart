@@ -1,7 +1,6 @@
 import 'package:admin/screens/dashboard/customer/customer_detail/model/customer_details_model.dart';
 import 'package:admin/utils/style.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class CustomerDetailScreen extends StatelessWidget {
   final CustomerDetails details;
@@ -404,7 +403,7 @@ class _ExpandableSavingCardState extends State<_ExpandableSavingCard> {
   Widget _stripedTable(List<Transaction> transactions) {
     return Table(
       columnWidths: const {
-        0: FlexColumnWidth(1.5),
+        0: FlexColumnWidth(1.6),
         1: FlexColumnWidth(1.2),
         2: FlexColumnWidth(1.5),
         3: FlexColumnWidth(1),

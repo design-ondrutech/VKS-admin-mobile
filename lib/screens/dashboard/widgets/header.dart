@@ -11,8 +11,13 @@ import 'package:admin/utils/colors.dart';
 
 class DashboardTopHeader extends StatefulWidget {
   final GlobalKey<ScaffoldState>? scaffoldKey;
+  final bool isRefreshing; //  add this
 
-  const DashboardTopHeader({super.key, this.scaffoldKey});
+  const DashboardTopHeader({
+    super.key,
+    this.scaffoldKey,
+    this.isRefreshing = false, //  default false
+  });
 
   @override
   State<DashboardTopHeader> createState() => _DashboardTopHeaderState();
@@ -29,7 +34,7 @@ class _DashboardTopHeaderState extends State<DashboardTopHeader> {
     context.read<GoldPriceBloc>().add(const FetchGoldPriceEvent());
 
     // Auto refresh every 30 seconds
-    _autoRefreshTimer = Timer.periodic(const Duration(seconds: 130), (timer) {
+    _autoRefreshTimer = Timer.periodic(const Duration(seconds: 150), (timer) {
       context.read<GoldPriceBloc>().add(const FetchGoldPriceEvent());
     });
   }
@@ -81,7 +86,7 @@ class _DashboardTopHeaderState extends State<DashboardTopHeader> {
 
                 BlocBuilder<GoldPriceBloc, GoldPriceState>(
                   builder: (context, state) {
-                    if (state is GoldPriceLoading) {
+                    if (state is GoldPriceLoading && !widget.isRefreshing) {
                       return const Padding(
                         padding: EdgeInsets.symmetric(vertical: 8.0),
                         child: SizedBox(
