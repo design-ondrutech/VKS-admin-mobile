@@ -127,6 +127,7 @@ class _AddUpdateSchemeDialogState extends State<AddUpdateSchemeDialog> {
                       decoration: _dropdownDecoration("Scheme Type"),
                     ),
                     const SizedBox(height: 12),
+                    if (selectedType == "fixed")...[
                     DropdownButtonFormField<String>(
                       value: selectedDurationType,
                       items: const [
@@ -140,6 +141,7 @@ class _AddUpdateSchemeDialogState extends State<AddUpdateSchemeDialog> {
                           (val) => setState(() => selectedDurationType = val!),
                       decoration: _dropdownDecoration("Duration Type"),
                     ),
+                        ],
                     const SizedBox(height: 12),
                     _buildTextField("Benefits", benefitsCtrl),
                     const SizedBox(height: 12),

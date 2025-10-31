@@ -118,7 +118,6 @@ class AuthRepository {
 
 // Dashboard Repository
 
-
 class CardRepository {
   final GraphQLClient client;
 
@@ -149,6 +148,7 @@ class CardRepository {
       if (result.hasException) {
         final message = result.exception.toString();
 
+        //  Handle network issues separately
         if (message.contains("SocketException") ||
             message.contains("Failed host lookup") ||
             message.contains("Network is unreachable") ||
@@ -157,13 +157,17 @@ class CardRepository {
           throw Exception("Network Error – Please check your connection.");
         }
 
-        if (message.contains("TokenExpiredError") ||
+        //  Skip expired-token error (Interceptor already handles it)
+        if (message.contains("Access token expired") ||
+            message.contains("TokenExpiredError") ||
             message.contains("jwt expired") ||
             message.contains("Invalid token") ||
             message.contains("Unauthorized")) {
-          throw Exception("Session expired. Please log in again.");
+          print("⚠️ Token expired — handled by interceptor, skipping UI error");
+          return Future.error("HandledTokenExpired");
         }
 
+        //  Other unknown errors
         throw Exception("Something went wrong. Please try again.");
       }
 
@@ -179,7 +183,6 @@ class CardRepository {
     }
   }
 }
-
 
 // Scheme Repository
 

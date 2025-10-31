@@ -9,10 +9,15 @@ class CardBloc extends Bloc<CardEvent, CardState> {
   CardBloc(this.repository) : super(CardLoading()) {
     on<FetchCardSummary>((event, emit) async {
       emit(CardLoading());
+
       try {
         final summary = await repository.fetchSummary();
         emit(CardLoaded(summary));
       } catch (e) {
+        if (e.toString().contains("HandledTokenExpired")) {
+          return;
+        }
+
         emit(CardError(e.toString()));
       }
     });

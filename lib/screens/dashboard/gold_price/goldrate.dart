@@ -156,16 +156,19 @@ class _GoldPriceScreenState extends State<GoldPriceScreen> {
                     },
                   ),
                 );
-              } else if (state is GoldPriceError) {
-                // Hide UI text for network-related errors (handled by snackbar)
-                if (ErrorHelper.isNetworkError(state.message)) {
-                  return const SizedBox();
+              }
+              if (state is GoldPriceError) {
+                final message = ErrorHelper.getFriendlyMessage(state.message);
+
+                if (state.message.contains("Access token expired") ||
+                    state.message.contains("HandledTokenExpired") ||
+                    ErrorHelper.isNetworkError(state.message)) {
+                  return const SizedBox.shrink();
                 }
 
-                // Show other (valid) errors nicely
                 return Center(
                   child: Text(
-                    state.message,
+                    message,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       color: Colors.redAccent,

@@ -10,11 +10,13 @@ import 'package:admin/utils/style.dart';
 class FixedPaymentHistoryWidget extends StatelessWidget {
   final List<History> history;
   final String savingId;
+  final bool goldDelivered; // ✅ NEW
 
   const FixedPaymentHistoryWidget({
     super.key,
     required this.history,
     required this.savingId,
+    required this.goldDelivered, // ✅ NEW
   });
 
   @override
@@ -28,16 +30,12 @@ class FixedPaymentHistoryWidget extends StatelessWidget {
       );
     }
 
-    // Find fixed amount
-    double fixedAmount =
-        history
-            .firstWhere((tx) => tx.amount > 0, orElse: () => history.first)
-            .amount;
+    double fixedAmount = history
+        .firstWhere((tx) => tx.amount > 0, orElse: () => history.first)
+        .amount;
 
-    // Find first unpaid
-    int firstUnpaidIndex = history.indexWhere(
-      (t) => t.status.toLowerCase() != "paid",
-    );
+    int firstUnpaidIndex =
+        history.indexWhere((t) => t.status.toLowerCase() != "paid");
 
     return BlocConsumer<TotalActiveBloc, TotalActiveState>(
       listener: (context, state) async {
@@ -45,26 +43,23 @@ class FixedPaymentHistoryWidget extends StatelessWidget {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               backgroundColor: Colors.green[700],
-              content: Text(
-                "Payment Successful",
-                style: const TextStyle(color: Colors.white),
+              content: const Text(
+                "✅ Payment Successful",
+                style: TextStyle(color: Colors.white),
               ),
             ),
           );
 
-          // short delay before refresh for smooth transition
           await Future.delayed(const Duration(milliseconds: 500));
-
-          // refresh data after success
-          context.read<TotalActiveBloc>().add(
-            FetchTotalActiveSchemes(page: 1, limit: 10),
-          );
+          context
+              .read<TotalActiveBloc>()
+              .add(FetchTotalActiveSchemes(page: 1, limit: 10));
         } else if (state is CashPaymentFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               backgroundColor: Colors.red[700],
               content: Text(
-                "Payment Failed ❌: ${state.message}",
+                "❌ Payment Failed: ${state.message}",
                 style: const TextStyle(color: Colors.white),
               ),
             ),
@@ -74,63 +69,164 @@ class FixedPaymentHistoryWidget extends StatelessWidget {
       builder: (context, state) {
         bool isLoading = state is CashPaymentLoading;
         String? currentPayingId;
-
-        if (state is CashPaymentLoading) {
-          currentPayingId = state.savingId;
-        }
+        if (state is CashPaymentLoading) currentPayingId = state.savingId;
 
         return AnimatedSwitcher(
           duration: const Duration(milliseconds: 600),
-          child: Column(
-            key: ValueKey(DateTime.now().millisecondsSinceEpoch),
-            children:
-                history.asMap().entries.map((entry) {
-                  final idx = entry.key;
-                  final tx = entry.value;
-
-                  bool isPaid = tx.status.toLowerCase() == "paid";
-                  bool isNextDue = !isPaid && idx == firstUnpaidIndex;
-
-                  // lock button while processing
-                  bool isButtonLocked =
-                      isLoading && currentPayingId == savingId && isNextDue;
-
-                  return Card(
-                    elevation: 2,
-                    margin: const EdgeInsets.symmetric(vertical: 6),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    color:
-                        isPaid
-                            ? Colors.green[50]
-                            : isNextDue
-                            ? Colors.yellow[50]
-                            : Colors.grey[100],
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
+          child: goldDelivered
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // ✅ Success message
+                    Container(
+                      margin: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.green[50],
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.green.shade200),
+                      ),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Top row
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "₹${formatAmount(fixedAmount)}",
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                ),
+                          const Icon(Icons.check_circle,
+                              color: Colors.green, size: 48),
+                          const SizedBox(height: 12),
+                          const Text(
+                            "Gold Fully Delivered",
+                            style: TextStyle(
+                              color: Colors.green,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            "All payments are completed and gold has been delivered to the customer.",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.black54),
+                          ),
+                          const SizedBox(height: 14),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 8, horizontal: 14),
+                            decoration: BoxDecoration(
+                              color: Colors.green.shade100,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Text(
+                              "✨ Scheme Completed Successfully",
+                              style: TextStyle(
+                                color: Colors.green,
+                                fontWeight: FontWeight.w600,
                               ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
 
-                              InkWell(
-                                onTap:
-                                    isNextDue && !isButtonLocked
-                                        ? () async {
-                                          final confirm = await showDialog<
-                                            bool
-                                          >(
+                    // ✅ Show entire payment history
+                    ...history.map((tx) {
+                      bool isPaid = tx.status.toLowerCase() == "paid";
+                      return Card(
+                        elevation: 2,
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 6, horizontal: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        color: isPaid ? Colors.green[50] : Colors.grey[100],
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "₹${formatAmount(tx.amount)}",
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.green[100],
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 6,
+                                      horizontal: 12,
+                                    ),
+                                    child: const Text(
+                                      "PAID",
+                                      style: TextStyle(
+                                        color: Colors.green,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              Text("Due: ${formatDate(tx.dueDate)}"),
+                              Text(
+                                "Paid: ${tx.paidDate.isNotEmpty ? formatDate(tx.paidDate) : '-'}",
+                              ),
+                              Text("Mode: ${tx.paymentMode}"),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ],
+                )
+              : // 🔹 Default (active scheme payment flow)
+              Column(
+                  key: ValueKey(DateTime.now().millisecondsSinceEpoch),
+                  children: history.asMap().entries.map((entry) {
+                    final idx = entry.key;
+                    final tx = entry.value;
+                    bool isPaid = tx.status.toLowerCase() == "paid";
+                    bool isNextDue = !isPaid && idx == firstUnpaidIndex;
+                    bool isButtonLocked = isLoading &&
+                        currentPayingId == savingId &&
+                        isNextDue;
+
+                    return Card(
+                      elevation: 2,
+                      margin: const EdgeInsets.symmetric(vertical: 6),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      color: isPaid
+                          ? Colors.green[50]
+                          : isNextDue
+                              ? Colors.yellow[50]
+                              : Colors.grey[100],
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "₹${formatAmount(fixedAmount)}",
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: isNextDue && !isButtonLocked
+                                      ? () async {
+                                          final confirm = await showDialog<bool>(
                                             context: context,
                                             builder: (context) {
                                               return AlertDialog(
@@ -152,8 +248,7 @@ class FixedPaymentHistoryWidget extends StatelessWidget {
                                                     const Text(
                                                       "You are about to pay:",
                                                       style: TextStyle(
-                                                        fontSize: 16,
-                                                      ),
+                                                          fontSize: 16),
                                                     ),
                                                     const SizedBox(height: 8),
                                                     Text(
@@ -177,39 +272,34 @@ class FixedPaymentHistoryWidget extends StatelessWidget {
                                                 ),
                                                 actions: [
                                                   TextButton(
-                                                    onPressed:
-                                                        () => Navigator.pop(
-                                                          context,
-                                                          false,
-                                                        ),
+                                                    onPressed: () =>
+                                                        Navigator.pop(
+                                                            context, false),
                                                     child: const Text(
                                                       "Cancel",
                                                       style: TextStyle(
-                                                        color: Colors.grey,
-                                                      ),
+                                                          color: Colors.grey),
                                                     ),
                                                   ),
                                                   ElevatedButton(
-                                                    style: ElevatedButton.styleFrom(
+                                                    style: ElevatedButton
+                                                        .styleFrom(
                                                       backgroundColor:
                                                           Appcolors.buttoncolor,
-                                                      shape: RoundedRectangleBorder(
+                                                      shape:
+                                                          RoundedRectangleBorder(
                                                         borderRadius:
-                                                            BorderRadius.circular(
-                                                              8,
-                                                            ),
+                                                            BorderRadius
+                                                                .circular(8),
                                                       ),
                                                     ),
-                                                    onPressed:
-                                                        () => Navigator.pop(
-                                                          context,
-                                                          true,
-                                                        ),
+                                                    onPressed: () =>
+                                                        Navigator.pop(
+                                                            context, true),
                                                     child: const Text(
                                                       "Confirm",
                                                       style: TextStyle(
-                                                        color: Colors.white,
-                                                      ),
+                                                          color: Colors.white),
                                                     ),
                                                   ),
                                                 ],
@@ -218,40 +308,38 @@ class FixedPaymentHistoryWidget extends StatelessWidget {
                                           );
 
                                           if (confirm == true) {
-                                            context.read<TotalActiveBloc>().add(
-                                              AddCashPayment(
-                                                savingId: savingId,
-                                                amount: fixedAmount,
-                                              ),
-                                            );
+                                            context
+                                                .read<TotalActiveBloc>()
+                                                .add(AddCashPayment(
+                                                  savingId: savingId,
+                                                  amount: fixedAmount,
+                                                ));
                                           }
                                         }
-                                        : null,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color:
-                                        isPaid
-                                            ? Colors.green[100]
-                                            : isNextDue
-                                            ? Colors.blue[50]
-                                            : Colors.grey[300],
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 6,
-                                    horizontal: 12,
-                                  ),
-                                  child:
-                                      (isButtonLocked && isNextDue)
-                                          ? Row(
+                                      : null,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: isPaid
+                                          ? Colors.green[100]
+                                          : isNextDue
+                                              ? Colors.blue[50]
+                                              : Colors.grey[300],
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 6,
+                                      horizontal: 12,
+                                    ),
+                                    child: (isButtonLocked && isNextDue)
+                                        ? Row(
                                             children: const [
                                               SizedBox(
                                                 height: 16,
                                                 width: 16,
                                                 child:
                                                     CircularProgressIndicator(
-                                                      strokeWidth: 2,
-                                                    ),
+                                                  strokeWidth: 2,
+                                                ),
                                               ),
                                               SizedBox(width: 6),
                                               Text(
@@ -263,40 +351,36 @@ class FixedPaymentHistoryWidget extends StatelessWidget {
                                               ),
                                             ],
                                           )
-                                          : Text(
+                                        : Text(
                                             isPaid
                                                 ? "PAID"
                                                 : isNextDue
-                                                ? "Pay Now"
-                                                : "Pending",
+                                                    ? "Pay Now"
+                                                    : "Pending",
                                             style: TextStyle(
-                                              color:
-                                                  isPaid
-                                                      ? Colors.green
-                                                      : isNextDue
+                                              color: isPaid
+                                                  ? Colors.green
+                                                  : isNextDue
                                                       ? Colors.blue
                                                       : Colors.grey[700],
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 6),
-
-                          Text("Due: ${formatDate(tx.dueDate)}"),
-                          Text(
-                            "Paid: ${tx.paidDate.isNotEmpty ? formatDate(tx.paidDate) : '-'}",
-                          ),
-                          Text("Mode: ${tx.paymentMode}"),
-                        ],
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text("Due: ${formatDate(tx.dueDate)}"),
+                            Text(
+                                "Paid: ${tx.paidDate.isNotEmpty ? formatDate(tx.paidDate) : '-'}"),
+                            Text("Mode: ${tx.paymentMode}"),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                }).toList(),
-          ),
+                    );
+                  }).toList(),
+                ),
         );
       },
     );

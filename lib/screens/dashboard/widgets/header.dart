@@ -144,18 +144,24 @@ class _DashboardTopHeaderState extends State<DashboardTopHeader> {
                     }
 
                     if (state is GoldPriceError) {
-                      // hide text if it’s just a network issue
-                      if (ErrorHelper.isNetworkError(state.message)) {
-                        return const SizedBox(); // snackbar handles it globally
+                      final message = ErrorHelper.getFriendlyMessage(
+                        state.message,
+                      );
+
+                      if (state.message.contains("Access token expired") ||
+                          state.message.contains("HandledTokenExpired") ||
+                          ErrorHelper.isNetworkError(state.message)) {
+                        return const SizedBox.shrink();
                       }
 
-                      // otherwise show clean error text
-                      return Text(
-                        state.message,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.redAccent,
-                          fontWeight: FontWeight.w600,
+                      return Center(
+                        child: Text(
+                          message,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.redAccent,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       );
                     }

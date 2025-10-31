@@ -38,9 +38,10 @@ class TotalActiveSchemeResponse {
     final int totalPages = (limit > 0) ? (totalCount / limit).ceil() : 1;
 
     return TotalActiveSchemeResponse(
-      data: (json['data'] as List? ?? [])
-          .map((e) => TotalActiveScheme.fromJson(e))
-          .toList(),
+      data:
+          (json['data'] as List? ?? [])
+              .map((e) => TotalActiveScheme.fromJson(e))
+              .toList(),
       limit: limit,
       page: page,
       totalCount: totalCount,
@@ -79,8 +80,6 @@ class TotalActiveSchemeResponse {
   }
 }
 
-
-
 // =============================
 //  TOTAL ACTIVE SCHEME MODEL
 // =============================
@@ -101,7 +100,7 @@ class TotalActiveScheme {
   final bool isCompleted;
   final double percentage;
   final double totalAmount;
-  final double goldDelivered;
+  final bool goldDelivered;
   final double deliveredGoldWeight;
   final double pendingGoldWeight;
   final double pendingAmount;
@@ -153,15 +152,17 @@ class TotalActiveScheme {
       isCompleted: json['is_completed'] ?? false,
       percentage: parseDouble(json['percentage']),
       totalAmount: parseDouble(json['totalAmount']),
-      goldDelivered: parseDouble(json['gold_delivered']),
+      goldDelivered: json['gold_delivered'] == true,
       deliveredGoldWeight: parseDouble(json['delivered_gold_weight']),
       pendingGoldWeight: parseDouble(json['pending_gold_weight']),
       pendingAmount: parseDouble(json['pending_amount']),
       totalBenefitGram: (json['total_benefit_gram'] as num?)?.toDouble(),
-      tottalbonusgoldweight: (json['tottalbonusgoldweight'] as num?)?.toDouble(),
-      history: (json['history'] as List? ?? [])
-          .map((e) => History.fromJson(e))
-          .toList(),
+      tottalbonusgoldweight:
+          (json['tottalbonusgoldweight'] as num?)?.toDouble(),
+      history:
+          (json['history'] as List? ?? [])
+              .map((e) => History.fromJson(e))
+              .toList(),
     );
   }
 
@@ -182,7 +183,7 @@ class TotalActiveScheme {
     bool? isCompleted,
     double? percentage,
     double? totalAmount,
-    double? goldDelivered,
+    bool? goldDelivered,
     double? deliveredGoldWeight,
     double? pendingGoldWeight,
     double? pendingAmount,
@@ -249,14 +250,14 @@ class History {
   }
 
   Map<String, dynamic> toJson() => {
-        'dueDate': dueDate,
-        'status': status,
-        'paidDate': paidDate,
-        'paymentMode': paymentMode,
-        'monthly_amount': monthlyAmount,
-        'goldWeight': goldWeight,
-        'amount': amount,
-      };
+    'dueDate': dueDate,
+    'status': status,
+    'paidDate': paidDate,
+    'paymentMode': paymentMode,
+    'monthly_amount': monthlyAmount,
+    'goldWeight': goldWeight,
+    'amount': amount,
+  };
 
   History copyWith({
     String? dueDate,

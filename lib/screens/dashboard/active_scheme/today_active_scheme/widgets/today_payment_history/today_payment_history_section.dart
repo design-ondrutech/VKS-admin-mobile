@@ -98,11 +98,14 @@ class _TodayPaymentHistorySectionState
               key: ValueKey("${widget.scheme.savingId}_flexible"),
               history: widget.scheme.history,
               savingId: widget.scheme.savingId,
+              scheme: widget.scheme,
             )
           : TodayFixedPaymentWidget(
               key: ValueKey("${widget.scheme.savingId}_fixed"),
               history: widget.scheme.history,
               savingId: widget.scheme.savingId,
+              goldDelivered: widget.scheme.goldDelivered,
+             
             ),
     );
   }

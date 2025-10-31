@@ -74,16 +74,20 @@ class SchemesTab extends StatelessWidget {
   Widget _buildStateUI(BuildContext context, SchemesState state) {
     if (state is SchemeLoading) {
       return const Center(child: CircularProgressIndicator());
-    } else if (state is SchemeError) {
-      // Hide network-related errors (snackbar will handle it)
-      if (ErrorHelper.isNetworkError(state.error)) {
-        return const SizedBox();
+    }
+    if (state is SchemeError) {
+      final message = ErrorHelper.getFriendlyMessage(state.error);
+
+      if (state.error.contains("Access token expired") ||
+          state.error.contains("HandledTokenExpired") ||
+          ErrorHelper.isNetworkError(state.error)) {
+        return const SizedBox.shrink();
       }
 
-      // Show other errors normally
       return Center(
         child: Text(
-          state.error,
+          message,
+          textAlign: TextAlign.center,
           style: const TextStyle(
             color: Colors.redAccent,
             fontWeight: FontWeight.w600,

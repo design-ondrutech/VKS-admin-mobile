@@ -11,11 +11,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 class TodayFlexiblePaymentWidget extends StatefulWidget {
   final List<PaymentHistory> history;
   final String savingId;
+  final TodayActiveScheme scheme; //  add this
 
   const TodayFlexiblePaymentWidget({
     super.key,
     required this.history,
     required this.savingId,
+    required this.scheme, //  add this
   });
 
   @override
@@ -82,96 +84,156 @@ class _TodayFlexiblePaymentWidgetState
               ),
               child: Padding(
                 padding: const EdgeInsets.all(12),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _amountCtrl,
-                        decoration: InputDecoration(
-                          hintText: "Enter amount",
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 10,
+                child:
+                    widget.scheme.goldDelivered == true
+                        ? Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade50,
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    ElevatedButton(
-                      onPressed:
-                          isProcessing
-                              ? null
-                              : () async {
-                                final entered = _amountCtrl.text.trim();
-                                final amount = double.tryParse(entered);
-
-                                if (entered.isEmpty ||
-                                    amount == null ||
-                                    amount <= 0) {
-                                  _showAlert(
-                                    context,
-                                    "Invalid Amount",
-                                    "Please enter a valid number",
-                                  );
-                                  return;
-                                }
-
-                                final confirm = await _showConfirmDialog(
-                                  context,
-                                  amount,
-                                );
-                                if (confirm == true) {
-                                  context.read<TodayActiveSchemeBloc>().add(
-                                    AddCashCustomerSavingEvent(
-                                      savingId: widget.savingId,
-                                      amount: amount,
-                                    ),
-                                  );
-
-                                  setState(() {
-                                    isProcessing = true;
-                                  });
-                                }
-                              },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Appcolors.buttoncolor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child:
-                          isProcessing
-                              ? Row(
-                                children: const [
-                                  SizedBox(
-                                    height: 18,
-                                    width: 18,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    "Processing...",
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ],
-                              )
-                              : const Text(
-                                "Pay Now",
-                                style: TextStyle(color: Colors.white),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.check_circle,
+                                color: Colors.green,
+                                size: 40,
                               ),
-                    ),
-                  ],
-                ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                "Gold Fully Delivered",
+                                style: TextStyle(
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              const Text(
+                                "All payments are completed and gold has been delivered to the customer.\nPayments are now disabled.",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.green,
+                                  fontSize: 13.5,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.shade200,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: const Text(
+                                  "✨ Scheme Completed Successfully",
+                                  style: TextStyle(
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                        : Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _amountCtrl,
+                                decoration: InputDecoration(
+                                  hintText: "Enter amount",
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 10,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            ElevatedButton(
+                              onPressed:
+                                  isProcessing
+                                      ? null
+                                      : () async {
+                                        final entered = _amountCtrl.text.trim();
+                                        final amount = double.tryParse(entered);
+
+                                        if (entered.isEmpty ||
+                                            amount == null ||
+                                            amount <= 0) {
+                                          _showAlert(
+                                            context,
+                                            "Invalid Amount",
+                                            "Please enter a valid number",
+                                          );
+                                          return;
+                                        }
+
+                                        final confirm =
+                                            await _showConfirmDialog(
+                                              context,
+                                              amount,
+                                            );
+                                        if (confirm == true) {
+                                          context
+                                              .read<TodayActiveSchemeBloc>()
+                                              .add(
+                                                AddCashCustomerSavingEvent(
+                                                  savingId: widget.savingId,
+                                                  amount: amount,
+                                                ),
+                                              );
+
+                                          setState(() {
+                                            isProcessing = true;
+                                          });
+                                        }
+                                      },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Appcolors.buttoncolor,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child:
+                                  isProcessing
+                                      ? Row(
+                                        children: const [
+                                          SizedBox(
+                                            height: 18,
+                                            width: 18,
+                                            child: CircularProgressIndicator(
+                                              color: Colors.white,
+                                              strokeWidth: 2,
+                                            ),
+                                          ),
+                                          SizedBox(width: 8),
+                                          Text(
+                                            "Processing...",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                      : const Text(
+                                        "Pay Now",
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                            ),
+                          ],
+                        ),
               ),
             ),
 

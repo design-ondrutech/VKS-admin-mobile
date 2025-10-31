@@ -126,29 +126,30 @@ class _TodaySchemeDetailsSectionState extends State<TodaySchemeDetailsSection> {
   }
 
   Widget _buildLeftSection(TodayActiveScheme scheme) {
-    double totalRequired = (scheme.tottalbonusgoldweight ?? 0);
+
+  
     double delivered = scheme.deliveredGoldWeight;
+    double pending = scheme.pendingGoldWeight;
+    bool goldDelivered = scheme.goldDelivered;
 
     String displayStatus;
     Color badgeColor;
     Color badgeTextColor;
 
-    if (scheme.status.toLowerCase() == "completed") {
-      //  Check if fully delivered or still awaiting
-      if (delivered >= totalRequired && totalRequired > 0) {
-        displayStatus = "Completed & Gold Delivered";
-        badgeColor = Colors.green.shade100;
-        badgeTextColor = Colors.green.shade800;
-      } else {
-        displayStatus = "Completed (Awaiting Delivery)";
-        badgeColor = Colors.orange.shade100;
-        badgeTextColor = Colors.orange.shade800;
-      }
+    if (goldDelivered) {
+      displayStatus = "Completed & Gold Delivered";
+      badgeColor = Colors.green.shade100;
+      badgeTextColor = Colors.green.shade800;
+    } else if (delivered > 0 || pending > 0) {
+      displayStatus = "Completed (Awaiting Delivery)";
+      badgeColor = Colors.orange.shade100;
+      badgeTextColor = Colors.orange.shade800;
     } else {
       displayStatus = "Active";
       badgeColor = Colors.blue.shade100;
       badgeTextColor = Colors.blue.shade800;
     }
+    
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
